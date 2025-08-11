@@ -2,16 +2,15 @@ package storage
 
 import (
 	"crypto/rand"
-	"encoding/base32"
+	"time"
+
+	ulid "github.com/oklog/ulid/v2"
 )
 
-// generateUID creates a lexicographically sortable, ULID-like ID without pulling a new dep.
-// Not a full ULID implementation, but sufficient for local uniqueness and CLI ergonomics.
+// generateUID creates a proper ULID string (26 chars, lexicographically sortable by time)
 func generateUID() string {
-	// 16 random bytes; base32 no padding gives ~26 chars, upper-case.
-	b := make([]byte, 16)
-	_, _ = rand.Read(b)
-	enc := base32.StdEncoding.WithPadding(base32.NoPadding)
-	return enc.EncodeToString(b)
+	entropy := ulid.Monotonic(rand.Reader, 0)
+	id := ulid.MustNew(ulid.Timestamp(time.Now()), entropy)
+	return id.String()
 }
 
