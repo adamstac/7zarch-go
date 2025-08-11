@@ -67,6 +67,34 @@ func (r *Registry) RecordCurrentSchemaAsApplied() error {
 	return nil
 }
 
+const (
+	migrationTrashID   = "0003_trash_fields"
+	migrationTrashName = "Add deleted_at and original_path for trash support"
+)
+
+// ApplyPendingMigrations runs known migrations that haven't been marked applied yet
+func (r *Registry) ApplyPendingMigrations() error {
+	if err := r.EnsureMigrationsTable(); err != nil { return err }
+	// 0001 & 0002 are effectively applied via initSchema + RecordCurrentSchemaAsApplied
+	// 0003: trash support
+	applied, err := r.IsMigrationApplied(migrationTrashID)
+	if err != nil { return err }
+	if !applied {
+		tx, err := r.db.Begin()
+		if err != nil { return err }
+		// Add columns if missing
+		if !columnExists(r.db, "archives", "deleted_at") {
+			if _, err := tx.Exec(`ALTER TABLE archives ADD COLUMN deleted_at TIMESTAMP`); err != nil { tx.Rollback(); return err }
+		}
+		if !columnExists(r.db, "archives", "original_path") {
+			if _, err := tx.Exec(`ALTER TABLE archives ADD COLUMN original_path TEXT`); err != nil { tx.Rollback(); return err }
+		}
+		if err := tx.Commit(); err != nil { return err }
+		if err := r.MarkMigrationApplied(migrationTrashID, migrationTrashName); err != nil { return err }
+	}
+	return nil
+}
+
 func tableExists(db *sql.DB, table string) bool {
 	row := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`, table)
 	var name string

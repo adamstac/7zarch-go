@@ -62,6 +62,8 @@ func (r *Registry) initSchema() error {
 		managed BOOLEAN DEFAULT FALSE,
 		status TEXT NOT NULL DEFAULT 'present',
 		last_seen TIMESTAMP,
+		deleted_at TIMESTAMP,
+		original_path TEXT,
 		uploaded BOOLEAN DEFAULT FALSE,
 		destination TEXT,
 		uploaded_at TIMESTAMP,
@@ -97,8 +99,8 @@ func (r *Registry) initSchema() error {
 // Add inserts a new archive into the registry
 func (r *Registry) Add(archive *Archive) error {
 	query := `
-	INSERT INTO archives (uid, name, path, size, created, checksum, profile, managed, status, last_seen, uploaded, destination, uploaded_at, metadata)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO archives (uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	result, err := r.db.Exec(query,
@@ -112,6 +114,8 @@ func (r *Registry) Add(archive *Archive) error {
 		archive.Managed,
 		archive.Status,
 		archive.LastSeen,
+		archive.DeletedAt,
+		archive.OriginalPath,
 		archive.Uploaded,
 		archive.Destination,
 		archive.UploadedAt,
@@ -134,7 +138,7 @@ func (r *Registry) Add(archive *Archive) error {
 // Get retrieves an archive by name
 func (r *Registry) Get(name string) (*Archive, error) {
 	query := `
-	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, uploaded, destination, uploaded_at, metadata
+	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
 	FROM archives
 	WHERE name = ?
 	`
@@ -152,6 +156,8 @@ func (r *Registry) Get(name string) (*Archive, error) {
 		&archive.Managed,
 		&archive.Status,
 		&archive.LastSeen,
+		&archive.DeletedAt,
+		&archive.OriginalPath,
 		&archive.Uploaded,
 		&archive.Destination,
 		&archive.UploadedAt,
@@ -171,7 +177,7 @@ func (r *Registry) Get(name string) (*Archive, error) {
 // List returns all archives
 func (r *Registry) List() ([]*Archive, error) {
 	query := `
-	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, uploaded, destination, uploaded_at, metadata
+	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
 	FROM archives
 	ORDER BY created DESC
 	`
@@ -197,6 +203,8 @@ func (r *Registry) List() ([]*Archive, error) {
 			&archive.Managed,
 			&archive.Status,
 			&archive.LastSeen,
+			&archive.DeletedAt,
+			&archive.OriginalPath,
 			&archive.Uploaded,
 			&archive.Destination,
 			&archive.UploadedAt,
@@ -214,7 +222,7 @@ func (r *Registry) List() ([]*Archive, error) {
 // ListNotUploaded returns archives that haven't been uploaded
 func (r *Registry) ListNotUploaded() ([]*Archive, error) {
 	query := `
-	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, uploaded, destination, uploaded_at, metadata
+	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
 	FROM archives
 	WHERE uploaded = FALSE
 	ORDER BY created DESC
@@ -241,6 +249,8 @@ func (r *Registry) ListNotUploaded() ([]*Archive, error) {
 			&archive.Managed,
 			&archive.Status,
 			&archive.LastSeen,
+			&archive.DeletedAt,
+			&archive.OriginalPath,
 			&archive.Uploaded,
 			&archive.Destination,
 			&archive.UploadedAt,
@@ -259,7 +269,7 @@ func (r *Registry) ListNotUploaded() ([]*Archive, error) {
 func (r *Registry) ListOlderThan(duration time.Duration) ([]*Archive, error) {
 	cutoff := time.Now().Add(-duration)
 	query := `
-	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, uploaded, destination, uploaded_at, metadata
+	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
 	FROM archives
 	WHERE created < ?
 	ORDER BY created DESC
@@ -286,6 +296,8 @@ func (r *Registry) ListOlderThan(duration time.Duration) ([]*Archive, error) {
 			&archive.Managed,
 			&archive.Status,
 			&archive.LastSeen,
+			&archive.DeletedAt,
+			&archive.OriginalPath,
 			&archive.Uploaded,
 			&archive.Destination,
 			&archive.UploadedAt,
@@ -304,7 +316,7 @@ func (r *Registry) ListOlderThan(duration time.Duration) ([]*Archive, error) {
 func (r *Registry) Update(archive *Archive) error {
 	query := `
 	UPDATE archives
-	SET uid = ?, path = ?, size = ?, checksum = ?, profile = ?, managed = ?, status = ?, last_seen = ?, uploaded = ?, destination = ?, uploaded_at = ?, metadata = ?
+	SET uid = ?, path = ?, size = ?, checksum = ?, profile = ?, managed = ?, status = ?, last_seen = ?, deleted_at = ?, original_path = ?, uploaded = ?, destination = ?, uploaded_at = ?, metadata = ?
 	WHERE id = ?
 	`
 
@@ -317,6 +329,8 @@ func (r *Registry) Update(archive *Archive) error {
 		archive.Managed,
 		archive.Status,
 		archive.LastSeen,
+		archive.DeletedAt,
+		archive.OriginalPath,
 		archive.Uploaded,
 		archive.Destination,
 		archive.UploadedAt,
