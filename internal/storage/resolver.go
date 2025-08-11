@@ -28,7 +28,8 @@ type Resolver struct {
 }
 
 func NewResolver(reg *Registry) *Resolver {
-	return &Resolver{reg: reg, MinPrefixLength: 4, MaxCandidates: 50}
+	// Default min ULID prefix length: 12 (covers full timestamp + 2 chars randomness)
+	return &Resolver{reg: reg, MinPrefixLength: 12, MaxCandidates: 50}
 }
 
 func (r *Resolver) Resolve(input string) (*Archive, error) {

@@ -504,10 +504,6 @@ func (r *Registry) FindByChecksumPrefix(prefix string, limit int) ([]*Archive, e
 	return out, rows.Err()
 }
 
-		if _, err := r.db.Exec(`UPDATE archives SET uid = ? WHERE id = ?`, gen(), id); err != nil { return err }
-	}
-	return nil
-}
 
 // Delete removes an archive from the registry
 func (r *Registry) Delete(name string) error {
