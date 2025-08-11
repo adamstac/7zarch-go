@@ -8,7 +8,7 @@ An intelligent archive management tool that optimizes compression based on conte
 - **Concurrent Testing** - Test multiple archives in parallel for 10x faster verification
 - **Configuration Presets** - Save and reuse common archive settings
 - **Comprehensive Mode** - Create archives with checksums and metadata in one command
-- **Single Binary** - No dependencies, runs anywhere Go runs
+- **Single Go Binary** - Runs anywhere Go runs; requires 7-Zip installed
 
 ## Installation
 
@@ -113,7 +113,7 @@ presets:
 - **Size**: ~10% larger than maximum compression
 - **Use case**: Podcast episodes, video projects, photo archives
 
-### Documents Profile  
+### Documents Profile
 - **Best for**: Text, code, office documents
 - **Speed**: Slower but maximum compression
 - **Size**: Smallest possible archive
@@ -209,6 +209,43 @@ Manage configuration.
 - `init` - Create default config file
 - `show` - Display current configuration
 
+
+## Managed Archive Storage
+
+Managed Archive Storage (MAS) is a local workspace that organizes your archives and tracks metadata in a small SQLite registry.
+
+- Default location: `~/.7zarch-go/`
+  - Archives: `~/.7zarch-go/archives/`
+  - Registry: `~/.7zarch-go/registry.db` (0600 permissions)
+- When enabled, `create` will write the output archive into the managed directory by default and register it in the registry.
+- Registration stores: name, path, size, checksum, profile, timestamps, and optional metadata JSON.
+
+### Enabling/Disabling Managed Storage
+
+- Managed storage is on by default (see `storage.use_managed_default` in your config).
+- Disable for a run with `--no-managed` or force an explicit location with `--output`.
+
+### Example
+
+```bash
+# Uses managed storage by default (no --output)
+7zarch-go create ~/Projects/my-app
+
+# Store in a custom location (bypasses managed path)
+7zarch-go create ~/Projects/my-app --output ~/Archives/my-app.7z
+
+# Temporarily disable managed storage
+7zarch-go create ~/Projects/my-app --no-managed
+```
+
+### Viewing Managed Archives
+
+The `list` command is being expanded to surface managed archives and details. For now, you can browse `~/.7zarch-go/archives/` directly.
+
+Planned:
+- `7zarch-go list` to show managed archives (name, size, profile, uploaded state)
+- Filters for not-yet-uploaded, older-than, etc.
+
 ## Real-World Examples
 
 ### Podcast Production Workflow
@@ -232,8 +269,8 @@ Manage configuration.
 # Maximum compression for source code
 7zarch-go create ~/Code/my-project --profile documents --comprehensive
 
-# Quick backup with smart detection
-7zarch-go create ~/Code/website --smart-compression
+# Quick backup with smart detection (default)
+7zarch-go create ~/Code/website
 ```
 
 ### Media Archive Workflow
