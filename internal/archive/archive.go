@@ -293,19 +293,13 @@ func (m *Manager) Test(ctx context.Context, archivePath string) (*TestResult, er
 	return result, nil
 }
 
-// testArchiveIntegrity runs 7z test command
+// testArchiveIntegrity runs 7z test command and relies on exit code for success
 func (m *Manager) testArchiveIntegrity(ctx context.Context, archivePath string) error {
 	cmd := exec.CommandContext(ctx, "7z", "t", archivePath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("integrity test failed: %w\nOutput: %s", err, string(output))
 	}
-	
-	// Check if output contains "Everything is Ok"
-	if !strings.Contains(string(output), "Everything is Ok") {
-		return fmt.Errorf("archive may be corrupted")
-	}
-	
 	return nil
 }
 
@@ -352,29 +346,22 @@ func (m *Manager) validateMetadata(ctx context.Context, archivePath, metadataFil
 	return nil
 }
 
-// listArchiveFiles counts files in archive
+// listArchiveFiles counts files in archive using structured listing (-slt)
 func (m *Manager) listArchiveFiles(ctx context.Context, archivePath string) (int, error) {
-	cmd := exec.CommandContext(ctx, "7z", "l", archivePath)
+	cmd := exec.CommandContext(ctx, "7z", "l", "-slt", "-scsUTF-8", archivePath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return 0, fmt.Errorf("failed to list files: %w", err)
+		return 0, fmt.Errorf("failed to list files: %w\nOutput: %s", err, string(output))
 	}
-	
-	// Count files from output
+
+	// In -slt output, each file section starts with "Path = ...". Count these.
 	lines := strings.Split(string(output), "\n")
 	fileCount := 0
-	inFileList := false
-	
 	for _, line := range lines {
-		if strings.Contains(line, "------------------- ") {
-			inFileList = !inFileList
-			continue
-		}
-		if inFileList && strings.TrimSpace(line) != "" {
+		if strings.HasPrefix(strings.TrimSpace(line), "Path = ") {
 			fileCount++
 		}
 	}
-	
 	return fileCount, nil
 }
 
@@ -410,16 +397,27 @@ func calculateDirectorySize(path string) (int64, error) {
 }
 
 func extractFileCount(output string) int {
-	// Parse 7z output to get file count
+	// Try to parse totals from standard output summary first
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
-		if strings.Contains(line, "files") {
-			// Extract number from line like "15 files, 2048576 bytes"
-			parts := strings.Fields(line)
+		l := strings.TrimSpace(line)
+		// Example patterns observed:
+		// "Files: 15"
+		// "15 files, 2048576 bytes"
+		if strings.HasPrefix(l, "Files:") {
+			var label string
+			var count int
+			if _, err := fmt.Sscanf(l, "%s %d", &label, &count); err == nil {
+				return count
+			}
+		}
+		if strings.Contains(l, " files") {
+			parts := strings.Fields(l)
 			if len(parts) > 0 {
 				var count int
-				fmt.Sscanf(parts[0], "%d", &count)
-				return count
+				if _, err := fmt.Sscanf(parts[0], "%d", &count); err == nil {
+					return count
+				}
 			}
 		}
 	}
