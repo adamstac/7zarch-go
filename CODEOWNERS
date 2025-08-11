@@ -1,0 +1,21 @@
+# Global owners
+* @adamstac
+
+# Storage and MAS system
+/internal/storage/ @adamstac
+/cmd/mas_*.go @adamstac
+
+# Archive management
+/internal/archive/ @adamstac
+/cmd/create.go @adamstac
+/cmd/test.go @adamstac
+
+# Configuration
+/internal/config/ @adamstac
+
+# CI/CD and GitHub workflows
+/.github/ @adamstac
+
+# Documentation
+README.md @adamstac
+*.md @adamstac
