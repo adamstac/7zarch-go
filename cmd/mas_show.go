@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
-	"strconv"
-	"strings"
+	"os"
+	"time"
 
+	"github.com/adamstac/7zarch-go/internal/config"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
 )
@@ -17,13 +17,24 @@ func MasShowCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
-			// Initialize registry via storage manager (reuses managed path config)
-			mgr, err := storage.NewManager(defaultManagedPath())
+			cfg, _ := config.Load()
+			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
 			if err != nil { return fmt.Errorf("failed to init storage: %w", err) }
 			defer mgr.Close()
 
-			arc, err := resolveArchive(mgr, id)
+			resolver := storage.NewResolver(mgr.Registry())
+			arc, err := resolver.Resolve(id)
 			if err != nil { return err }
+
+			// File existence verification + last_seen/status update
+			now := time.Now()
+			if _, statErr := os.Stat(arc.Path); statErr == nil {
+				arc.Status = "present"
+			} else {
+				arc.Status = "missing"
+			}
+			arc.LastSeen = &now
+			_ = mgr.Registry().Update(arc)
 
 			printArchive(arc)
 			return nil
@@ -32,44 +43,18 @@ func MasShowCmd() *cobra.Command {
 	return cmd
 }
 
-func resolveArchive(mgr *storage.Manager, sel string) (*storage.Archive, error) {
-	// 1) numeric id
-	if n, err := strconv.ParseInt(sel, 10, 64); err == nil {
-		list, _ := mgr.List()
-		for _, a := range list { if a.ID == n { return a, nil } }
-	}
-	// 2) uid prefix
-	list, _ := mgr.List()
-	var uidCandidates []*storage.Archive
-	for _, a := range list { if strings.HasPrefix(strings.ToLower(a.UID), strings.ToLower(sel)) { uidCandidates = append(uidCandidates, a) } }
-	if len(uidCandidates) == 1 { return uidCandidates[0], nil }
-	if len(uidCandidates) > 1 { return nil, fmt.Errorf("ambiguous uid prefix; matches %d entries", len(uidCandidates)) }
-	// 3) checksum prefix
-	var chkCandidates []*storage.Archive
-	for _, a := range list { if strings.HasPrefix(strings.ToLower(a.Checksum), strings.ToLower(sel)) { chkCandidates = append(chkCandidates, a) } }
-	if len(chkCandidates) == 1 { return chkCandidates[0], nil }
-	if len(chkCandidates) > 1 { return nil, fmt.Errorf("ambiguous checksum prefix; matches %d entries", len(chkCandidates)) }
-	// 4) name exact
-	if a, err := mgr.Get(sel); err == nil { return a, nil }
-	return nil, errors.New("archive not found; try numeric id, uid prefix, checksum prefix, or exact name")
-}
-
 func printArchive(a *storage.Archive) {
+	status := a.Status
+	if status == "present" { status += " ✓" } else if status == "missing" { status += " ⚠️" }
 	fmt.Printf("UID:        %s\n", a.UID)
 	fmt.Printf("Name:       %s\n", a.Name)
 	fmt.Printf("Path:       %s\n", a.Path)
 	fmt.Printf("Managed:    %t\n", a.Managed)
-	fmt.Printf("Status:     %s\n", a.Status)
+	fmt.Printf("Status:     %s\n", status)
 	fmt.Printf("Size:       %d\n", a.Size)
 	fmt.Printf("Created:    %s\n", a.Created.Format("2006-01-02 15:04:05"))
 	if a.Checksum != "" { fmt.Printf("Checksum:   %s\n", a.Checksum) }
 	if a.Profile != "" { fmt.Printf("Profile:    %s\n", a.Profile) }
 	if a.Uploaded { fmt.Printf("Uploaded:   %t (%s)\n", a.Uploaded, a.Destination) }
-}
-
-// defaultManagedPath returns the default from config if available; fallback to ~/.7zarch-go
-func defaultManagedPath() string {
-	// For now, keep simple and match internal defaults
-	return "~/.7zarch-go"
 }
 
