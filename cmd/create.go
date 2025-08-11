@@ -10,6 +10,7 @@ import (
 
 	"github.com/adamstac/7zarch-go/internal/archive"
 	"github.com/adamstac/7zarch-go/internal/config"
+	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
@@ -26,6 +27,7 @@ var (
 	forceOverwrite  bool
 	profileName     string
 	presetName      string
+	noManaged       bool
 )
 
 func CreateCmd() *cobra.Command {
@@ -42,13 +44,14 @@ func CreateCmd() *cobra.Command {
 	cmd.Flags().IntVarP(&threads, "threads", "t", 0, "Number of threads (0=auto)")
 	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be done without doing it")
-	cmd.Flags().StringVarP(&outputPath, "output", "o", "", "Output path for archive (default: current directory)")
+	cmd.Flags().StringVarP(&outputPath, "output", "o", "", "Output path for archive (default: managed storage)")
 	cmd.Flags().BoolVar(&comprehensive, "comprehensive", false, "Create archive with log and checksums")
 	cmd.Flags().BoolVar(&createLog, "log", false, "Create metadata log file")
 	cmd.Flags().BoolVar(&createChecksums, "checksums", false, "Create SHA256 checksum file")
 	cmd.Flags().BoolVarP(&forceOverwrite, "force", "f", false, "Overwrite existing archive")
 	cmd.Flags().StringVar(&profileName, "profile", "", "Compression profile (media, documents, balanced)")
 	cmd.Flags().StringVar(&presetName, "preset", "", "Use predefined settings preset")
+	cmd.Flags().BoolVar(&noManaged, "no-managed", false, "Don't use managed storage (use current directory)")
 
 	return cmd
 }
@@ -119,19 +122,39 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("source path does not exist: %w", err)
 	}
 
+	// Initialize storage manager if using managed storage
+	var storageManager *storage.Manager
+	var useManaged bool
+	
+	// Determine if we should use managed storage
+	if outputPath == "" && !noManaged && cfg.Storage.UseManagedDefault {
+		// Use managed storage
+		useManaged = true
+		storageManager, err = storage.NewManager(cfg.Storage.ManagedPath)
+		if err != nil {
+			return fmt.Errorf("failed to initialize managed storage: %w", err)
+		}
+		defer storageManager.Close()
+	}
+
 	// Determine archive name and path
 	var archiveName string
+	baseName := filepath.Base(absPath) + ".7z"
+	
 	if outputPath != "" {
-		// Use specified output path
+		// Explicit output path specified
 		if filepath.Ext(outputPath) == ".7z" {
 			archiveName = outputPath
 		} else {
 			// If directory specified, add filename
-			archiveName = filepath.Join(outputPath, filepath.Base(absPath)+".7z")
+			archiveName = filepath.Join(outputPath, baseName)
 		}
+	} else if useManaged {
+		// Use managed storage
+		archiveName = storageManager.GetManagedPath(baseName)
 	} else {
 		// Default to current directory
-		archiveName = filepath.Base(absPath) + ".7z"
+		archiveName = baseName
 	}
 
 	// Enable log and checksums if comprehensive mode
@@ -258,9 +281,21 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// Register in managed storage if applicable
+	if useManaged && storageManager != nil {
+		if err := storageManager.Add(filepath.Base(result.Path), result.Path, result.Size, result.Profile.Name); err != nil {
+			// Non-fatal error - archive was created successfully
+			fmt.Printf("⚠️  Warning: Failed to register archive in managed storage: %v\n", err)
+		}
+	}
+
 	// Print results
 	fmt.Printf("\n✅ Archive created successfully!\n")
-	fmt.Printf("Archive: %s\n", result.Path)
+	if useManaged {
+		fmt.Printf("📦 Stored in managed storage: %s\n", filepath.Base(result.Path))
+	} else {
+		fmt.Printf("Archive: %s\n", result.Path)
+	}
 	fmt.Printf("Size: %.2f MB\n", float64(result.Size)/(1024*1024))
 	fmt.Printf("Files: %d\n", result.FileCount)
 	fmt.Printf("Compression: Level %d (%s profile)\n", result.Profile.Level, result.Profile.Name)
@@ -269,6 +304,10 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	if result.Size > 0 && result.OriginalSize > 0 {
 		ratio := float64(result.Size) / float64(result.OriginalSize) * 100
 		fmt.Printf("Size reduction: %.1f%%\n", 100-ratio)
+	}
+	
+	if useManaged {
+		fmt.Printf("\n💡 Tip: Use '7zarch-go list' to see all managed archives\n")
 	}
 
 	return nil

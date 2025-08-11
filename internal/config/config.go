@@ -15,6 +15,7 @@ type Config struct {
 	Profiles    map[string]CustomProfile `yaml:"profiles"`
 	TrueNAS     TrueNASConfig     `yaml:"truenas"`
 	Presets     map[string]PresetConfig `yaml:"presets"`
+	Storage     StorageConfig     `yaml:"storage"`
 }
 
 type CompressionConfig struct {
@@ -73,6 +74,13 @@ type PresetConfig struct {
 	Exclude       []string `yaml:"exclude"`
 }
 
+type StorageConfig struct {
+	ManagedPath        string `yaml:"managed_path"`
+	UseManagedDefault  bool   `yaml:"use_managed_default"`
+	AutoOrganize       string `yaml:"auto_organize"` // flat, by_date, by_type
+	RetentionDays      int    `yaml:"retention_days"`
+}
+
 // DefaultConfig returns the default configuration
 func DefaultConfig() *Config {
 	return &Config{
@@ -105,6 +113,12 @@ func DefaultConfig() *Config {
 			UploadPath:  "/mnt/tank/archives",
 			VerifySSL:   true,
 			Timeout:     300,
+		},
+		Storage: StorageConfig{
+			ManagedPath:       "~/.7zarch-go",
+			UseManagedDefault: true,
+			AutoOrganize:      "flat",
+			RetentionDays:     30,
 		},
 		Presets: map[string]PresetConfig{
 			"podcast": {
