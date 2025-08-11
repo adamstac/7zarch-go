@@ -14,8 +14,8 @@ import (
 func ListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List managed archives",
-		Long:  `List all archives in managed storage.`,
+		Short: "List archives (managed and external)",
+		Long:  `List registry-tracked archives with filters and grouping.`,
 		RunE:  runList,
 	}
 
@@ -25,6 +25,9 @@ func ListCmd() *cobra.Command {
 	cmd.Flags().Bool("not-uploaded", false, "Show only archives that haven't been uploaded")
 	cmd.Flags().String("pattern", "", "Filter archives by name pattern")
 	cmd.Flags().String("older-than", "", "Show archives older than duration (e.g., '7d', '1h')")
+	cmd.Flags().Bool("managed", false, "Only managed archives")
+	cmd.Flags().Bool("external", false, "Only external archives")
+	cmd.Flags().Bool("missing", false, "Only missing archives")
 
 	return cmd
 }
@@ -35,14 +38,98 @@ func runList(cmd *cobra.Command, args []string) error {
 	notUploaded, _ := cmd.Flags().GetBool("not-uploaded")
 	pattern, _ := cmd.Flags().GetString("pattern")
 	olderThan, _ := cmd.Flags().GetString("older-than")
+	onlyManaged, _ := cmd.Flags().GetBool("managed")
+	onlyExternal, _ := cmd.Flags().GetBool("external")
+	onlyMissing, _ := cmd.Flags().GetBool("missing")
 
 	if directory != "" {
 		// List archives in a specific directory
 		return listDirectory(directory, details, pattern)
 	}
 
-	// List managed archives
-	return listManagedArchives(details, notUploaded, pattern, olderThan)
+	// List registry-tracked archives
+	return listRegistryArchives(details, notUploaded, pattern, olderThan, onlyManaged, onlyExternal, onlyMissing)
+}
+
+
+func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, onlyManaged, onlyExternal, onlyMissing bool) error {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+	// Initialize storage manager
+	storageManager, err := storage.NewManager(cfg.Storage.ManagedPath)
+	if err != nil { return fmt.Errorf("failed to initialize managed storage: %w", err) }
+	defer storageManager.Close()
+
+	// Get archives based on filters
+	var archives []*storage.Archive
+	if notUploaded {
+		archives, err = storageManager.ListNotUploaded()
+	} else if olderThan != "" {
+		dur, parseErr := time.ParseDuration(olderThan)
+		if parseErr != nil {
+			return fmt.Errorf("invalid duration format: %w", parseErr)
+		}
+		archives, err = storageManager.ListOlderThan(dur)
+	} else {
+		archives, err = storageManager.List()
+	}
+	if err != nil { return fmt.Errorf("failed to list archives: %w", err) }
+
+	// Apply pattern filter
+	if pattern != "" {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if matched, _ := filepath.Match(pattern, a.Name); matched { filtered = append(filtered, a) }
+		}
+		archives = filtered
+	}
+	// Apply managed/external filter
+	if onlyManaged || onlyExternal {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if onlyManaged && a.Managed { filtered = append(filtered, a) }
+			if onlyExternal && !a.Managed { filtered = append(filtered, a) }
+		}
+		archives = filtered
+	}
+	// Apply missing filter
+	if onlyMissing {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if a.Status == "missing" { filtered = append(filtered, a) }
+		}
+		archives = filtered
+	}
+
+	if len(archives) == 0 {
+		fmt.Printf("No archives found.\n")
+		fmt.Printf("💡 Tip: Create archives with '7zarch-go create <path>' to see them here.\n")
+		return nil
+	}
+
+	// Group and summarize
+	var managedCount, externalCount, missingCount int
+	for _, a := range archives {
+		if a.Managed { managedCount++ } else { externalCount++ }
+		if a.Status == "missing" { missingCount++ }
+	}
+
+	fmt.Printf("📦 Archives (%d found)\n", len(archives))
+	fmt.Printf("Managed: %d | External: %d | Missing: %d\n\n", managedCount, externalCount, missingCount)
+
+	// Print grouped by managed/external
+	fmt.Printf("MANAGED\n")
+	for _, a := range archives {
+		if a.Managed { displayArchive(a, details) }
+	}
+	fmt.Printf("EXTERNAL\n")
+	for _, a := range archives {
+		if !a.Managed { displayArchive(a, details) }
+	}
+	return nil
 }
 
 func listManagedArchives(details, notUploaded bool, pattern, olderThan string) error {
