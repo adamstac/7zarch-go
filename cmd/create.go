@@ -268,8 +268,9 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	// If the user explicitly requested only one artifact without --comprehensive, we could support that here.
 	// For now, we centralize to avoid duplication.
 
-	// Register in managed storage if applicable
-	if useManaged && storageManager != nil {
+	// Register in registry (managed or external)
+	if storageManager != nil {
+		managed := useManaged
 		if err := storageManager.Add(
 			filepath.Base(result.Path),
 			result.Path,
@@ -277,9 +278,10 @@ func runCreate(cmd *cobra.Command, args []string) error {
 			result.Profile.Name,
 			result.Checksum,
 			"",
+			managed,
 		); err != nil {
 			// Non-fatal error - archive was created successfully
-			fmt.Printf("⚠️  Warning: Failed to register archive in managed storage: %v\n", err)
+			fmt.Printf("⚠️  Warning: Failed to register archive in registry: %v\n", err)
 		}
 	}
 

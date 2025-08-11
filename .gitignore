@@ -50,3 +50,6 @@ tmp/
 .env
 .config.local
 *config.local*
+
+# Private working docs
+private.md

@@ -38,6 +38,9 @@ func NewManager(basePath string) (*Manager, error) {
 		return nil, fmt.Errorf("failed to initialize registry: %w", err)
 	}
 
+	// Backfill missing UIDs
+	_ = registry.BackfillUIDs(func() string { return generateUID() })
+
 	return &Manager{
 		basePath: basePath,
 		registry: registry,
@@ -51,19 +54,22 @@ func (m *Manager) GetManagedPath(archiveName string) string {
 	return filepath.Join(m.basePath, "archives", archiveName)
 }
 
-// Add registers a new archive in managed storage
+// Add registers a new archive in the registry
 // checksum and metadata are optional; pass empty strings if not available
-func (m *Manager) Add(name, path string, size int64, profile string, checksum string, metadata string) error {
+// managed indicates whether the file is stored under the MAS path
+func (m *Manager) Add(name, path string, size int64, profile string, checksum string, metadata string, managed bool) error {
 	archive := &Archive{
+		UID:      generateUID(),
 		Name:     name,
 		Path:     path,
 		Size:     size,
 		Created:  time.Now(),
 		Profile:  profile,
 		Checksum: checksum,
+		Managed:  managed,
+		Status:   "present",
 		Metadata: metadata,
 	}
-
 	return m.registry.Add(archive)
 }
 
