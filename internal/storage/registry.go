@@ -363,6 +363,152 @@ func (r *Registry) BackfillUIDs(gen func() string) error {
 	return nil
 }
 
+
+// GetByID retrieves an archive by numeric id
+func (r *Registry) GetByID(id int64) (*Archive, error) {
+	query := `
+	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
+	FROM archives
+	WHERE id = ?`
+	archive := &Archive{}
+	err := r.db.QueryRow(query, id).Scan(
+		&archive.ID,
+		&archive.UID,
+		&archive.Name,
+		&archive.Path,
+		&archive.Size,
+		&archive.Created,
+		&archive.Checksum,
+		&archive.Profile,
+		&archive.Managed,
+		&archive.Status,
+		&archive.LastSeen,
+		&archive.DeletedAt,
+		&archive.OriginalPath,
+		&archive.Uploaded,
+		&archive.Destination,
+		&archive.UploadedAt,
+		&archive.Metadata,
+	)
+	if err == sql.ErrNoRows { return nil, fmt.Errorf("archive not found: %d", id) }
+	if err != nil { return nil, fmt.Errorf("failed to get archive by id: %w", err) }
+	return archive, nil
+}
+
+// GetByUID retrieves an archive by exact UID
+func (r *Registry) GetByUID(uid string) (*Archive, error) {
+	query := `
+	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
+	FROM archives
+	WHERE uid = ?`
+	archive := &Archive{}
+	err := r.db.QueryRow(query, uid).Scan(
+		&archive.ID,
+		&archive.UID,
+		&archive.Name,
+		&archive.Path,
+		&archive.Size,
+		&archive.Created,
+		&archive.Checksum,
+		&archive.Profile,
+		&archive.Managed,
+		&archive.Status,
+		&archive.LastSeen,
+		&archive.DeletedAt,
+		&archive.OriginalPath,
+		&archive.Uploaded,
+		&archive.Destination,
+		&archive.UploadedAt,
+		&archive.Metadata,
+	)
+	if err == sql.ErrNoRows { return nil, fmt.Errorf("archive not found: %s", uid) }
+	if err != nil { return nil, fmt.Errorf("failed to get archive by uid: %w", err) }
+	return archive, nil
+}
+
+// FindByUIDPrefix returns archives whose UID starts with prefix
+func (r *Registry) FindByUIDPrefix(prefix string, limit int) ([]*Archive, error) {
+	if limit <= 0 { limit = 50 }
+	query := `
+	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
+	FROM archives
+	WHERE uid LIKE ?
+	ORDER BY created DESC
+	LIMIT ?`
+	rows, err := r.db.Query(query, prefix+"%", limit)
+	if err != nil { return nil, fmt.Errorf("failed to query by uid prefix: %w", err) }
+	defer rows.Close()
+	var out []*Archive
+	for rows.Next() {
+		archive := &Archive{}
+		if err := rows.Scan(
+			&archive.ID,
+			&archive.UID,
+			&archive.Name,
+			&archive.Path,
+			&archive.Size,
+			&archive.Created,
+			&archive.Checksum,
+			&archive.Profile,
+			&archive.Managed,
+			&archive.Status,
+			&archive.LastSeen,
+			&archive.DeletedAt,
+			&archive.OriginalPath,
+			&archive.Uploaded,
+			&archive.Destination,
+			&archive.UploadedAt,
+			&archive.Metadata,
+		); err != nil { return nil, err }
+		out = append(out, archive)
+	}
+	return out, rows.Err()
+}
+
+// FindByChecksumPrefix returns archives whose checksum starts with prefix
+func (r *Registry) FindByChecksumPrefix(prefix string, limit int) ([]*Archive, error) {
+	if limit <= 0 { limit = 50 }
+	query := `
+	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
+	FROM archives
+	WHERE checksum LIKE ?
+	ORDER BY created DESC
+	LIMIT ?`
+	rows, err := r.db.Query(query, prefix+"%", limit)
+	if err != nil { return nil, fmt.Errorf("failed to query by checksum prefix: %w", err) }
+	defer rows.Close()
+	var out []*Archive
+	for rows.Next() {
+		archive := &Archive{}
+		if err := rows.Scan(
+			&archive.ID,
+			&archive.UID,
+			&archive.Name,
+			&archive.Path,
+			&archive.Size,
+			&archive.Created,
+			&archive.Checksum,
+			&archive.Profile,
+			&archive.Managed,
+			&archive.Status,
+			&archive.LastSeen,
+			&archive.DeletedAt,
+			&archive.OriginalPath,
+			&archive.Uploaded,
+			&archive.Destination,
+			&archive.UploadedAt,
+			&archive.Metadata,
+		); err != nil { return nil, err }
+		out = append(out, archive)
+	}
+	return out, rows.Err()
+}
+
+		if _, err := r.db.Exec(`UPDATE archives SET uid = ? WHERE id = ?`, gen(), id); err != nil { return err }
+	}
+	return nil
+}
+
 // Delete removes an archive from the registry
 func (r *Registry) Delete(name string) error {
 	query := `DELETE FROM archives WHERE name = ?`
