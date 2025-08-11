@@ -62,6 +62,9 @@ type CreateOptions struct {
 	SmartCompression bool   // Auto-detect optimal profile (deprecated - now default)
 	Comprehensive    bool   // Create log and checksums
 	Force            bool   // Overwrite existing files
+	// Config-driven thresholds (percent values); 0 means use defaults
+	MediaThreshold   int
+	DocsThreshold    int
 }
 
 // Create creates a new archive
@@ -69,8 +72,12 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 	var profile CompressionProfile
 	var err error
 	
-	// Always analyze content to educate the user
-	stats, recommended, analyzeErr := AnalyzeContent(opts.Source)
+	// Always analyze content to educate the user, with config-driven thresholds
+	mediaTh := opts.MediaThreshold
+	docsTh := opts.DocsThreshold
+	if mediaTh <= 0 { mediaTh = 70 }
+	if docsTh <= 0 { docsTh = 60 }
+	stats, recommended, analyzeErr := AnalyzeContentWithThresholds(opts.Source, mediaTh, docsTh)
 	if analyzeErr != nil {
 		// Don't fail on analysis error, just skip the educational output
 		fmt.Printf("⚠️  Content analysis unavailable: %v\n\n", analyzeErr)
@@ -96,7 +103,7 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 		}
 		fmt.Printf("\n")
 	}
-	
+
 	// Determine which compression profile to use
 	if opts.Profile != "" {
 		// Use specified profile

@@ -11,7 +11,7 @@ type CompressionProfile struct {
 	Name           string
 	Description    string
 	Level          int    // -mx parameter
-	DictionarySize string // -md parameter  
+	DictionarySize string // -md parameter
 	FastBytes      int    // -mfb parameter
 	SolidMode      bool   // -ms parameter
 	Algorithm      string // compression algorithm
@@ -29,7 +29,7 @@ var profiles = map[string]CompressionProfile{
 		Algorithm:      "lzma2",
 	},
 	"documents": {
-		Name:           "Documents", 
+		Name:           "Documents",
 		Description:    "Optimized for text, code, and office files (maximum compression)",
 		Level:          9,
 		DictionarySize: "64m",
@@ -41,7 +41,7 @@ var profiles = map[string]CompressionProfile{
 		Name:           "Balanced",
 		Description:    "Good compression with reasonable speed for mixed content",
 		Level:          7,
-		DictionarySize: "32m", 
+		DictionarySize: "32m",
 		FastBytes:      64,
 		SolidMode:      true,
 		Algorithm:      "lzma2",
@@ -79,23 +79,24 @@ func ListProfiles() []CompressionProfile {
 
 // AnalyzeContent examines directory contents and recommends optimal compression profile
 func AnalyzeContent(sourcePath string) (*ContentStats, CompressionProfile, error) {
+	return AnalyzeContentWithThresholds(sourcePath, 70, 60)
+}
+
+// AnalyzeContentWithThresholds allows custom thresholds for media/docs percentages
+func AnalyzeContentWithThresholds(sourcePath string, mediaThreshold int, docsThreshold int) (*ContentStats, CompressionProfile, error) {
 	stats := &ContentStats{}
-	
+
 	err := filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		
 		if info.IsDir() {
 			return nil
 		}
-		
 		ext := strings.ToLower(filepath.Ext(path))
 		size := info.Size()
-		
 		stats.TotalBytes += size
 		stats.TotalFiles++
-		
 		switch {
 		case isMediaFile(ext):
 			stats.MediaBytes += size
@@ -110,16 +111,13 @@ func AnalyzeContent(sourcePath string) (*ContentStats, CompressionProfile, error
 			stats.OtherBytes += size
 			stats.OtherFiles++
 		}
-		
 		return nil
 	})
-	
 	if err != nil {
 		return nil, CompressionProfile{}, err
 	}
-	
-	// Recommend profile based on content analysis
-	recommended := recommendProfile(stats)
+	// Recommend profile based on content analysis and custom thresholds
+	recommended := recommendProfileWithThresholds(stats, mediaThreshold, docsThreshold)
 	return stats, recommended, nil
 }
 
@@ -130,11 +128,11 @@ func isMediaFile(ext string) bool {
 		".mp4": true, ".avi": true, ".mkv": true, ".mov": true, ".wmv": true,
 		".flv": true, ".webm": true, ".m4v": true, ".3gp": true, ".mpg": true,
 		".mpeg": true, ".ts": true, ".mts": true,
-		
+
 		// Audio
 		".mp3": true, ".wav": true, ".flac": true, ".aac": true, ".ogg": true,
 		".wma": true, ".m4a": true, ".opus": true, ".aiff": true,
-		
+
 		// Images
 		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".bmp": true,
 		".tiff": true, ".webp": true, ".svg": true, ".ico": true, ".raw": true,
@@ -154,12 +152,12 @@ func isDocumentFile(ext string) bool {
 		".html": true, ".css": true, ".scss": true, ".less": true,
 		".xml": true, ".json": true, ".yaml": true, ".yml": true, ".toml": true,
 		".sh": true, ".bat": true, ".ps1": true, ".sql": true,
-		
+
 		// Office Documents
 		".doc": true, ".docx": true, ".xls": true, ".xlsx": true,
 		".ppt": true, ".pptx": true, ".odt": true, ".ods": true, ".odp": true,
 		".pdf": true, ".tex": true, ".epub": true, ".mobi": true,
-		
+
 		// Configuration
 		".conf": true, ".cfg": true, ".ini": true, ".properties": true,
 		".env": true, ".gitignore": true, ".dockerignore": true,
@@ -179,29 +177,25 @@ func isCompressedFile(ext string) bool {
 
 // recommendProfile analyzes content statistics and recommends best profile
 func recommendProfile(stats *ContentStats) CompressionProfile {
+	return recommendProfileWithThresholds(stats, 70, 60)
+}
+
+// recommendProfileWithThresholds uses configurable thresholds (percent values)
+func recommendProfileWithThresholds(stats *ContentStats, mediaThreshold int, docsThreshold int) CompressionProfile {
 	if stats.TotalBytes == 0 {
 		return profiles["balanced"] // Default fallback
 	}
-	
 	mediaPercent := float64(stats.MediaBytes) / float64(stats.TotalBytes) * 100
 	docPercent := float64(stats.DocumentBytes) / float64(stats.TotalBytes) * 100
 	compressedPercent := float64(stats.CompressedBytes) / float64(stats.TotalBytes) * 100
-	
-	// If 70%+ media content, recommend media profile
-	if mediaPercent >= 70.0 {
+	if mediaPercent >= float64(mediaThreshold) {
 		return profiles["media"]
 	}
-	
-	// If 60%+ documents, recommend documents profile  
-	if docPercent >= 60.0 {
+	if docPercent >= float64(docsThreshold) {
 		return profiles["documents"]
 	}
-	
-	// If 50%+ already compressed, use faster settings
 	if compressedPercent >= 50.0 {
 		return profiles["media"] // Use media settings for already compressed data
 	}
-	
-	// Default to balanced for mixed content
 	return profiles["balanced"]
 }

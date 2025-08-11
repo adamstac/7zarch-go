@@ -251,6 +251,8 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		Comprehensive:    comprehensive,
 		Force:            forceOverwrite,
 		Exclude:          excludes,
+		MediaThreshold:   cfg.Compression.MediaThreshold,
+		DocsThreshold:    cfg.Compression.DocsThreshold,
 	}
 
 	startTime := time.Now()
