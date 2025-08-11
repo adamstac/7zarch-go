@@ -40,6 +40,7 @@ Features:
 	rootCmd.AddCommand(cmd.ConfigCmd())
 	// MAS commands (initial)
 	rootCmd.AddCommand(cmd.MasShowCmd())
+	rootCmd.AddCommand(cmd.MasDbCmd())
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {

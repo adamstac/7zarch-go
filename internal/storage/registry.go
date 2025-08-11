@@ -12,7 +12,8 @@ import (
 
 // Registry manages the SQLite database for archive metadata
 type Registry struct {
-	db *sql.DB
+	db     *sql.DB
+	dbPath string
 }
 
 // NewRegistry creates a new registry instance
@@ -35,7 +36,7 @@ func NewRegistry(dbPath string) (*Registry, error) {
 		return nil, fmt.Errorf("failed to set database permissions: %w", err)
 	}
 
-	r := &Registry{db: db}
+	r := &Registry{db: db, dbPath: dbPath}
 
 	// Initialize the schema
 	if err := r.initSchema(); err != nil {
@@ -357,6 +358,10 @@ func (r *Registry) Delete(name string) error {
 	}
 	return nil
 }
+
+
+// Path returns the underlying database file path (for backups)
+func (r *Registry) Path() string { return r.dbPath }
 
 // Close closes the database connection
 func (r *Registry) Close() error {
