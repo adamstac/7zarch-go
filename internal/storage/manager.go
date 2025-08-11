@@ -37,6 +37,8 @@ func NewManager(basePath string) (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize registry: %w", err)
 	}
+	// Mark current schema baseline/identity as applied for observability
+	_ = registry.RecordCurrentSchemaAsApplied()
 
 	// Backfill missing UIDs
 	_ = registry.BackfillUIDs(func() string { return generateUID() })
