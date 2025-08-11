@@ -62,6 +62,9 @@ type CreateOptions struct {
 	SmartCompression bool   // Auto-detect optimal profile (deprecated - now default)
 	Comprehensive    bool   // Create log and checksums
 	Force            bool   // Overwrite existing files
+	// Config-driven thresholds (percent values); 0 means use defaults
+	MediaThreshold   int
+	DocsThreshold    int
 }
 
 // Create creates a new archive
@@ -69,8 +72,12 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 	var profile CompressionProfile
 	var err error
 	
-	// Always analyze content to educate the user
-	stats, recommended, analyzeErr := AnalyzeContent(opts.Source)
+	// Always analyze content to educate the user, with config-driven thresholds
+	mediaTh := opts.MediaThreshold
+	docsTh := opts.DocsThreshold
+	if mediaTh <= 0 { mediaTh = 70 }
+	if docsTh <= 0 { docsTh = 60 }
+	stats, recommended, analyzeErr := AnalyzeContentWithThresholds(opts.Source, mediaTh, docsTh)
 	if analyzeErr != nil {
 		// Don't fail on analysis error, just skip the educational output
 		fmt.Printf("⚠️  Content analysis unavailable: %v\n\n", analyzeErr)
@@ -96,7 +103,7 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 		}
 		fmt.Printf("\n")
 	}
-	
+
 	// Determine which compression profile to use
 	if opts.Profile != "" {
 		// Use specified profile
@@ -205,11 +212,11 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 		Profile:   profile,
 	}
 	
-	// Calculate original size if possible
-	if sourceInfo, err := calculateDirectorySize(opts.Source); err == nil {
-		archive.OriginalSize = sourceInfo
+	// Use analysis totals as original size to avoid a second directory walk
+	if analyzeErr == nil && stats != nil {
+		archive.OriginalSize = stats.TotalBytes
 	}
-	
+
 	// Handle comprehensive mode (create log and checksums)
 	if opts.Comprehensive {
 		// Create log file
@@ -293,20 +300,26 @@ func (m *Manager) Test(ctx context.Context, archivePath string) (*TestResult, er
 	return result, nil
 }
 
-// testArchiveIntegrity runs 7z test command
+// testArchiveIntegrity runs 7z test command and relies on exit code for success
 func (m *Manager) testArchiveIntegrity(ctx context.Context, archivePath string) error {
 	cmd := exec.CommandContext(ctx, "7z", "t", archivePath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("integrity test failed: %w\nOutput: %s", err, string(output))
 	}
-	
-	// Check if output contains "Everything is Ok"
-	if !strings.Contains(string(output), "Everything is Ok") {
-		return fmt.Errorf("archive may be corrupted")
-	}
-	
 	return nil
+}
+
+// countPathsInSlt counts file entries by scanning for "Path = " lines in -slt output
+func countPathsInSlt(output string) int {
+	lines := strings.Split(output, "\n")
+	count := 0
+	for _, line := range lines {
+		if strings.HasPrefix(strings.TrimSpace(line), "Path = ") {
+			count++
+		}
+	}
+	return count
 }
 
 // verifyChecksum compares archive checksum with stored value
@@ -352,29 +365,22 @@ func (m *Manager) validateMetadata(ctx context.Context, archivePath, metadataFil
 	return nil
 }
 
-// listArchiveFiles counts files in archive
+// listArchiveFiles counts files in archive using structured listing (-slt)
 func (m *Manager) listArchiveFiles(ctx context.Context, archivePath string) (int, error) {
-	cmd := exec.CommandContext(ctx, "7z", "l", archivePath)
+	cmd := exec.CommandContext(ctx, "7z", "l", "-slt", "-scsUTF-8", archivePath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return 0, fmt.Errorf("failed to list files: %w", err)
+		return 0, fmt.Errorf("failed to list files: %w\nOutput: %s", err, string(output))
 	}
-	
-	// Count files from output
+
+	// In -slt output, each file section starts with "Path = ...". Count these.
 	lines := strings.Split(string(output), "\n")
 	fileCount := 0
-	inFileList := false
-	
 	for _, line := range lines {
-		if strings.Contains(line, "------------------- ") {
-			inFileList = !inFileList
-			continue
-		}
-		if inFileList && strings.TrimSpace(line) != "" {
+		if strings.HasPrefix(strings.TrimSpace(line), "Path = ") {
 			fileCount++
 		}
 	}
-	
 	return fileCount, nil
 }
 
@@ -410,16 +416,27 @@ func calculateDirectorySize(path string) (int64, error) {
 }
 
 func extractFileCount(output string) int {
-	// Parse 7z output to get file count
+	// Try to parse totals from standard output summary first
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
-		if strings.Contains(line, "files") {
-			// Extract number from line like "15 files, 2048576 bytes"
-			parts := strings.Fields(line)
+		l := strings.TrimSpace(line)
+		// Example patterns observed:
+		// "Files: 15"
+		// "15 files, 2048576 bytes"
+		if strings.HasPrefix(l, "Files:") {
+			var label string
+			var count int
+			if _, err := fmt.Sscanf(l, "%s %d", &label, &count); err == nil {
+				return count
+			}
+		}
+		if strings.Contains(l, " files") {
+			parts := strings.Fields(l)
 			if len(parts) > 0 {
 				var count int
-				fmt.Sscanf(parts[0], "%d", &count)
-				return count
+				if _, err := fmt.Sscanf(parts[0], "%d", &count); err == nil {
+					return count
+				}
 			}
 		}
 	}

@@ -58,21 +58,21 @@ func CreateCmd() *cobra.Command {
 
 func runCreate(cmd *cobra.Command, args []string) error {
 	sourcePath := args[0]
-	
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		fmt.Printf("⚠️  Config loading failed, using defaults: %v\n", err)
 		cfg = config.DefaultConfig()
 	}
-	
+
 	// Apply preset if specified
 	if presetName != "" {
 		preset, exists := cfg.Presets[presetName]
 		if !exists {
 			return fmt.Errorf("unknown preset: %s", presetName)
 		}
-		
+
 		// Apply preset values (CLI flags override presets)
 		if profileName == "" && preset.Profile != "" {
 			profileName = preset.Profile
@@ -95,10 +95,10 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		if threads == 0 && preset.Threads > 0 {
 			threads = preset.Threads
 		}
-		
+
 		fmt.Printf("📋 Using preset: %s\n", presetName)
 	}
-	
+
 	// Apply config defaults (CLI flags and presets override config)
 	if !comprehensive && cfg.Defaults.Create.Comprehensive {
 		comprehensive = cfg.Defaults.Create.Comprehensive
@@ -109,7 +109,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	if threads == 0 && cfg.Defaults.Create.Threads > 0 {
 		threads = cfg.Defaults.Create.Threads
 	}
-	
+
 	// Resolve absolute path
 	absPath, err := filepath.Abs(sourcePath)
 	if err != nil {
@@ -125,7 +125,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	// Initialize storage manager if using managed storage
 	var storageManager *storage.Manager
 	var useManaged bool
-	
+
 	// Determine if we should use managed storage
 	if outputPath == "" && !noManaged && cfg.Storage.UseManagedDefault {
 		// Use managed storage
@@ -137,10 +137,20 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		defer storageManager.Close()
 	}
 
+		// If we are not using managed storage, initialize the registry if configured to register external outputs
+		if !useManaged && cfg.Storage.RegisterExternal {
+			storageManager, err = storage.NewManager(cfg.Storage.ManagedPath)
+			if err != nil {
+				return fmt.Errorf("failed to initialize registry for external output: %w", err)
+			}
+			defer storageManager.Close()
+		}
+
+
 	// Determine archive name and path
 	var archiveName string
 	baseName := filepath.Base(absPath) + ".7z"
-	
+
 	if outputPath != "" {
 		// Explicit output path specified
 		if filepath.Ext(outputPath) == ".7z" {
@@ -157,7 +167,8 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		archiveName = baseName
 	}
 
-	// Enable log and checksums if comprehensive mode
+	// Enable log and checksums if comprehensive mode (handled in archive.Manager)
+	// We keep flags for display only; artifact creation is centralized in internal/archive
 	if comprehensive {
 		createLog = true
 		createChecksums = true
@@ -214,7 +225,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 
 	// Create archive manager
 	manager := archive.NewManager()
-	
+
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
@@ -250,6 +261,8 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		Comprehensive:    comprehensive,
 		Force:            forceOverwrite,
 		Exclude:          excludes,
+		MediaThreshold:   cfg.Compression.MediaThreshold,
+		DocsThreshold:    cfg.Compression.DocsThreshold,
 	}
 
 	startTime := time.Now()
@@ -261,31 +274,24 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	bar.Finish()
 	duration := time.Since(startTime)
 
-	// Create log file if requested
-	if createLog {
-		logPath := result.Path + ".log"
-		if err := archive.CreateLogFile(logPath, result, absPath); err != nil {
-			fmt.Printf("Warning: Failed to create log: %v\n", err)
-		} else {
-			fmt.Printf("Log created: %s\n", logPath)
-		}
-	}
+	// Artifact creation (log/checksum) is handled inside archive.Manager when --comprehensive is used.
+	// If the user explicitly requested only one artifact without --comprehensive, we could support that here.
+	// For now, we centralize to avoid duplication.
 
-	// Create checksum file if requested
-	if createChecksums {
-		checksumPath := result.Path + ".sha256"
-		if err := archive.CreateChecksumFile(checksumPath, result); err != nil {
-			fmt.Printf("Warning: Failed to create checksum: %v\n", err)
-		} else {
-			fmt.Printf("Checksum created: %s\n", checksumPath)
-		}
-	}
-
-	// Register in managed storage if applicable
-	if useManaged && storageManager != nil {
-		if err := storageManager.Add(filepath.Base(result.Path), result.Path, result.Size, result.Profile.Name); err != nil {
+	// Register in registry (managed or external)
+	if storageManager != nil {
+		managed := useManaged
+		if err := storageManager.Add(
+			filepath.Base(result.Path),
+			result.Path,
+			result.Size,
+			result.Profile.Name,
+			result.Checksum,
+			"",
+			managed,
+		); err != nil {
 			// Non-fatal error - archive was created successfully
-			fmt.Printf("⚠️  Warning: Failed to register archive in managed storage: %v\n", err)
+			fmt.Printf("⚠️  Warning: Failed to register archive in registry: %v\n", err)
 		}
 	}
 
@@ -300,12 +306,12 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Files: %d\n", result.FileCount)
 	fmt.Printf("Compression: Level %d (%s profile)\n", result.Profile.Level, result.Profile.Name)
 	fmt.Printf("Duration: %s\n", duration.Round(time.Second))
-	
+
 	if result.Size > 0 && result.OriginalSize > 0 {
 		ratio := float64(result.Size) / float64(result.OriginalSize) * 100
 		fmt.Printf("Size reduction: %.1f%%\n", 100-ratio)
 	}
-	
+
 	if useManaged {
 		fmt.Printf("\n💡 Tip: Use '7zarch-go list' to see all managed archives\n")
 	}

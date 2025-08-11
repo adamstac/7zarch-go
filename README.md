@@ -8,7 +8,7 @@ An intelligent archive management tool that optimizes compression based on conte
 - **Concurrent Testing** - Test multiple archives in parallel for 10x faster verification
 - **Configuration Presets** - Save and reuse common archive settings
 - **Comprehensive Mode** - Create archives with checksums and metadata in one command
-- **Single Binary** - No dependencies, runs anywhere Go runs
+- **Single Go Binary** - Runs anywhere Go runs; requires 7-Zip installed
 
 ## Installation
 
@@ -46,8 +46,8 @@ ln -s $(pwd)/7zarch-go /usr/local/bin/7zarch-go
 # Basic archive
 7zarch-go create my-project
 
-# Archive with smart compression (analyzes content, picks optimal settings)
-7zarch-go create my-videos --smart-compression
+# Smart compression is the default (analyzes content, picks optimal settings)
+7zarch-go create my-videos
 
 # Use a specific compression profile
 7zarch-go create podcast-episode --profile media  # 3x faster for media files
@@ -113,7 +113,7 @@ presets:
 - **Size**: ~10% larger than maximum compression
 - **Use case**: Podcast episodes, video projects, photo archives
 
-### Documents Profile  
+### Documents Profile
 - **Best for**: Text, code, office documents
 - **Speed**: Slower but maximum compression
 - **Size**: Smallest possible archive
@@ -143,9 +143,8 @@ Create an archive from a directory or file.
 
 **Flags:**
 - `--profile <name>` - Use compression profile (media/documents/balanced)
-- `--smart-compression` - Auto-detect best profile based on content
 - `--preset <name>` - Use saved preset from config
-- `--compression <0-9>` - Manual compression level
+- `--compression <0-9>` - Manual compression level (disables smart behavior)
 - `--comprehensive` - Create archive with checksums and metadata
 - `--output <path>` - Specify output location
 - `--force` - Overwrite existing archive
@@ -209,7 +208,43 @@ Manage configuration.
 **Subcommands:**
 - `init` - Create default config file
 - `show` - Display current configuration
-- `edit` - Open config in editor
+
+
+## Managed Archive Storage
+
+Managed Archive Storage (MAS) is a local workspace that organizes your archives and tracks metadata in a small SQLite registry.
+
+- Default location: `~/.7zarch-go/`
+  - Archives: `~/.7zarch-go/archives/`
+  - Registry: `~/.7zarch-go/registry.db` (0600 permissions)
+- When enabled, `create` will write the output archive into the managed directory by default and register it in the registry.
+- Registration stores: name, path, size, checksum, profile, timestamps, and optional metadata JSON.
+
+### Enabling/Disabling Managed Storage
+
+- Managed storage is on by default (see `storage.use_managed_default` in your config).
+- Disable for a run with `--no-managed` or force an explicit location with `--output`.
+
+### Example
+
+```bash
+# Uses managed storage by default (no --output)
+7zarch-go create ~/Projects/my-app
+
+# Store in a custom location (bypasses managed path)
+7zarch-go create ~/Projects/my-app --output ~/Archives/my-app.7z
+
+# Temporarily disable managed storage
+7zarch-go create ~/Projects/my-app --no-managed
+```
+
+### Viewing Managed Archives
+
+The `list` command is being expanded to surface managed archives and details. For now, you can browse `~/.7zarch-go/archives/` directly.
+
+Planned:
+- `7zarch-go list` to show managed archives (name, size, profile, uploaded state)
+- Filters for not-yet-uploaded, older-than, etc.
 
 ## Real-World Examples
 
@@ -234,8 +269,8 @@ Manage configuration.
 # Maximum compression for source code
 7zarch-go create ~/Code/my-project --profile documents --comprehensive
 
-# Quick backup with smart detection
-7zarch-go create ~/Code/website --smart-compression
+# Quick backup with smart detection (default)
+7zarch-go create ~/Code/website
 ```
 
 ### Media Archive Workflow
@@ -259,11 +294,11 @@ When testing multiple archives, use `--concurrent` to dramatically reduce time:
 ```
 
 ### Smart Compression
-Let 7zarch-go analyze your content and choose optimal settings:
+Smart compression is enabled by default; it analyzes your content and chooses optimal settings:
 
 ```bash
 # Analyzes content, shows recommendation, applies best profile
-7zarch-go create mixed-content --smart-compression
+7zarch-go create mixed-content
 ```
 
 ### Profile Selection

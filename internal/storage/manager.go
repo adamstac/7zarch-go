@@ -37,6 +37,11 @@ func NewManager(basePath string) (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize registry: %w", err)
 	}
+	// Mark current schema baseline/identity as applied for observability
+	_ = registry.RecordCurrentSchemaAsApplied()
+
+	// Backfill missing UIDs
+	_ = registry.BackfillUIDs(func() string { return generateUID() })
 
 	return &Manager{
 		basePath: basePath,
@@ -51,22 +56,22 @@ func (m *Manager) GetManagedPath(archiveName string) string {
 	return filepath.Join(m.basePath, "archives", archiveName)
 }
 
-// Add registers a new archive in managed storage
-func (m *Manager) Add(name, path string, size int64, profile string) error {
+// Add registers a new archive in the registry
+// checksum and metadata are optional; pass empty strings if not available
+// managed indicates whether the file is stored under the MAS path
+func (m *Manager) Add(name, path string, size int64, profile string, checksum string, metadata string, managed bool) error {
 	archive := &Archive{
-		Name:    name,
-		Path:    path,
-		Size:    size,
-		Created: time.Now(),
-		Profile: profile,
+		UID:      generateUID(),
+		Name:     name,
+		Path:     path,
+		Size:     size,
+		Created:  time.Now(),
+		Profile:  profile,
+		Checksum: checksum,
+		Managed:  managed,
+		Status:   "present",
+		Metadata: metadata,
 	}
-
-	// Calculate checksum if the file exists
-	if _, err := os.Stat(path); err == nil {
-		// TODO: Calculate SHA256 checksum
-		// For now, we'll leave it empty
-	}
-
 	return m.registry.Add(archive)
 }
 
@@ -89,6 +94,10 @@ func (m *Manager) ListOlderThan(duration time.Duration) ([]*Archive, error) {
 func (m *Manager) Get(name string) (*Archive, error) {
 	return m.registry.Get(name)
 }
+
+// Registry exposes the underlying registry instance (for DB operations)
+func (m *Manager) Registry() *Registry { return m.registry }
+
 
 // MarkUploaded marks an archive as uploaded
 func (m *Manager) MarkUploaded(name string, destination string) error {
