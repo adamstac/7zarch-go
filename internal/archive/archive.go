@@ -310,6 +310,18 @@ func (m *Manager) testArchiveIntegrity(ctx context.Context, archivePath string) 
 	return nil
 }
 
+// countPathsInSlt counts file entries by scanning for "Path = " lines in -slt output
+func countPathsInSlt(output string) int {
+	lines := strings.Split(output, "\n")
+	count := 0
+	for _, line := range lines {
+		if strings.HasPrefix(strings.TrimSpace(line), "Path = ") {
+			count++
+		}
+	}
+	return count
+}
+
 // verifyChecksum compares archive checksum with stored value
 func (m *Manager) verifyChecksum(archivePath, checksumFile string) error {
 	// Read expected checksum
