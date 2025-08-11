@@ -157,7 +157,8 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		archiveName = baseName
 	}
 
-	// Enable log and checksums if comprehensive mode
+	// Enable log and checksums if comprehensive mode (handled in archive.Manager)
+	// We keep flags for display only; artifact creation is centralized in internal/archive
 	if comprehensive {
 		createLog = true
 		createChecksums = true
@@ -261,29 +262,20 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	bar.Finish()
 	duration := time.Since(startTime)
 
-	// Create log file if requested
-	if createLog {
-		logPath := result.Path + ".log"
-		if err := archive.CreateLogFile(logPath, result, absPath); err != nil {
-			fmt.Printf("Warning: Failed to create log: %v\n", err)
-		} else {
-			fmt.Printf("Log created: %s\n", logPath)
-		}
-	}
-
-	// Create checksum file if requested
-	if createChecksums {
-		checksumPath := result.Path + ".sha256"
-		if err := archive.CreateChecksumFile(checksumPath, result); err != nil {
-			fmt.Printf("Warning: Failed to create checksum: %v\n", err)
-		} else {
-			fmt.Printf("Checksum created: %s\n", checksumPath)
-		}
-	}
+	// Artifact creation (log/checksum) is handled inside archive.Manager when --comprehensive is used.
+	// If the user explicitly requested only one artifact without --comprehensive, we could support that here.
+	// For now, we centralize to avoid duplication.
 
 	// Register in managed storage if applicable
 	if useManaged && storageManager != nil {
-		if err := storageManager.Add(filepath.Base(result.Path), result.Path, result.Size, result.Profile.Name); err != nil {
+		if err := storageManager.Add(
+			filepath.Base(result.Path),
+			result.Path,
+			result.Size,
+			result.Profile.Name,
+			result.Checksum,
+			"",
+		); err != nil {
 			// Non-fatal error - archive was created successfully
 			fmt.Printf("⚠️  Warning: Failed to register archive in managed storage: %v\n", err)
 		}

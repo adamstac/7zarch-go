@@ -46,8 +46,8 @@ ln -s $(pwd)/7zarch-go /usr/local/bin/7zarch-go
 # Basic archive
 7zarch-go create my-project
 
-# Archive with smart compression (analyzes content, picks optimal settings)
-7zarch-go create my-videos --smart-compression
+# Smart compression is the default (analyzes content, picks optimal settings)
+7zarch-go create my-videos
 
 # Use a specific compression profile
 7zarch-go create podcast-episode --profile media  # 3x faster for media files
@@ -143,9 +143,8 @@ Create an archive from a directory or file.
 
 **Flags:**
 - `--profile <name>` - Use compression profile (media/documents/balanced)
-- `--smart-compression` - Auto-detect best profile based on content
 - `--preset <name>` - Use saved preset from config
-- `--compression <0-9>` - Manual compression level
+- `--compression <0-9>` - Manual compression level (disables smart behavior)
 - `--comprehensive` - Create archive with checksums and metadata
 - `--output <path>` - Specify output location
 - `--force` - Overwrite existing archive
@@ -209,7 +208,6 @@ Manage configuration.
 **Subcommands:**
 - `init` - Create default config file
 - `show` - Display current configuration
-- `edit` - Open config in editor
 
 ## Real-World Examples
 
@@ -259,11 +257,11 @@ When testing multiple archives, use `--concurrent` to dramatically reduce time:
 ```
 
 ### Smart Compression
-Let 7zarch-go analyze your content and choose optimal settings:
+Smart compression is enabled by default; it analyzes your content and chooses optimal settings:
 
 ```bash
 # Analyzes content, shows recommendation, applies best profile
-7zarch-go create mixed-content --smart-compression
+7zarch-go create mixed-content
 ```
 
 ### Profile Selection

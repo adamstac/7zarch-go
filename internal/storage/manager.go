@@ -52,19 +52,16 @@ func (m *Manager) GetManagedPath(archiveName string) string {
 }
 
 // Add registers a new archive in managed storage
-func (m *Manager) Add(name, path string, size int64, profile string) error {
+// checksum and metadata are optional; pass empty strings if not available
+func (m *Manager) Add(name, path string, size int64, profile string, checksum string, metadata string) error {
 	archive := &Archive{
-		Name:    name,
-		Path:    path,
-		Size:    size,
-		Created: time.Now(),
-		Profile: profile,
-	}
-
-	// Calculate checksum if the file exists
-	if _, err := os.Stat(path); err == nil {
-		// TODO: Calculate SHA256 checksum
-		// For now, we'll leave it empty
+		Name:     name,
+		Path:     path,
+		Size:     size,
+		Created:  time.Now(),
+		Profile:  profile,
+		Checksum: checksum,
+		Metadata: metadata,
 	}
 
 	return m.registry.Add(archive)
