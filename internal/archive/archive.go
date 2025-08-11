@@ -205,11 +205,11 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 		Profile:   profile,
 	}
 	
-	// Calculate original size if possible
-	if sourceInfo, err := calculateDirectorySize(opts.Source); err == nil {
-		archive.OriginalSize = sourceInfo
+	// Use analysis totals as original size to avoid a second directory walk
+	if analyzeErr == nil && stats != nil {
+		archive.OriginalSize = stats.TotalBytes
 	}
-	
+
 	// Handle comprehensive mode (create log and checksums)
 	if opts.Comprehensive {
 		// Create log file
