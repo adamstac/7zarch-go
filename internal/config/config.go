@@ -77,6 +77,7 @@ type PresetConfig struct {
 type StorageConfig struct {
 	ManagedPath        string `yaml:"managed_path"`
 	UseManagedDefault  bool   `yaml:"use_managed_default"`
+	RegisterExternal   bool   `yaml:"register_external"`
 	AutoOrganize       string `yaml:"auto_organize"` // flat, by_date, by_type
 	RetentionDays      int    `yaml:"retention_days"`
 }
@@ -117,6 +118,7 @@ func DefaultConfig() *Config {
 		Storage: StorageConfig{
 			ManagedPath:       "~/.7zarch-go",
 			UseManagedDefault: true,
+			RegisterExternal:  true,
 			AutoOrganize:      "flat",
 			RetentionDays:     30,
 		},

@@ -58,21 +58,21 @@ func CreateCmd() *cobra.Command {
 
 func runCreate(cmd *cobra.Command, args []string) error {
 	sourcePath := args[0]
-	
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		fmt.Printf("⚠️  Config loading failed, using defaults: %v\n", err)
 		cfg = config.DefaultConfig()
 	}
-	
+
 	// Apply preset if specified
 	if presetName != "" {
 		preset, exists := cfg.Presets[presetName]
 		if !exists {
 			return fmt.Errorf("unknown preset: %s", presetName)
 		}
-		
+
 		// Apply preset values (CLI flags override presets)
 		if profileName == "" && preset.Profile != "" {
 			profileName = preset.Profile
@@ -95,10 +95,10 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		if threads == 0 && preset.Threads > 0 {
 			threads = preset.Threads
 		}
-		
+
 		fmt.Printf("📋 Using preset: %s\n", presetName)
 	}
-	
+
 	// Apply config defaults (CLI flags and presets override config)
 	if !comprehensive && cfg.Defaults.Create.Comprehensive {
 		comprehensive = cfg.Defaults.Create.Comprehensive
@@ -109,7 +109,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	if threads == 0 && cfg.Defaults.Create.Threads > 0 {
 		threads = cfg.Defaults.Create.Threads
 	}
-	
+
 	// Resolve absolute path
 	absPath, err := filepath.Abs(sourcePath)
 	if err != nil {
@@ -125,7 +125,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	// Initialize storage manager if using managed storage
 	var storageManager *storage.Manager
 	var useManaged bool
-	
+
 	// Determine if we should use managed storage
 	if outputPath == "" && !noManaged && cfg.Storage.UseManagedDefault {
 		// Use managed storage
@@ -137,10 +137,20 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		defer storageManager.Close()
 	}
 
+		// If we are not using managed storage, initialize the registry if configured to register external outputs
+		if !useManaged && cfg.Storage.RegisterExternal {
+			storageManager, err = storage.NewManager(cfg.Storage.ManagedPath)
+			if err != nil {
+				return fmt.Errorf("failed to initialize registry for external output: %w", err)
+			}
+			defer storageManager.Close()
+		}
+
+
 	// Determine archive name and path
 	var archiveName string
 	baseName := filepath.Base(absPath) + ".7z"
-	
+
 	if outputPath != "" {
 		// Explicit output path specified
 		if filepath.Ext(outputPath) == ".7z" {
@@ -215,7 +225,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 
 	// Create archive manager
 	manager := archive.NewManager()
-	
+
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
@@ -296,12 +306,12 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Files: %d\n", result.FileCount)
 	fmt.Printf("Compression: Level %d (%s profile)\n", result.Profile.Level, result.Profile.Name)
 	fmt.Printf("Duration: %s\n", duration.Round(time.Second))
-	
+
 	if result.Size > 0 && result.OriginalSize > 0 {
 		ratio := float64(result.Size) / float64(result.OriginalSize) * 100
 		fmt.Printf("Size reduction: %.1f%%\n", 100-ratio)
 	}
-	
+
 	if useManaged {
 		fmt.Printf("\n💡 Tip: Use '7zarch-go list' to see all managed archives\n")
 	}
