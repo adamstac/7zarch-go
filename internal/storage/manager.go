@@ -146,9 +146,10 @@ func (m *Manager) Exists(name string) bool {
 	if m.registry == nil {
 		return false
 	}
-	if _, err := m.registry.Get(name); err != nil {
-		// TODO: differentiate not-found vs other errors when Registry exposes sentinel error or Exists API
+	ok, err := m.registry.Exists(name)
+	if err != nil {
+		// Treat errors as non-existence for now; consider logging in the future
 		return false
 	}
-	return true
+	return ok
 }
