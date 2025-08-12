@@ -148,7 +148,11 @@ func runTestDirectory(dir string) error {
 				return err
 			}
 
+<<<<<<< HEAD
 			// Test archive (per-archive timeout for parity with single mode)
+=======
+			// Test archive
+>>>>>>> origin/main
 			manager := archive.NewManager()
 			ctxArchive, cancel := context.WithTimeout(ctx, 10*time.Minute)
 			defer cancel()
@@ -198,6 +202,7 @@ func runTestDirectory(dir string) error {
 
 func findArchives(dir string) ([]string, error) {
 	var archives []string
+
 	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err

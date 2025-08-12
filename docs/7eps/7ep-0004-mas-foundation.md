@@ -1,10 +1,10 @@
 # 7EP-0004: MAS Foundation Implementation
 
-**Status:** ✅ Completed (100%)  
-**Author(s):** Claude Code (CC)  
-**Assignment:** AC (Primary), CC (Supporting)  
-**Difficulty:** 4 (complex - foundational system with multiple interdependent components)  
-**Created:** 2025-08-12  
+**Status:** ✅ Completed (100%)
+**Author(s):** Claude Code (CC)
+**Assignment:** AC (Primary), CC (Supporting)
+**Difficulty:** 4 (complex - foundational system with multiple interdependent components)
+**Created:** 2025-08-12
 **Updated:** 2025-08-12
 
 ## Current Status (August 12, 2025)
@@ -29,13 +29,22 @@
 - ✅ Comprehensive benchmark suite with 1K-10K archive datasets
 - ✅ All performance requirements exceeded by significant margins
 - ✅ Resolution: <1ms (target <50ms) - up to 2,941x faster
-- ✅ List filtering: ~35ms (target <200ms) - 5.5-6.25x faster  
+- ✅ List filtering: ~35ms (target <200ms) - 5.5-6.25x faster
 - ✅ Show command: <1ms (target <100ms) - up to 5,882x faster
-- ✅ O(1) scaling confirmed across all archive counts  
+- ✅ O(1) scaling confirmed across all archive counts
 
 ## Executive Summary
 
 Implement the core MAS (Managed Archive Storage) foundation consisting of ULID resolution, show command, and enhanced list functionality to enable stable ID-based archive operations.
+
+
+## Update Notes (2025-08-12)
+
+- Initial increments implemented in PR [#5](https://github.com/adamstac/7zarch-go/pull/5):
+  - List: added filters `--status`, `--profile`, `--larger-than` (preserves existing behavior)
+  - Move (related to MAS UX): default destination uses `arc.Name`; if `--to` is a directory, place under it; managed detection uses `filepath.Rel` (portable)
+- Resolver defaults clarified: MinPrefixLength = 12 for ULID/checksum prefixes in production; tests may override (e.g., 4) to exercise behavior.
+- Reliability improvements (related): managed trash directory creation moved to Manager init to reduce runtime mkdirs.
 
 ## Evidence & Reasoning
 
@@ -99,34 +108,10 @@ type Resolver struct {
 }
 
 // Resolution priority order
-func (r *Resolver) ResolveID(input string) (*Archive, error) {
-    // 1. Exact ULID match (fastest path)
-    if archive := r.getByUID(input); archive != nil {
-        return archive, nil
-    }
-    
-    // 2. ULID prefix (most common use case)
-    matches := r.getByUIDPrefix(input)
-    if len(matches) == 1 {
-        return matches[0], nil
-    } else if len(matches) > 1 {
-        return nil, &AmbiguousIDError{ID: input, Matches: matches}
-    }
-    
-    // 3. Checksum prefix
-    matches = r.getByChecksumPrefix(input)
-    if len(matches) == 1 {
-        return matches[0], nil
-    } else if len(matches) > 1 {
-        return nil, &AmbiguousIDError{ID: input, Matches: matches}
-    }
-    
-    // 4. Name exact match
-    if archive := r.getByName(input); archive != nil {
-        return archive, nil
-    }
-    
-    return nil, &ArchiveNotFoundError{ID: input}
+func (r *Resolver) Resolve(input string) (*Archive, error) {
+    // 1. Numeric ID, 2. Exact UID, 3. UID prefix, 4. Checksum prefix, 5. Exact name
+    // (See internal/storage/resolver.go for implementation)
+    return nil, nil
 }
 
 // Interactive disambiguation
@@ -142,18 +127,18 @@ func (r *Resolver) HandleAmbiguous(err *AmbiguousIDError) (*Archive, error) {
 // cmd/mas_show.go
 func runMasShow(cmd *cobra.Command, args []string) error {
     resolver := storage.NewResolver(registry)
-    
-    archive, err := resolver.ResolveID(args[0])
+
+    archive, err := resolver.Resolve(args[0])
     if err != nil {
         return handleResolutionError(err)
     }
-    
+
     // Verify file existence and integrity
     status := verifyArchiveStatus(archive)
-    
+
     // Display comprehensive information
     displayArchiveDetails(archive, status)
-    
+
     return nil
 }
 
@@ -222,7 +207,7 @@ func (e *AmbiguousIDError) Error() string {
     for i, archive := range e.Matches {
         sb.WriteString(fmt.Sprintf("[%d] %s %s (%s, %.1f MB, %s)\n",
             i+1, archive.UID[:8], archive.Name,
-            archiveLocation(archive), 
+            archiveLocation(archive),
             float64(archive.Size)/(1024*1024),
             humanizeTime(archive.Created)))
     }
@@ -255,6 +240,12 @@ Upload Status: not uploaded
 MANAGED STORAGE (~/.7zarch-go/archives/):
 01K2E33  project-backup.7z     2.1 MB   documents  2d ago   ✓
 01K2F44  podcast-103.7z       156 MB   media      1w ago   ✓
+
+### Planned Next Increments (AC)
+- Output alignment for list/show using tabular columns; maintain existing semantics.
+- Resolver disambiguation UX: compact choice list with short UID, name, managed/external, size, age; suggest longer prefix or full UID.
+- Show enhancements: checksum status line; optional on-demand verification flag for deeper integrity checks.
+
 01K2G55  code-dump.7z          0.8 MB   documents  1w ago   ⚠️ missing
 
 EXTERNAL STORAGE:
