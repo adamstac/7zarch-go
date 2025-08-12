@@ -137,6 +137,11 @@ func (m *Manager) GetArchivesPath() string {
 	return filepath.Join(m.basePath, "archives")
 }
 
+// GetTrashPath returns the trash directory under managed storage
+func (m *Manager) GetTrashPath() string {
+	return filepath.Join(m.basePath, "trash")
+}
+
 // Exists checks if an archive exists in the registry
 func (m *Manager) Exists(name string) bool {
 	_, err := m.registry.Get(name)
