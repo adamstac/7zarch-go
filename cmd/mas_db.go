@@ -27,10 +27,14 @@ func masDbStatusCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, _ := config.Load()
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			defer mgr.Close()
 
-			if err := mgr.Registry().EnsureMigrationsTable(); err != nil { return err }
+			if err := mgr.Registry().EnsureMigrationsTable(); err != nil {
+				return err
+			}
 			// For now, we show whether baseline/identity are marked
 			baseApplied, _ := mgr.Registry().IsMigrationApplied("0001_baseline")
 			idApplied, _ := mgr.Registry().IsMigrationApplied("0002_identity_and_status")
@@ -51,7 +55,9 @@ func masDbMigrateCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, _ := config.Load()
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			defer mgr.Close()
 
 			if backupOnly {
@@ -78,7 +84,9 @@ func masDbBackupCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, _ := config.Load()
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			defer mgr.Close()
 			return createDbBackup(mgr)
 		},
@@ -87,19 +95,26 @@ func masDbBackupCmd() *cobra.Command {
 
 func createDbBackup(mgr *storage.Manager) error {
 	path := mgr.Registry().Path()
-	if path == "" { return fmt.Errorf("registry path unknown") }
+	if path == "" {
+		return fmt.Errorf("registry path unknown")
+	}
 	backupDir := filepath.Dir(path)
 	stamp := time.Now().Format("20060102-150405")
 	backupPath := filepath.Join(backupDir, fmt.Sprintf("registry.%s.bak", stamp))
 
 	src, err := os.Open(path)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	defer src.Close()
 	dst, err := os.Create(backupPath)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	defer dst.Close()
-	if _, err := io.Copy(dst, src); err != nil { return err }
+	if _, err := io.Copy(dst, src); err != nil {
+		return err
+	}
 	fmt.Printf("Backup created: %s\n", backupPath)
 	return nil
 }
-

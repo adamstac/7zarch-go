@@ -13,4 +13,3 @@ func generateUID() string {
 	id := ulid.MustNew(ulid.Timestamp(time.Now()), entropy)
 	return id.String()
 }
-

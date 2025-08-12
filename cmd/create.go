@@ -17,17 +17,17 @@ import (
 
 var (
 	compressionLevel int
-	threads         int
-	verbose         bool
-	dryRun          bool
-	outputPath      string
-	comprehensive   bool
-	createLog       bool
-	createChecksums bool
-	forceOverwrite  bool
-	profileName     string
-	presetName      string
-	noManaged       bool
+	threads          int
+	verbose          bool
+	dryRun           bool
+	outputPath       string
+	comprehensive    bool
+	createLog        bool
+	createChecksums  bool
+	forceOverwrite   bool
+	profileName      string
+	presetName       string
+	noManaged        bool
 )
 
 func CreateCmd() *cobra.Command {
@@ -137,15 +137,14 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		defer storageManager.Close()
 	}
 
-		// If we are not using managed storage, initialize the registry if configured to register external outputs
-		if !useManaged && cfg.Storage.RegisterExternal {
-			storageManager, err = storage.NewManager(cfg.Storage.ManagedPath)
-			if err != nil {
-				return fmt.Errorf("failed to initialize registry for external output: %w", err)
-			}
-			defer storageManager.Close()
+	// If we are not using managed storage, initialize the registry if configured to register external outputs
+	if !useManaged && cfg.Storage.RegisterExternal {
+		storageManager, err = storage.NewManager(cfg.Storage.ManagedPath)
+		if err != nil {
+			return fmt.Errorf("failed to initialize registry for external output: %w", err)
 		}
-
+		defer storageManager.Close()
+	}
 
 	// Determine archive name and path
 	var archiveName string
