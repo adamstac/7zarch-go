@@ -19,7 +19,9 @@ func TestRegistryCRUD(t *testing.T) {
 	if err := r.Add(a); err != nil {
 		t.Fatalf("Add: %v", err)
 	}
-	if a.ID == 0 { t.Fatal("expected ID to be set") }
+	if a.ID == 0 {
+		t.Fatal("expected ID to be set")
+	}
 
 	got, err := r.Get("test.7z")
 	if err != nil {
@@ -35,7 +37,9 @@ func TestRegistryCRUD(t *testing.T) {
 	}
 
 	list, err := r.List()
-	if err != nil || len(list) == 0 { t.Fatalf("List: %v, n=%d", err, len(list)) }
+	if err != nil || len(list) == 0 {
+		t.Fatalf("List: %v, n=%d", err, len(list))
+	}
 
 	if err := r.Delete("test.7z"); err != nil {
 		t.Fatalf("Delete: %v", err)
@@ -44,4 +48,3 @@ func TestRegistryCRUD(t *testing.T) {
 		t.Fatal("expected error after delete")
 	}
 }
-

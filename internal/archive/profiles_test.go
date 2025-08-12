@@ -29,4 +29,3 @@ func Test_recommendProfileWithThresholds(t *testing.T) {
 		t.Errorf("balanced: want Balanced, got %s", got.Name)
 	}
 }
-
