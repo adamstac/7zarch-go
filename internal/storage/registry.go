@@ -47,8 +47,9 @@ func NewRegistry(dbPath string) (*Registry, error) {
 	return r, nil
 }
 
-// initSchema creates the database tables if they don't exist and applies additive migrations
+// initSchema creates the database tables if they don't exist and applies migrations
 func (r *Registry) initSchema() error {
+	// Create full modern schema for new installations
 	query := `
 	CREATE TABLE IF NOT EXISTS archives (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,18 +82,15 @@ func (r *Registry) initSchema() error {
 		return err
 	}
 
-	// Additive migrations for existing installations (ignore errors when columns already exist)
-	migrations := []string{
-		"ALTER TABLE archives ADD COLUMN uid TEXT UNIQUE",
-		"ALTER TABLE archives ADD COLUMN managed BOOLEAN DEFAULT FALSE",
-		"ALTER TABLE archives ADD COLUMN status TEXT NOT NULL DEFAULT 'present'",
-		"ALTER TABLE archives ADD COLUMN last_seen TIMESTAMP",
-		"CREATE INDEX IF NOT EXISTS idx_archives_checksum ON archives(checksum)",
-		"CREATE UNIQUE INDEX IF NOT EXISTS idx_archives_uid ON archives(uid)",
+	// Apply proper migration system
+	if err := r.RecordCurrentSchemaAsApplied(); err != nil {
+		return fmt.Errorf("failed to record schema state: %w", err)
 	}
-	for _, m := range migrations {
-		_, _ = r.db.Exec(m)
+
+	if err := r.ApplyPendingMigrations(); err != nil {
+		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
+
 	return nil
 }
 
@@ -345,24 +343,28 @@ func (r *Registry) Update(archive *Archive) error {
 	return nil
 }
 
-
 // BackfillUIDs sets a UID for rows missing it
 func (r *Registry) BackfillUIDs(gen func() string) error {
 	rows, err := r.db.Query(`SELECT id FROM archives WHERE uid IS NULL OR uid = ''`)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	defer rows.Close()
 	var ids []int64
 	for rows.Next() {
 		var id int64
-		if err := rows.Scan(&id); err != nil { return err }
+		if err := rows.Scan(&id); err != nil {
+			return err
+		}
 		ids = append(ids, id)
 	}
 	for _, id := range ids {
-		if _, err := r.db.Exec(`UPDATE archives SET uid = ? WHERE id = ?`, gen(), id); err != nil { return err }
+		if _, err := r.db.Exec(`UPDATE archives SET uid = ? WHERE id = ?`, gen(), id); err != nil {
+			return err
+		}
 	}
 	return nil
 }
-
 
 // GetByID retrieves an archive by numeric id
 func (r *Registry) GetByID(id int64) (*Archive, error) {
@@ -390,8 +392,12 @@ func (r *Registry) GetByID(id int64) (*Archive, error) {
 		&archive.UploadedAt,
 		&archive.Metadata,
 	)
-	if err == sql.ErrNoRows { return nil, fmt.Errorf("archive not found: %d", id) }
-	if err != nil { return nil, fmt.Errorf("failed to get archive by id: %w", err) }
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("archive not found: %d", id)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get archive by id: %w", err)
+	}
 	return archive, nil
 }
 
@@ -421,14 +427,20 @@ func (r *Registry) GetByUID(uid string) (*Archive, error) {
 		&archive.UploadedAt,
 		&archive.Metadata,
 	)
-	if err == sql.ErrNoRows { return nil, fmt.Errorf("archive not found: %s", uid) }
-	if err != nil { return nil, fmt.Errorf("failed to get archive by uid: %w", err) }
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("archive not found: %s", uid)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get archive by uid: %w", err)
+	}
 	return archive, nil
 }
 
 // FindByUIDPrefix returns archives whose UID starts with prefix
 func (r *Registry) FindByUIDPrefix(prefix string, limit int) ([]*Archive, error) {
-	if limit <= 0 { limit = 50 }
+	if limit <= 0 {
+		limit = 50
+	}
 	query := `
 	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
 	FROM archives
@@ -436,7 +448,9 @@ func (r *Registry) FindByUIDPrefix(prefix string, limit int) ([]*Archive, error)
 	ORDER BY created DESC
 	LIMIT ?`
 	rows, err := r.db.Query(query, prefix+"%", limit)
-	if err != nil { return nil, fmt.Errorf("failed to query by uid prefix: %w", err) }
+	if err != nil {
+		return nil, fmt.Errorf("failed to query by uid prefix: %w", err)
+	}
 	defer rows.Close()
 	var out []*Archive
 	for rows.Next() {
@@ -459,7 +473,9 @@ func (r *Registry) FindByUIDPrefix(prefix string, limit int) ([]*Archive, error)
 			&archive.Destination,
 			&archive.UploadedAt,
 			&archive.Metadata,
-		); err != nil { return nil, err }
+		); err != nil {
+			return nil, err
+		}
 		out = append(out, archive)
 	}
 	return out, rows.Err()
@@ -467,7 +483,9 @@ func (r *Registry) FindByUIDPrefix(prefix string, limit int) ([]*Archive, error)
 
 // FindByChecksumPrefix returns archives whose checksum starts with prefix
 func (r *Registry) FindByChecksumPrefix(prefix string, limit int) ([]*Archive, error) {
-	if limit <= 0 { limit = 50 }
+	if limit <= 0 {
+		limit = 50
+	}
 	query := `
 	SELECT id, uid, name, path, size, created, checksum, profile, managed, status, last_seen, deleted_at, original_path, uploaded, destination, uploaded_at, metadata
 	FROM archives
@@ -475,7 +493,9 @@ func (r *Registry) FindByChecksumPrefix(prefix string, limit int) ([]*Archive, e
 	ORDER BY created DESC
 	LIMIT ?`
 	rows, err := r.db.Query(query, prefix+"%", limit)
-	if err != nil { return nil, fmt.Errorf("failed to query by checksum prefix: %w", err) }
+	if err != nil {
+		return nil, fmt.Errorf("failed to query by checksum prefix: %w", err)
+	}
 	defer rows.Close()
 	var out []*Archive
 	for rows.Next() {
@@ -498,12 +518,13 @@ func (r *Registry) FindByChecksumPrefix(prefix string, limit int) ([]*Archive, e
 			&archive.Destination,
 			&archive.UploadedAt,
 			&archive.Metadata,
-		); err != nil { return nil, err }
+		); err != nil {
+			return nil, err
+		}
 		out = append(out, archive)
 	}
 	return out, rows.Err()
 }
-
 
 // Delete removes an archive from the registry
 func (r *Registry) Delete(name string) error {
@@ -514,7 +535,6 @@ func (r *Registry) Delete(name string) error {
 	}
 	return nil
 }
-
 
 // Path returns the underlying database file path (for backups)
 func (r *Registry) Path() string { return r.dbPath }
