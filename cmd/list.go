@@ -111,23 +111,47 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	}
 
 	// Group and summarize
-	var managedCount, externalCount, missingCount int
+	var managedCount, externalCount, missingCount, deletedCount int
+	var activeManaged, activeExternal, deletedArchives []*storage.Archive
+	
 	for _, a := range archives {
-		if a.Managed { managedCount++ } else { externalCount++ }
+		if a.Status == "deleted" {
+			deletedCount++
+			deletedArchives = append(deletedArchives, a)
+		} else if a.Managed {
+			managedCount++
+			activeManaged = append(activeManaged, a)
+		} else {
+			externalCount++
+			activeExternal = append(activeExternal, a)
+		}
 		if a.Status == "missing" { missingCount++ }
 	}
 
 	fmt.Printf("📦 Archives (%d found)\n", len(archives))
-	fmt.Printf("Managed: %d | External: %d | Missing: %d\n\n", managedCount, externalCount, missingCount)
+	fmt.Printf("Active: %d (Managed: %d, External: %d) | Missing: %d | Deleted: %d\n\n", 
+		managedCount+externalCount, managedCount, externalCount, missingCount, deletedCount)
 
-	// Print grouped by managed/external
-	fmt.Printf("MANAGED\n")
-	for _, a := range archives {
-		if a.Managed { displayArchive(a, details) }
+	// Print active archives
+	if len(activeManaged) > 0 {
+		fmt.Printf("ACTIVE - MANAGED\n")
+		for _, a := range activeManaged {
+			displayArchive(a, details)
+		}
 	}
-	fmt.Printf("EXTERNAL\n")
-	for _, a := range archives {
-		if !a.Managed { displayArchive(a, details) }
+	if len(activeExternal) > 0 {
+		fmt.Printf("ACTIVE - EXTERNAL\n")
+		for _, a := range activeExternal {
+			displayArchive(a, details)
+		}
+	}
+	
+	// Print deleted archives
+	if len(deletedArchives) > 0 {
+		fmt.Printf("DELETED (auto-purge older than 7 days)\n")
+		for _, a := range deletedArchives {
+			displayDeletedArchive(a, details)
+		}
 	}
 	return nil
 }
@@ -263,6 +287,30 @@ func displayArchive(archive *storage.Archive, details bool) {
 			fmt.Printf("   Uploaded: %s\n", archive.UploadedAt.Format("2006-01-02 15:04:05"))
 		}
 		fmt.Printf("   Age: %s\n", formatDuration(archive.Age()))
+	}
+	fmt.Println()
+}
+
+func displayDeletedArchive(archive *storage.Archive, details bool) {
+	// Show deleted status with trash emoji
+	deleteTime := "unknown"
+	if archive.DeletedAt != nil {
+		deleteTime = archive.DeletedAt.Format("2006-01-02 15:04:05")
+	}
+	fmt.Printf("🗑️  %s - Deleted %s\n", archive.Name, deleteTime)
+	
+	if details {
+		if archive.UID != "" {
+			fmt.Printf("   ID: %s\n", archive.UID)
+		}
+		if archive.OriginalPath != "" {
+			fmt.Printf("   Original: %s\n", archive.OriginalPath)
+		}
+		fmt.Printf("   Trash: %s\n", archive.Path)
+		fmt.Printf("   Size: %.2f MB\n", float64(archive.Size)/(1024*1024))
+		if archive.Profile != "" {
+			fmt.Printf("   Profile: %s\n", archive.Profile)
+		}
 	}
 	fmt.Println()
 }
