@@ -309,6 +309,27 @@ func displayDeletedArchive(archive *storage.Archive, details bool) {
 		if archive.UID != "" {
 			fmt.Printf("   ID: %s\n", archive.UID)
 		}
+		
+		// Calculate days until auto-purge
+		if archive.DeletedAt != nil {
+			cfg, _ := config.Load()
+			retentionDays := 7 // default fallback
+			if cfg != nil && cfg.Storage.RetentionDays > 0 {
+				retentionDays = cfg.Storage.RetentionDays
+			}
+			
+			purgeDate := archive.DeletedAt.AddDate(0, 0, retentionDays)
+			daysLeft := int(time.Until(purgeDate).Hours() / 24)
+			
+			if daysLeft > 0 {
+				fmt.Printf("   Auto-purge: in %d days (%s)\n", daysLeft, purgeDate.Format("2006-01-02"))
+			} else if daysLeft == 0 {
+				fmt.Printf("   Auto-purge: today\n")
+			} else {
+				fmt.Printf("   Auto-purge: overdue by %d days\n", -daysLeft)
+			}
+		}
+		
 		if archive.OriginalPath != "" {
 			fmt.Printf("   Original: %s\n", archive.OriginalPath)
 		}
