@@ -124,5 +124,3 @@ func safePrefix(s string, n int) string {
 	}
 	return s[:n]
 }
-=======
->>>>>>> 136b481 (fix: apply gofmt formatting to all Go files)
