@@ -212,76 +212,45 @@ Manage configuration.
 
 ## Managed Archive Storage
 
-Managed Archive Storage (MAS) is a local workspace that organizes your archives and tracks metadata in a small SQLite registry.
-
-- Default location: `~/.7zarch-go/`
-  - Archives: `~/.7zarch-go/archives/`
-  - Registry: `~/.7zarch-go/registry.db` (0600 permissions)
-- When enabled, `create` will write the output archive into the managed directory by default and register it in the registry.
-- Registration stores: name, path, size, checksum, profile, timestamps, and optional metadata JSON.
-
-### Enabling/Disabling Managed Storage
-
-- Managed storage is on by default (see `storage.use_managed_default` in your config).
-- Disable for a run with `--no-managed` or force an explicit location with `--output`.
-
-### Example
+Managed Archive Storage (MAS) provides intelligent local organization with automatic metadata tracking:
 
 ```bash
-# Uses managed storage by default (no --output)
-7zarch-go create ~/Projects/my-app
+# Archives automatically stored and tracked
+7zarch-go create ~/Documents/project
 
-# Store in a custom location (bypasses managed path)
-7zarch-go create ~/Projects/my-app --output ~/Archives/my-app.7z
+# List all managed archives with details
+7zarch-go list --details
 
-# Temporarily disable managed storage
-7zarch-go create ~/Projects/my-app --no-managed
+# Find archives by name or unique ID
+7zarch-go show project
 ```
 
-### Viewing Managed Archives
+**Key Benefits:**
+- **Automatic organization** in `~/.7zarch-go/archives/`
+- **Metadata tracking** with SQLite registry
+- **Soft deletion** with restore capability
+- **ULID identification** for easy reference
 
-The `list` command is being expanded to surface managed archives and details. For now, you can browse `~/.7zarch-go/archives/` directly.
+**📖 Learn More:** [Complete MAS Guide](docs/guides/managed-storage.md)
 
-Planned:
-- `7zarch-go list` to show managed archives (name, size, profile, uploaded state)
-- Filters for not-yet-uploaded, older-than, etc.
+## Common Workflows
 
-## Real-World Examples
-
-### Podcast Production Workflow
-
+**Podcast Production:**
 ```bash
-# Configure once
-7zarch-go config init
-# Edit ~/.7zarch-go-config to add podcast preset
-
-# Archive each episode
-7zarch-go create friends-103 --preset podcast
-7zarch-go create friends-104 --preset podcast
-
-# Verify integrity
-7zarch-go test --directory ~/archives/friends
+7zarch-go create episode-105 --preset podcast  # Fast media compression
 ```
 
-### Code Backup Workflow
-
+**Code Backup:**
 ```bash
-# Maximum compression for source code
-7zarch-go create ~/Code/my-project --profile documents --comprehensive
-
-# Quick backup with smart detection (default)
-7zarch-go create ~/Code/website
+7zarch-go create ~/Code/project --profile documents  # Maximum compression
 ```
 
-### Media Archive Workflow
-
+**Media Archive:**
 ```bash
-# Fast compression for video files
-7zarch-go create video-project --profile media
-
-# Archive photos with metadata
-7zarch-go create photos-2024 --profile media --comprehensive
+7zarch-go create photos-2024 --profile media --comprehensive  # With metadata
 ```
+
+**📖 Complete Workflows:** [Documentation coming soon](docs/user-guide/workflows/)
 
 ## Performance Tips
 
@@ -356,10 +325,17 @@ go test ./...
 
 ## Contributing
 
+### For Feature Proposals
+1. Check existing [7zarch Enhancement Proposals (7EPs)](docs/7eps/) to avoid duplication
+2. Use the [7EP template](docs/7eps/template.md) to propose new features
+3. Open a GitHub issue linking to your 7EP for discussion
+4. Iterate based on feedback until ready for formal review
+
+### For Code Contributions  
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+3. Make your changes following the accepted 7EP design (if applicable)
+4. Submit a pull request referencing the relevant 7EP
 
 ## License
 
