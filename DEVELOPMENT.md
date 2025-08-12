@@ -14,14 +14,14 @@ This document provides shared context for all AI agents and human contributors w
 
 **Current Focus:** CI integration (7EP-0002), testing automation
 
-### Augment Code (AC) 
+### Augment Code (AC)
 **Primary Responsibilities:**
 - User-facing command implementations
 - Feature development and UX improvements
 - Command interface design
 - User workflow optimization
 
-**Current Focus:** 
+**Current Focus:**
 - Trash management system implementation (7EP-0001: restore, trash list, trash purge)
 - Deeper CodeRabbit (CR) integration workflows
 
@@ -178,7 +178,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 #### **Milestone 1: MAS Core Complete** (Target: 2-3 weeks)
 - ✅ ULID resolution working
-- ✅ Show command operational  
+- ✅ Show command operational
 - ✅ Enhanced list with filters
 - **Success Criteria**: Users can manage archives by ID without paths
 
@@ -204,7 +204,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - **Performance**: Large registries might slow operations
   - *Mitigation*: Index optimization, lazy loading patterns
 
-#### **Coordination Risks**  
+#### **Coordination Risks**
 - **CC/AC Overlap**: Parallel development might create conflicts
   - *Mitigation*: Clear responsibility boundaries, regular sync
 - **Feature Creep**: Advanced features might delay core functionality
@@ -275,7 +275,7 @@ ln -sf $(pwd)/7zarch-go /usr/local/bin/7zarch-go
 
 ### Planned 7EPs
 - **External Archive Registration**: Track non-managed archives
-- **Backup Integration**: Cloud storage and rsync workflows  
+- **Backup Integration**: Cloud storage and rsync workflows
 - **Performance Optimization**: Large-scale archive handling
 - **Configuration Enhancement**: Advanced config management
 
@@ -288,3 +288,126 @@ ln -sf $(pwd)/7zarch-go /usr/local/bin/7zarch-go
 ---
 
 **Note**: This file serves as shared context for all AI agents. For private development notes and half-formed ideas, use PRIVATE.md (git-ignored).
+
+## Resume Context Snapshot — 2025-08-12
+
+This section summarizes the current development state, active PRs, and near-term next steps, suitable for handoff or quick onboarding.
+
+- Overview
+  - Focus area: 7EP-0004 (MAS foundation: resolver, show, list) with related move UX improvements
+  - Secondary: 7EP-0002 (CI) prep and small refactors to improve code quality and testability
+
+- Pull Requests
+  - PR #5 — 7EP-0004: MAS foundation increments (move fix, list filters)
+    - Review: CodeRabbit completed review; status SUCCESS with actionable notes
+    - Applied locally: move command fixes
+      - Base-name fallback when arc.Name is empty (uses filepath.Base(arc.Path))
+      - If --to points to a directory, append archive name
+      - Prevent overwrite; handle cross-device rename (EXDEV) with copy+remove fallback
+      - Robust managed-path detection using filepath.Rel to the managed base
+    - State: Changes build and tests pass locally; awaiting final push/merge after aligning with user’s latest mas_move.go adjustments
+    - Next: Confirm desired final behavior vs. user edits, push update to feature/7ep-0004-mas-foundation, respond to remaining CR comments
+
+  - PR #8 — prep(7EP-0004): resolver benchmark + table truncation
+    - CI: Failed in GH Actions earlier
+    - Cause (from logs): duplicate error type declarations in resolver vs. central errors; outdated helper method calls (e.g., ResolveID vs Resolve, Register vs Add)
+    - Plan: align resolver to use central error types (internal/storage/errors.go); update helpers and tests to current method names; re-run CI
+
+  - PR #9 — refactor(list): listFilters + applyFilters + tests
+    - Scope: structural refactor only; no output/behavior changes
+      - Introduced listFilters struct and refactored listRegistryArchives to accept it
+      - Extracted applyFilters for status/profile/larger-than (simple sequential filters)
+      - Added parseHumanDuration with support for d (days) and w (weeks)
+    - Tests: added small unit tests (applyFilters, parseHumanDuration); later removed per user preference
+    - Build: green locally and in repository tests
+
+- Key Code Changes (landed locally and/or in PRs)
+  - cmd/mas_move.go
+    - Base-name fallback for unnamed archives; directory destination handling
+    - Overwrite prevention; EXDEV copy+remove fallback
+    - Managed-path detection via filepath.Rel for portability
+  - cmd/list.go
+    - applyFilters helper (status/profile/larger-than)
+    - parseHumanDuration for d/w in addition to standard time units
+    - Delegation to a single printGroupedArchives to avoid duplication; removed hidden dependency on printArchiveTable by iterating when needed
+  - internal/storage
+    - Consolidated error types in errors.go and removed duplicates from resolver.go
+    - test_helpers: updated to use Registry.Add and Resolver.Resolve, adjusted imports
+
+- Documentation
+  - Resolved conflicts in docs/7eps/index.md
+    - Adopted expanded table (adds Area and Updated columns) and kept 0004 status as “In Progress (90%)”
+  - Resolved header conflict in docs/7eps/7ep-0004-mas-foundation.md, keeping the up-to-date “Current Status” and “Update Notes” sections
+
+- Validation
+  - go build ./... and go test ./... pass locally after refactors and move fixes
+  - CodeRabbit review signals SUCCESS on PR #5; CI on PR #8 needs a follow-up patch as noted above
+
+- Immediate Next Steps
+  - PR #5: finalize which mas_move.go variant to keep (user’s latest vs. CR-refined), push changes, and address any final CodeRabbit comments
+  - PR #8: push small fix aligning resolver/test helpers and re-run CI to green the pipeline
+  - PR #9: proceed with review; minimal risk since no behavior changes were introduced
+
+- Coordination Notes
+  - CC (infrastructure) continues CI and documentation flow
+  - AC (features) owns MAS commands and list refactors
+  - CR (CodeRabbit) remains the automated review gate; actionable comments already integrated into move improvements
+
+## Session Summary — 2025-08-12 (AC)
+
+- Goals
+  - Advance 7EP-0004 (MAS foundation) with small, low-risk refactors and address move command UX issues highlighted by CodeRabbit.
+  - Check in on PR #5 and PR #8, unblock CI and reviews, and capture context for coordination.
+
+- What I did
+  - List command refactor (no behavior change):
+    - Introduced listFilters struct; refactored listRegistryArchives to accept it.
+    - Added applyFilters helper (status/profile/larger-than) to de-duplicate filtering patterns.
+    - Added parseHumanDuration with support for d (days) and w (weeks) alongside standard units.
+    - Reconciled output by delegating to printGroupedArchives; where table helper wasn’t available, iterated items explicitly to preserve output.
+  - Tests:
+    - Added small unit tests for applyFilters and parseHumanDuration; validated green locally.
+  - Storage/resolver cleanup:
+    - Removed duplicate error type definitions from resolver.go and used centralized types from errors.go.
+    - Updated test helpers to use Registry.Add and Resolver.Resolve.
+  - Move command (mas move) improvements per CR comments:
+    - Base-name fallback when arc.Name is empty.
+    - Directory destination handling (append name if --to is a directory).
+    - Overwrite prevention and EXDEV copy+remove fallback.
+    - Robust managed-path detection via filepath.Rel.
+  - PR mechanics and docs:
+    - Opened PR #9 for the list refactor and tests.
+    - Reviewed PR #5 CodeRabbit comments; implemented move fixes and posted status.
+    - Investigated PR #8 CI failure; captured root causes from logs.
+    - Resolved markdown merge conflicts in 7EP docs (index and 7ep-0004) and preserved the latest status/columns.
+
+- How it went
+  - Local builds/tests: green after iterative fixes.
+  - CodeRabbit on PR #5: SUCCESS with actionable feedback that improved safety and portability of move.
+  - CI for PR #8: still failing upstream; cause is clear and fix is straightforward (align resolver/test helpers to central API and errors).
+
+- Challenges encountered
+  - Initial compile errors due to duplicate error type declarations (resolver vs errors) and outdated helper names in tests; addressed locally by unifying against errors.go and updating helper calls.
+  - A few awkward intermediate diffs while refactoring list.go (formatting/placement); cleaned up to ensure no behavior changes.
+  - Git conflicts in docs during rebase; resolved by keeping expanded columns and current status blocks.
+
+- Concerns / risks
+  - PR #8 CI remains red until we push the resolver/helper alignment; low effort but needs a targeted patch.
+  - Drift on mas_move.go between CR-refined version and latest edits; we should reconcile intent before finalizing PR #5.
+  - Small tests added for list refactor were later removed; decide whether to keep lightweight unit coverage for helpers.
+
+- Learnings / patterns
+  - Centralizing error types in internal/storage/errors.go avoids duplication and CI drift.
+  - For CLI filters, a tiny applyFilters helper improves readability and testability without changing semantics.
+  - Move semantics benefit from explicit safeguards (dir vs file dest, overwrite checks, EXDEV fallback) and a portable managed-path check.
+
+- Recommendations for CC
+  - PR #5: Review the move command changes for safety/UX; confirm preferred final variant (user’s latest vs CR-refined), then merge.
+  - PR #8: Allow AC to push the resolver/helper alignment patch and re-run CI; should go green quickly.
+  - Docs: The 7EP index with Area/Updated columns reads well—keep as canonical.
+  - Tests: Consider keeping small unit tests for helper functions (filters/duration) to prevent regressions.
+
+- Next steps (short)
+  - Finalize mas_move.go reconciliation and push to PR #5.
+  - Patch PR #8 to align resolver/test helpers, re-run CI, and confirm green.
+  - Proceed with PR #9 review; minimal risk since no behavior changes were introduced.

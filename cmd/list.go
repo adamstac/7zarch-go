@@ -119,17 +119,6 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 			if matched, _ := filepath.Match(pattern, a.Name); matched {
 				filtered = append(filtered, a)
 			}
-
-			// Validate status filter if present
-			if statusFilter != "" {
-				switch statusFilter {
-				case "present", "missing", "deleted":
-					// ok
-				default:
-					return fmt.Errorf("invalid --status: %q (valid: present|missing|deleted)", statusFilter)
-				}
-			}
-
 		}
 		archives = filtered
 	}
@@ -234,6 +223,7 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 		retentionDays := 7 // default fallback
 		if cfg != nil && cfg.Storage.RetentionDays > 0 {
 			retentionDays = cfg.Storage.RetentionDays
+
 		}
 		fmt.Printf("DELETED (auto-purge older than %d days)\n", retentionDays)
 		for _, a := range deletedArchives {
@@ -264,9 +254,17 @@ func printArchiveTable(archives []*storage.Archive, details bool) {
 		}
 		if details {
 			created := a.Created.Format("2006-01-02 15:04:05")
-			fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", id, a.Name, sizeMB, a.Profile, created, status)
+			name := a.Name
+			if len(name) > 30 {
+				name = name[:29] + "…"
+			}
+			fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", id, name, sizeMB, a.Profile, created, status)
 		} else {
-			fmt.Printf("%-8s  %-30s  %8s  %-7s\n", id, a.Name, sizeMB, status)
+			name := a.Name
+			if len(name) > 30 {
+				name = name[:29] + "…"
+			}
+			fmt.Printf("%-8s  %-30s  %8s  %-7s\n", id, name, sizeMB, status)
 		}
 	}
 	fmt.Println()

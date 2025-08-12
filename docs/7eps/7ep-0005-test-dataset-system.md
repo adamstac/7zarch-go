@@ -6,6 +6,7 @@
 **Difficulty:** 3 (moderate - systematic but well-defined scope)  
 **Created:** 2025-08-12  
 **Updated:** 2025-08-12  
+**Revised:** 2025-08-12 (based on 7EP-0006 implementation learnings)  
 
 ## Executive Summary
 
@@ -21,272 +22,387 @@ Implement a comprehensive, scalable test dataset system to enable systematic per
 - **Missing Edge Cases**: No systematic coverage of Unicode names, large files, deep hierarchies
 
 **Impact on Development:**
-- **Performance Testing Blocked**: Can't validate 7EP-0004 completion criteria (<50ms resolution, <200ms list ops)
-- **Integration Testing Limited**: Real-world scenarios not covered
-- **Flaky Tests**: Inconsistent test data leads to unreliable results  
-- **Developer Experience**: Hard to reproduce issues, no standard test datasets
-- **CI/CD Constraints**: No systematic approach to test data in automated pipelines
+- **Integration Testing Limited**: Real-world scenarios not covered beyond basic performance
+- **Edge Case Coverage**: Systematic testing of Unicode, large files, deep hierarchies needed
+- **Developer Experience**: Hard to reproduce complex bugs, no standard diverse test datasets
+- **CI/CD Enhancement**: Need comprehensive test scenarios for robust automated testing
+- **Future 7EP Support**: Upcoming features (trash management, migrations) need sophisticated test data
 
-**Why Now:**
-- **7EP-0004 Completion**: Performance testing is the main blocker for MAS Foundation completion
-- **Growing Complexity**: More features need more sophisticated test scenarios
-- **Test Infrastructure Exists**: Test helpers from PR #6 provide foundation to build on
-- **Clean Slate Opportunity**: Early enough in project to establish good patterns
+**Why Now (Post 7EP-0006 Insights):**
+- **7EP-0006 Success**: Minimal approach proved metadata-only testing is highly effective
+- **Performance Foundation Solid**: Core performance validated, can focus on comprehensive scenarios
+- **Proven Patterns**: 7EP-0006 established working patterns for dataset generation and benchmarking
+- **Growing Feature Set**: With MAS Foundation complete, more complex features need richer test data
+- **Quality Assurance**: Need systematic edge case coverage that 7EP-0006's minimal approach intentionally skipped
+
+## Learnings from 7EP-0006 Implementation
+
+**Key Insights from Minimal Performance Testing:**
+
+**✅ What Worked Extremely Well:**
+- **Metadata-Only Approach**: No actual files needed for performance testing - metadata generation is sufficient and fast
+- **Fixed Seed Reproducibility**: `rand.New(rand.NewSource(42))` ensures identical results across runs
+- **Controlled ULID Generation**: Strategic similarity patterns enable disambiguation testing without chaos
+- **Incremental Complexity**: Simple patterns scale to complex scenarios (100 → 1K → 10K archives)
+- **Registry Integration**: Direct `reg.Add()` calls work perfectly for populating test databases
+- **Benchmark Suite Pattern**: Multiple sub-benchmarks in single function provides comprehensive coverage
+
+**🔧 What Needed Refinement:**
+- **ULID Collision Management**: Initial approach created too many duplicates, refined pattern worked well
+- **Type Assertions**: Converting `testing.TB` to `*testing.T` required careful handling  
+- **API Method Names**: Need to match actual implementation (`reg.Add()` not `reg.Register()`)
+- **Error Type Handling**: Duplicate error definitions caused build conflicts
+
+**🚀 Performance Insights:**
+- **O(1) Database Performance**: Registry operations scale constantly, not linearly
+- **Massive Performance Margins**: Actual performance 100-2,941x better than requirements
+- **Minimal Resource Usage**: 10K archives processed with negligible memory overhead
+- **Simple is Sufficient**: Complex content generation unnecessary for most test scenarios
 
 ## Technical Design
 
 ### Overview
 
-Build a hierarchical test dataset system that generates reproducible, diverse archive collections for comprehensive testing across performance, integration, and edge case scenarios.
+Build on 7EP-0006's proven metadata-only approach to create a comprehensive, hierarchical test dataset system that generates reproducible, diverse archive collections for integration testing, edge case coverage, and quality assurance.
 
-### Dataset Organization Structure
+### Dataset Organization Structure (Revised)
+
+**Simplified hierarchy based on 7EP-0006 learnings:**
 
 ```
 test-datasets/
-├── generators/                 # Dataset creation tools
-│   ├── generator.go           # Core generation engine
-│   ├── content/               # Content type generators
-│   │   ├── documents.go       # Text, PDF, office files
-│   │   ├── media.go           # Images, audio, video
-│   │   ├── code.go            # Source trees, repositories
-│   │   └── mixed.go           # Realistic combinations
-│   └── scenarios/             # Specific test scenarios
-│       ├── performance.go     # Large-scale benchmarks
-│       ├── edge_cases.go      # Unicode, special chars
-│       └── integration.go     # End-to-end workflows
-├── micro/                     # 1-10 archives (unit tests)
-├── small/                     # 10-100 archives (integration tests)
-├── medium/                    # 100-1000 archives (stress tests)
-├── large/                     # 1000-10000 archives (performance tests)
-├── profiles/                  # Profile-specific datasets
-│   ├── documents/             # Document-heavy scenarios
-│   ├── media/                 # Media-heavy scenarios
-│   └── balanced/              # Mixed content scenarios
-└── edge-cases/                # Special scenarios
-    ├── unicode/               # International characters
-    ├── large-files/           # 100MB+ individual files
-    ├── deep-nested/           # 20+ directory levels
-    └── corruption/            # Intentionally corrupted data
+├── generators/                 # Dataset creation tools  
+│   ├── generator.go           # Core generation engine (builds on 7EP-0006 patterns)
+│   ├── scenarios.go           # Pre-defined test scenarios  
+│   └── ulid.go                # ULID generation patterns (refined from 7EP-0006)
+├── scenarios/                 # Named scenario implementations
+│   ├── performance/           # 7EP-0006 style benchmarks
+│   │   ├── resolution.go      # ULID resolution testing
+│   │   ├── filtering.go       # List filtering scenarios
+│   │   └── scaling.go         # Multi-size datasets
+│   ├── integration/           # End-to-end workflow testing
+│   │   ├── user_workflows.go  # Create→list→show→delete flows
+│   │   ├── mixed_storage.go   # Managed + external scenarios
+│   │   └── time_series.go     # Archives across time periods
+│   └── edge_cases/            # Systematic edge case coverage
+│       ├── unicode.go         # International characters, emojis
+│       ├── boundaries.go      # Size limits, name lengths, deep paths
+│       ├── corruption.go      # Metadata consistency, missing files
+│       └── migration.go       # Database schema changes
+└── datasets/                  # Generated dataset cache (optional)
+    ├── README.md              # Usage documentation
+    └── .gitignore             # Exclude large generated files
 ```
 
-### Core Generation System
+**Key Changes from Original Design:**
+- **Metadata-First**: No complex content generation - follow 7EP-0006's successful metadata-only approach
+- **Scenario-Driven**: Organize by test purpose rather than arbitrary size buckets
+- **Build on Proven Patterns**: Extend 7EP-0006's ULID generation and registry integration
+- **Practical File Structure**: Fewer directories, clearer organization, easier maintenance
+
+### Core Generation System (Revised)
 
 #### Dataset Generator Interface
 ```go
-// test-datasets/generators/generator.go
+// test-datasets/generators/generator.go  
 package generators
 
 import (
-    "context"
+    "math/rand"
+    "testing"
     "time"
+    "github.com/adamstac/7zarch-go/internal/storage"
 )
 
-// DatasetSpec defines what kind of dataset to generate
-type DatasetSpec struct {
-    Name          string
-    Size          DatasetSize
-    ContentMix    ContentMix
-    TimeSpread    time.Duration  // Spread creation times over period
-    SizeVariation SizeVariation  // File size distribution
-    Structure     StructureType  // Directory organization
-    EdgeCases     []EdgeCase     // Special scenarios to include
+// ScenarioSpec defines what kind of test scenario to generate
+// Simplified from DatasetSpec based on 7EP-0006 learnings
+type ScenarioSpec struct {
+    Name         string
+    Count        int                    // Number of archives
+    ULIDPattern  ULIDPattern           // How to generate ULIDs  
+    Profiles     []ProfileDistribution // Profile mix
+    TimeSpread   time.Duration         // Spread creation times over period
+    SizePattern  SizePattern           // Size distribution
+    EdgeCases    []EdgeCase            // Special scenarios to include
 }
 
-type DatasetSize string
+type ULIDPattern string
 const (
-    SizeMicro  DatasetSize = "micro"   // 1-10 archives
-    SizeSmall  DatasetSize = "small"   // 10-100 archives
-    SizeMedium DatasetSize = "medium"  // 100-1000 archives
-    SizeLarge  DatasetSize = "large"   // 1000-10000 archives
+    ULIDUnique      ULIDPattern = "unique"      // All unique (7EP-0006 scaling tests)
+    ULIDSimilar     ULIDPattern = "similar"     // Controlled similarity (7EP-0006 disambiguation)  
+    ULIDCollisions  ULIDPattern = "collisions"  // Intentional prefix overlaps
 )
 
-type ContentMix struct {
-    Documents float32 // 0.0-1.0 percentage
-    Media     float32
-    Code      float32
-    Data      float32
+type ProfileDistribution struct {
+    Profile string
+    Weight  float32 // 0.0-1.0
 }
 
-// Generator creates reproducible test datasets
+// Generator creates reproducible test scenarios using 7EP-0006 patterns
 type Generator struct {
     seed     int64
-    basePath string
     registry *storage.Registry
 }
 
-func NewGenerator(seed int64, basePath string) *Generator {
-    return &Generator{
-        seed:     seed,
-        basePath: basePath,
-    }
+func NewGenerator(seed int64) *Generator {
+    return &Generator{seed: seed}
 }
 
-// Generate creates a dataset according to spec
-func (g *Generator) Generate(ctx context.Context, spec DatasetSpec) (*Dataset, error) {
-    // Use seed for reproducible randomization
+// GenerateScenario creates archives based on scenario spec
+// Builds directly on 7EP-0006's successful generateTestArchives() pattern
+func (g *Generator) GenerateScenario(tb testing.TB, spec ScenarioSpec) []*storage.Archive {
+    tb.Helper()
+    
     rng := rand.New(rand.NewSource(g.seed))
+    archives := make([]*storage.Archive, spec.Count)
     
-    dataset := &Dataset{
-        Name:     spec.Name,
-        Archives: make([]*TestArchive, 0),
-        BasePath: filepath.Join(g.basePath, spec.Name),
-    }
+    profiles := extractProfiles(spec.Profiles)
+    sizes := generateSizeDistribution(spec.SizePattern)
     
-    // Generate content based on spec
-    archives := g.generateArchives(rng, spec)
-    
-    // Create actual files and register archives
-    for _, archive := range archives {
-        if err := g.createArchiveFiles(archive); err != nil {
-            return nil, err
+    for i := 0; i < spec.Count; i++ {
+        archive := &storage.Archive{
+            UID:      g.generateUID(i, spec.ULIDPattern, rng),
+            Name:     fmt.Sprintf("%s-%04d.7z", spec.Name, i),
+            Path:     fmt.Sprintf("/tmp/test-%s-%04d.7z", spec.Name, i),
+            Size:     selectSize(sizes, rng),
+            Created:  g.generateCreationTime(spec.TimeSpread, rng),
+            Profile:  selectProfile(profiles, rng),
+            Managed:  rng.Float32() < 0.9, // 90% managed (7EP-0006 pattern)
+            Status:   "present",
+            Checksum: fmt.Sprintf("sha256:%032x", i),
         }
-        if err := g.registerArchive(archive); err != nil {
-            return nil, err
+        
+        // Apply edge case modifications
+        g.applyEdgeCases(archive, spec.EdgeCases, i, rng)
+        
+        archives[i] = archive
+    }
+    
+    return archives
+}
+```
+
+#### ULID Generation Patterns (Refined from 7EP-0006)
+
+```go
+// test-datasets/generators/ulid.go
+// Builds on 7EP-0006's successful generateSequentialUID() approach
+
+func (g *Generator) generateUID(i int, pattern ULIDPattern, rng *rand.Rand) string {
+    switch pattern {
+    case ULIDUnique:
+        // Each ULID is completely unique - for scaling tests
+        return fmt.Sprintf("01K%02d%05d%012d%05d", 
+            rng.Intn(26), i, rng.Int63n(999999999999), rng.Intn(99999))
+            
+    case ULIDSimilar:
+        // Controlled similarity for disambiguation testing (7EP-0006 pattern)
+        if i < 100 {
+            // Group by tens for first 100: 01K2E00, 01K2E01, 01K2E02, etc.
+            return fmt.Sprintf("01K2E%02d%012d%08d", i/10, i, i*17)
         }
-        dataset.Archives = append(dataset.Archives, archive)
-    }
-    
-    return dataset, nil
-}
-```
-
-#### Content Type Generators
-
-**Document Generator:**
-```go
-// test-datasets/generators/content/documents.go
-func GenerateDocumentContent(rng *rand.Rand, size int) []byte {
-    switch {
-    case size < 1024: // Small configs, notes
-        return generateConfigFile(rng, size)
-    case size < 100*1024: // Medium documents
-        return generateTextDocument(rng, size)  
-    default: // Large documents, presentations
-        return generateStructuredDocument(rng, size)
+        return fmt.Sprintf("01K2F%02d%012d%08d", (i-100)/100, i, i*23)
+        
+    case ULIDCollisions:
+        // Intentional prefix collisions for stress testing resolution
+        prefixCount := min(i/10 + 1, 5) // Group into 5 prefix buckets max
+        return fmt.Sprintf("01K2G%02d%012d%08d", prefixCount, i, rng.Intn(99999999))
+        
+    default:
+        return ULIDUnique // Safe default
     }
 }
-
-func generateTextDocument(rng *rand.Rand, targetSize int) []byte {
-    // Generate realistic text content with:
-    // - Lorem ipsum base text
-    // - Realistic word/paragraph distribution
-    // - Common document structures (headers, lists, etc.)
-}
 ```
 
-**Media Generator:**
+#### Size and Time Distribution
+
 ```go
-// test-datasets/generators/content/media.go
-func GenerateImageContent(rng *rand.Rand, size int) []byte {
-    // Generate synthetic image data:
-    // - Realistic JPEG/PNG headers
-    // - Appropriate compression ratios
-    // - Various dimensions and color depths
+// test-datasets/generators/scenarios.go
+// Simplified approach - metadata characteristics only
+
+type SizePattern string
+const (
+    SizeUniform     SizePattern = "uniform"     // Even distribution
+    SizeRealistic   SizePattern = "realistic"   // Log-normal (most files small, few large)
+    SizeLargeFiles  SizePattern = "large"       // Focus on large file scenarios
+)
+
+func generateSizeDistribution(pattern SizePattern) []int64 {
+    switch pattern {
+    case SizeUniform:
+        return []int64{1024, 100*1024, 10*1024*1024} // 1KB, 100KB, 10MB
+    case SizeRealistic:
+        // 70% small, 25% medium, 5% large (realistic distribution)
+        return []int64{1024, 1024, 1024, 1024, 1024, 1024, 1024, // 70%
+                      100*1024, 100*1024, 10*1024*1024}           // 25%, 5%
+    case SizeLargeFiles:
+        return []int64{100*1024*1024, 500*1024*1024, 1024*1024*1024} // 100MB, 500MB, 1GB
+    default:
+        return []int64{1024, 100*1024, 10*1024*1024} // Safe default
+    }
 }
 
-func GenerateVideoContent(rng *rand.Rand, size int) []byte {
-    // Generate synthetic video file:
-    // - MP4 container with realistic headers
-    // - Appropriate bitrates for size
-    // - Minimal but valid video stream
-}
-```
+### Predefined Test Scenarios (Revised)
 
-### Predefined Dataset Scenarios
-
-#### Performance Testing Datasets
+#### Performance Testing Scenarios (Building on 7EP-0006)
 ```go
-// test-datasets/generators/scenarios/performance.go
-var PerformanceScenarios = []DatasetSpec{
+// test-datasets/scenarios/performance/resolution.go
+var ResolutionScenarios = []ScenarioSpec{
     {
-        Name: "resolution-benchmark-1k",
-        Size: SizeMedium,
-        ContentMix: ContentMix{Documents: 0.7, Code: 0.2, Data: 0.1},
-        EdgeCases: []EdgeCase{SimilarULIDPrefixes}, // Test disambiguation
+        Name: "disambiguation-stress",
+        Count: 1000,
+        ULIDPattern: ULIDSimilar, // Creates controlled similarity like 7EP-0006
+        Profiles: []ProfileDistribution{
+            {Profile: "documents", Weight: 0.7},
+            {Profile: "media", Weight: 0.2}, 
+            {Profile: "balanced", Weight: 0.1},
+        },
+        SizePattern: SizeUniform,
+        TimeSpread: 30 * 24 * time.Hour, // 30 days
     },
     {
-        Name: "list-filtering-10k",
-        Size: SizeLarge, 
-        ContentMix: ContentMix{Documents: 0.4, Media: 0.3, Code: 0.2, Data: 0.1},
-        TimeSpread: 365 * 24 * time.Hour, // Year-long spread
-        SizeVariation: LogNormalDistribution, // Realistic size distribution
-    },
-    {
-        Name: "show-verification-mixed",
-        Size: SizeMedium,
-        ContentMix: ContentMix{Media: 0.8, Documents: 0.2}, // Large files
-        EdgeCases: []EdgeCase{CorruptedChecksums, MissingFiles},
-    },
-}
-```
-
-#### Integration Testing Datasets
-```go
-// test-datasets/generators/scenarios/integration.go
-var IntegrationScenarios = []DatasetSpec{
-    {
-        Name: "realistic-user-workflow",
-        Size: SizeSmall,
-        ContentMix: ContentMix{Documents: 0.5, Code: 0.3, Media: 0.2},
-        Structure: MixedHierarchy,
-        EdgeCases: []EdgeCase{UnicodeNames, LongPaths},
-    },
-    {
-        Name: "media-heavy-workflow", 
-        Size: SizeMedium,
-        ContentMix: ContentMix{Media: 0.8, Documents: 0.2},
-        SizeVariation: HighVariance, // Mix of tiny and huge files
+        Name: "scaling-validation",
+        Count: 10000,
+        ULIDPattern: ULIDUnique, // Each unique for pure scaling test
+        Profiles: []ProfileDistribution{
+            {Profile: "documents", Weight: 0.4},
+            {Profile: "media", Weight: 0.3}, 
+            {Profile: "balanced", Weight: 0.3},
+        },
+        SizePattern: SizeRealistic, // Most small, few large
+        TimeSpread: 365 * 24 * time.Hour, // Full year spread
     },
 }
 ```
 
-### Integration with Existing Test Infrastructure
+#### Integration Testing Scenarios  
+```go  
+// test-datasets/scenarios/integration/user_workflows.go
+var WorkflowScenarios = []ScenarioSpec{
+    {
+        Name: "create-list-show-delete",
+        Count: 50,
+        ULIDPattern: ULIDUnique,
+        Profiles: []ProfileDistribution{
+            {Profile: "documents", Weight: 0.5},
+            {Profile: "media", Weight: 0.3},
+            {Profile: "balanced", Weight: 0.2},
+        },
+        SizePattern: SizeRealistic,
+        TimeSpread: 7 * 24 * time.Hour, // Week timeline
+        EdgeCases: []EdgeCase{MixedManagedExternal, TimeSequencing},
+    },
+    {
+        Name: "mixed-storage-scenario",
+        Count: 100, 
+        ULIDPattern: ULIDSimilar,
+        Profiles: []ProfileDistribution{{Profile: "balanced", Weight: 1.0}},
+        SizePattern: SizeUniform,
+        EdgeCases: []EdgeCase{ManagedExternalMix, CrossProfileFiltering},
+    },
+}
+```
 
-#### Enhanced Test Helpers
+#### Edge Case Testing Scenarios
 ```go
-// internal/storage/test_helpers.go - Enhanced to use datasets
+// test-datasets/scenarios/edge_cases/unicode.go
+var EdgeCaseScenarios = []ScenarioSpec{
+    {
+        Name: "unicode-names",
+        Count: 25,
+        ULIDPattern: ULIDUnique,
+        Profiles: []ProfileDistribution{{Profile: "documents", Weight: 1.0}},
+        SizePattern: SizeUniform,  
+        EdgeCases: []EdgeCase{
+            UnicodeFilenames,    // 测试文件.7z, файл.7z, ファイル.7z
+            EmojiFilenames,      // 🚀project.7z, 📝notes.7z
+            SpecialCharacters,   // file with spaces.7z, file[brackets].7z
+            LongFilenames,       // 255-character filenames
+        },
+    },
+    {
+        Name: "boundary-conditions",
+        Count: 30,
+        ULIDPattern: ULIDCollisions, // Stress test resolution
+        Profiles: []ProfileDistribution{{Profile: "balanced", Weight: 1.0}},
+        SizePattern: SizeLargeFiles, // Large file edge cases
+        EdgeCases: []EdgeCase{
+            MaxPathLength,       // Deep directory hierarchies
+            MinMaxFileSizes,     // 0 byte and multi-GB files
+            TimeBoundaries,      // Unix epoch, far future dates
+        },
+    },
+}
+```
 
-// TestRegistryWithDataset creates registry with predefined dataset
-func TestRegistryWithDataset(t *testing.T, datasetName string) (*Registry, *Dataset) {
-    t.Helper()
+### Integration with Existing Test Infrastructure (Based on 7EP-0006 Success)
+
+#### Enhanced Test Helpers  
+```go
+// internal/storage/test_helpers.go - Enhanced with 7EP-0005 scenarios
+
+// TestRegistryWithScenario creates registry with predefined scenario
+// Builds directly on 7EP-0006's successful setupRegistryWithArchives pattern
+func TestRegistryWithScenario(tb testing.TB, scenarioName string) (*storage.Registry, []*storage.Archive) {
+    tb.Helper()
     
-    reg := TestRegistry(t) // Existing helper
-    
-    generator := generators.NewGenerator(42, t.TempDir()) // Fixed seed
-    spec := generators.GetScenario(datasetName)
-    dataset, err := generator.Generate(context.Background(), spec)
+    // Create registry using 7EP-0006 pattern
+    tmpDir := tb.TempDir() 
+    dbPath := fmt.Sprintf("%s/test.db", tmpDir)
+    reg, err := storage.NewRegistry(dbPath)
     if err != nil {
-        t.Fatalf("Failed to generate dataset %s: %v", datasetName, err)
+        tb.Fatalf("Failed to create test registry: %v", err)
     }
     
-    // Register all archives with registry
-    for _, archive := range dataset.Archives {
-        if err := reg.Register(archive.Archive); err != nil {
-            t.Fatalf("Failed to register test archive: %v", err)
+    tb.Cleanup(func() { reg.Close() })
+    
+    // Generate archives using scenario system
+    generator := generators.NewGenerator(42) // Fixed seed like 7EP-0006
+    spec := generators.GetScenario(scenarioName)
+    archives := generator.GenerateScenario(tb, spec)
+    
+    // Add archives using proven pattern
+    for _, archive := range archives {
+        if err := reg.Add(archive); err != nil {
+            tb.Fatalf("Failed to add test archive: %v", err)
         }
     }
     
-    t.Cleanup(func() {
-        dataset.Cleanup()
-        reg.Close()
-    })
-    
-    return reg, dataset
+    return reg, archives
 }
 
-// Performance test helpers
-func BenchmarkResolver(b *testing.B, datasetSize DatasetSize) {
-    reg, dataset := BenchmarkRegistryWithDataset(b, string(datasetSize))
-    resolver := storage.NewResolver(reg)
+// Benchmark helpers extending 7EP-0006 approach
+func BenchmarkWithScenario(b *testing.B, scenarioName string, 
+                           benchmarkFn func(*storage.Registry, []*storage.Archive)) {
+    reg, archives := TestRegistryWithScenario(b, scenarioName)
     
     b.ResetTimer()
-    for i := 0; i < b.N; i++ {
-        // Test resolution with random archive from dataset
-        archive := dataset.Archives[i%len(dataset.Archives)]
-        _, err := resolver.ResolveID(archive.UID[:8])
-        if err != nil {
-            b.Fatalf("Resolution failed: %v", err)
-        }
+    benchmarkFn(reg, archives) 
+}
+
+// Example usage - extending 7EP-0006's benchmark patterns
+func BenchmarkResolutionWithEdgeCases(b *testing.B) {
+    scenarios := []string{
+        "disambiguation-stress",
+        "unicode-names", 
+        "boundary-conditions",
+    }
+    
+    for _, scenario := range scenarios {
+        b.Run(scenario, func(b *testing.B) {
+            BenchmarkWithScenario(b, scenario, func(reg *storage.Registry, archives []*storage.Archive) {
+                resolver := storage.NewResolver(reg)
+                resolver.MinPrefixLength = 4 // From 7EP-0006 learning
+                
+                for i := 0; i < b.N; i++ {
+                    archive := archives[i%len(archives)]
+                    _, err := resolver.Resolve(archive.UID[:8])
+                    if err != nil && !isAmbiguousError(err) { // 7EP-0006 pattern
+                        b.Fatalf("Resolution failed: %v", err)
+                    }
+                }
+            })
+        })
     }
 }
 ```
@@ -412,68 +528,69 @@ func GenerateCorruptionDataset() DatasetSpec {
 }
 ```
 
-## Implementation Plan
+## Implementation Plan (Revised Based on 7EP-0006 Learnings)
 
-### Phase 1: Core Generator Infrastructure
-- [ ] **Dataset Generator Framework**
-  - [ ] Base generator with reproducible seeding
-  - [ ] DatasetSpec definition and parsing
-  - [ ] File creation and registry integration
-  - [ ] Cleanup and lifecycle management
+### Phase 1: Core Generator Infrastructure (Building on 7EP-0006)
+- [ ] **Scenario Generator Framework**
+  - [ ] ScenarioSpec definition (simplified from DatasetSpec)
+  - [ ] ULID generation patterns (refined from 7EP-0006's successful approach)
+  - [ ] Registry integration using proven `reg.Add()` pattern
+  - [ ] Reproducible seeding with fixed seeds (42 default)
 
-- [ ] **Basic Content Generators**
-  - [ ] Document content generator (text, structured)
-  - [ ] Simple binary content generator
-  - [ ] Directory structure creation
-  - [ ] Size and timing distribution
+- [ ] **Metadata Generation Patterns**
+  - [ ] Size distribution patterns (uniform, realistic, large-files)
+  - [ ] Profile distribution system with weights
+  - [ ] Time spread generation across configurable periods
+  - [ ] Edge case modification system
 
-### Phase 2: Performance Testing Datasets
-- [ ] **Benchmark Dataset Creation**
-  - [ ] 1K archive dataset for resolution testing
-  - [ ] 10K archive dataset for list filtering
-  - [ ] Large file dataset for show/verification
-  - [ ] Mixed profile datasets for realistic scenarios
+### Phase 2: Core Scenarios (Extending 7EP-0006 Success)
+- [ ] **Performance Scenario Library**
+  - [ ] Resolution disambiguation scenarios (builds on 7EP-0006's ULIDSimilar)
+  - [ ] Scaling validation scenarios (extends 7EP-0006's scaling tests)
+  - [ ] List filtering stress scenarios (10K+ archives with complex filters)
+  - [ ] Show command verification scenarios
 
-- [ ] **Benchmark Integration**
-  - [ ] Enhanced test helpers using datasets
-  - [ ] Benchmark suite for 7EP-0004 validation
-  - [ ] Performance regression testing
-  - [ ] CI integration for automated benchmarks
+- [ ] **Integration Test Helpers**
+  - [ ] TestRegistryWithScenario helper (extends setupRegistryWithArchives pattern)
+  - [ ] BenchmarkWithScenario helper (generalizes 7EP-0006's benchmark pattern)
+  - [ ] Scenario-based test assertions (extends AssertResolves pattern)
 
-### Phase 3: Integration & Edge Case Testing
-- [ ] **Realistic Integration Scenarios**
-  - [ ] User workflow datasets (create→list→show→delete)
-  - [ ] Mixed managed/external scenarios
-  - [ ] Profile-specific usage patterns
-  - [ ] Time-distributed archive creation
+### Phase 3: Edge Case & Integration Coverage
+- [ ] **Edge Case Scenarios**
+  - [ ] Unicode filename handling (systematic coverage beyond 7EP-0006)
+  - [ ] Boundary condition testing (path lengths, file sizes)
+  - [ ] Metadata corruption and consistency scenarios
+  - [ ] Cross-platform compatibility scenarios
 
-- [ ] **Edge Case Coverage**
-  - [ ] Unicode and special character handling
-  - [ ] Large file and deep hierarchy scenarios
-  - [ ] Corruption and missing file scenarios
-  - [ ] Network storage and permission scenarios
+- [ ] **Workflow Integration Scenarios**
+  - [ ] End-to-end user workflow scenarios (create→list→show→delete)
+  - [ ] Mixed managed/external storage scenarios
+  - [ ] Time-series archive management scenarios
+  - [ ] Migration and schema change scenarios
 
-### Phase 4: Advanced Features
-- [ ] **Dynamic Dataset Generation**
-  - [ ] On-demand dataset creation for specific tests
-  - [ ] Parameterized generation for fuzzing
-  - [ ] Incremental dataset updates
-  - [ ] Dataset versioning and migration
-
-- [ ] **Test Organization**
-  - [ ] Move existing demo-files into proper structure
-  - [ ] Integrate with existing integration tests
-  - [ ] Documentation for dataset usage patterns
+### Phase 4: Quality Assurance & Maintenance
+- [ ] **Test Organization Cleanup**
+  - [ ] Migrate demo-files/ to structured scenarios
+  - [ ] Replace ad hoc test data with systematic scenarios
+  - [ ] Documentation for scenario usage patterns
   - [ ] Developer guides for adding new scenarios
 
-## Success Criteria
+- [ ] **Advanced Features**
+  - [ ] Scenario composition (combine multiple edge cases)
+  - [ ] Performance regression monitoring
+  - [ ] CI integration with systematic test coverage
+  - [ ] Scenario versioning for compatibility testing
 
-### Performance Validation (7EP-0004)
-- [ ] Can generate 10K+ archive datasets in <30 seconds
-- [ ] Benchmark suite validates <50ms resolution requirement
-- [ ] List filtering benchmarks validate <200ms requirement
-- [ ] Show command benchmarks validate <100ms requirement
-- [ ] Memory usage testing validates <10MB requirement
+## Success Criteria (Updated with 7EP-0006 Insights)
+
+### Performance Validation (Building on 7EP-0006 Success) 
+- [x] **7EP-0006 Baseline Established**: Metadata-only approach proven effective
+- [ ] Can generate 10K+ archive scenarios in <5 seconds (metadata-only, no files)
+- [ ] Edge case scenarios validate resolution robustness beyond basic performance
+- [ ] Integration scenarios validate end-to-end workflow performance
+- [ ] Memory usage remains <10MB even with complex scenarios
+
+**Note**: Core performance requirements already validated by 7EP-0006. Focus shifts to comprehensive scenario coverage.
 
 ### Test Coverage
 - [ ] All major file types represented (documents, media, code, data)
@@ -534,18 +651,25 @@ func GenerateCorruptionDataset() DatasetSpec {
 - Validate that generated datasets meet performance requirements
 - Test with various dataset sizes and complexity
 
-## Related Work
+## Related Work (Updated with 7EP-0006 Relationship)
 
-### Builds On
-- **7EP-0004**: Provides performance testing needed for completion
-- **Test Helpers (PR #6)**: Uses existing test infrastructure
-- **Integration Tests**: Enhances scenarios from mas-foundation-integration.md
+### Builds On (Now Including 7EP-0006 Success)
+- **7EP-0006 (Completed)**: Proven metadata-only approach for performance testing
+- **7EP-0004 (Completed)**: MAS Foundation provides solid performance baseline
+- **Test Helpers (PR #6)**: Existing test infrastructure and patterns
+- **Integration Tests**: Scenarios from mas-foundation-integration.md
 
-### Enables
-- **7EP-0004 Completion**: Provides missing performance testing capability
-- **Future 7EPs**: Solid test foundation for trash management, CI, etc.
-- **Regression Testing**: Systematic performance monitoring
-- **Realistic Testing**: Better coverage of real-world scenarios
+### Relationship to 7EP-0006
+- **Complementary, Not Competing**: 7EP-0006 solved immediate performance validation needs
+- **Extension Strategy**: 7EP-0005 extends 7EP-0006's successful patterns to comprehensive scenarios  
+- **Proven Foundation**: Builds on 7EP-0006's working ULID generation, registry integration
+- **Different Purpose**: 7EP-0006 = minimal performance validation, 7EP-0005 = comprehensive test infrastructure
+
+### Enables (Post 7EP-0006)
+- **Future 7EP Testing**: Rich test scenarios for trash management (7EP-0001), CI (7EP-0002), migrations (7EP-0003)
+- **Edge Case Coverage**: Systematic testing of Unicode, boundaries, corruption beyond basic performance
+- **Integration Validation**: End-to-end workflow testing with realistic archive diversity
+- **Quality Assurance**: Regression testing and comprehensive scenario coverage
 
 ## Future Considerations
 
@@ -555,6 +679,19 @@ func GenerateCorruptionDataset() DatasetSpec {
 - **Migration Testing**: Dataset evolution and backward compatibility
 - **Performance Profiling**: Detailed bottleneck analysis with realistic data
 
+## Summary of Key Changes (Post 7EP-0006)
+
+**Major Revisions Based on Implementation Learnings:**
+
+1. **Metadata-First Architecture**: Eliminates complex content generation in favor of 7EP-0006's proven metadata-only approach
+2. **Scenario-Driven Organization**: Replaces arbitrary size buckets with purpose-driven scenarios (performance, integration, edge-cases)
+3. **Proven Pattern Extension**: Builds directly on 7EP-0006's successful ULID generation, registry integration, and benchmark patterns
+4. **Simplified API**: ScenarioSpec replaces complex DatasetSpec, reducing implementation complexity
+5. **Focused Scope**: Shifts from "comprehensive system" to "systematic edge case and integration coverage"
+6. **Practical File Structure**: Streamlined directory hierarchy, easier maintenance and understanding
+
+**Strategic Position**: 7EP-0005 now serves as the logical evolution of 7EP-0006's success, focusing on areas where comprehensive coverage adds value beyond basic performance validation.
+
 ---
 
-This comprehensive test dataset system transforms 7zarch-go testing from ad hoc file creation to systematic, scalable, realistic test scenarios that enable confident performance validation and comprehensive integration testing.
+This refined test dataset system builds on 7EP-0006's proven approach to provide systematic edge case coverage, integration testing, and quality assurance while maintaining the simplicity and effectiveness of the metadata-only pattern.
