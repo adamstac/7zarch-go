@@ -2,34 +2,22 @@
 version: 2
 
 reviews:
+  profile: chill
   auto_review:
     enabled: true
-  review_profile: CHILL
-  allow_review_on_draft: false
+    drafts: false
+  # Provide stronger scrutiny guidance for important paths
+  path_instructions:
+    - path: "internal/storage/**"
+      instructions: "Use assertive scrutiny for storage internals (correctness, concurrency, durability)."
+    - path: "cmd/**"
+      instructions: "Normal scrutiny; ensure CLI UX and error handling."
+    - path: "**/*_test.go"
+      instructions: "Chill profile acceptable for tests/tooling."
 
 summaries:
   enabled: true
   placement: PR_BODY
-
-fail_conditions:
-  # Treat high severity issues as blockers
-  high_severity_block: true
-
-labels:
-  # Apply STRICT profile when PR is labeled "strict"
-  - label: strict
-    review_profile: STRICT
-  # Chill for docs/chore
-  - label: docs
-    review_profile: CHILL
-  - label: chore
-    review_profile: CHILL
-
-comments:
-  nits: true
-  style_suggestions: true
-  request_tests: true
-  max_comments: 50
 
 ignore:
   files:
@@ -38,8 +26,5 @@ ignore:
     - "**/*.sum"
     - "**/*.min.*"
     - ".claude/**"
-    - ".coderabbit.yaml"  # do not review config changes themselves
-
-ui:
-  finishing_touches_checklist: true
+    - ".coderabbit.yaml"
 
