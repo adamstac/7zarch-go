@@ -47,8 +47,9 @@ func NewRegistry(dbPath string) (*Registry, error) {
 	return r, nil
 }
 
-// initSchema creates the database tables if they don't exist and applies additive migrations
+// initSchema creates the database tables if they don't exist and applies migrations
 func (r *Registry) initSchema() error {
+	// Create full modern schema for new installations
 	query := `
 	CREATE TABLE IF NOT EXISTS archives (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,18 +82,15 @@ func (r *Registry) initSchema() error {
 		return err
 	}
 
-	// Additive migrations for existing installations (ignore errors when columns already exist)
-	migrations := []string{
-		"ALTER TABLE archives ADD COLUMN uid TEXT UNIQUE",
-		"ALTER TABLE archives ADD COLUMN managed BOOLEAN DEFAULT FALSE",
-		"ALTER TABLE archives ADD COLUMN status TEXT NOT NULL DEFAULT 'present'",
-		"ALTER TABLE archives ADD COLUMN last_seen TIMESTAMP",
-		"CREATE INDEX IF NOT EXISTS idx_archives_checksum ON archives(checksum)",
-		"CREATE UNIQUE INDEX IF NOT EXISTS idx_archives_uid ON archives(uid)",
+	// Apply proper migration system
+	if err := r.RecordCurrentSchemaAsApplied(); err != nil {
+		return fmt.Errorf("failed to record schema state: %w", err)
 	}
-	for _, m := range migrations {
-		_, _ = r.db.Exec(m)
+	
+	if err := r.ApplyPendingMigrations(); err != nil {
+		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
+
 	return nil
 }
 
