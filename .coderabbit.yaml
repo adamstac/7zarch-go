@@ -2,24 +2,17 @@
 version: 2
 
 reviews:
-  auto_review: true
+  auto_review:
+    enabled: true
   review_profile: CHILL
   allow_review_on_draft: false
-  path_filters:
-    - include: ["internal/storage/**"]
-      review_profile: STRICT
-    - include: ["cmd/**", "main.go"]
-      review_profile: NORMAL
-    - include: ["internal/**_test.go", "Makefile", "scripts/**"]
-      review_profile: CHILL
-    - exclude: ["dist/**", "vendor/**", "**/*.sum", "**/*.min.*", ".claude/**"]
 
 summaries:
   enabled: true
   placement: PR_BODY
 
 fail_conditions:
-  # Treat high severity issues in STRICT areas as blockers
+  # Treat high severity issues as blockers
   high_severity_block: true
 
 labels:
@@ -49,16 +42,4 @@ ignore:
 
 ui:
   finishing_touches_checklist: true
-
-# Optional: customize severity mapping if needed later.
-# severities:
-#   STRICT:
-#     - BUG
-#     - SECURITY
-#     - PERFORMANCE
-#   NORMAL:
-#     - BUG
-#     - PERFORMANCE
-#   CHILL:
-#     - NIT
 
