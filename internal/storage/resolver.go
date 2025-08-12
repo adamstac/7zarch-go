@@ -12,9 +12,9 @@ import (
 // Default minimum prefix length is 4 to avoid accidental broad matches.
 
 type Resolver struct {
-	reg              *Registry
-	MinPrefixLength  int
-	MaxCandidates    int
+	reg             *Registry
+	MinPrefixLength int
+	MaxCandidates   int
 }
 
 func NewResolver(reg *Registry) *Resolver {
@@ -24,17 +24,23 @@ func NewResolver(reg *Registry) *Resolver {
 
 func (r *Resolver) Resolve(input string) (*Archive, error) {
 	trim := strings.TrimSpace(input)
-	if trim == "" { return nil, &ArchiveNotFoundError{ID: input} }
+	if trim == "" {
+		return nil, &ArchiveNotFoundError{ID: input}
+	}
 
 	// 1) Numeric ID
 	if isAllDigits(trim) {
 		if id, err := strconv.ParseInt(trim, 10, 64); err == nil {
-			if a, err := r.reg.GetByID(id); err == nil { return a, nil }
+			if a, err := r.reg.GetByID(id); err == nil {
+				return a, nil
+			}
 		}
 	}
 
 	// 2) Exact UID
-	if a, err := r.reg.GetByUID(trim); err == nil { return a, nil }
+	if a, err := r.reg.GetByUID(trim); err == nil {
+		return a, nil
+	}
 
 	// 3) UID prefix (min length)
 	if len(trim) >= r.MinPrefixLength {
@@ -65,16 +71,21 @@ func (r *Resolver) Resolve(input string) (*Archive, error) {
 	}
 
 	// 5) Exact name
-	if a, err := r.reg.Get(trim); err == nil { return a, nil }
+	if a, err := r.reg.Get(trim); err == nil {
+		return a, nil
+	}
 
 	return nil, &ArchiveNotFoundError{ID: input}
 }
 
 func isAllDigits(s string) bool {
-	if s == "" { return false }
+	if s == "" {
+		return false
+	}
 	for _, ch := range s {
-		if ch < '0' || ch > '9' { return false }
+		if ch < '0' || ch > '9' {
+			return false
+		}
 	}
 	return true
 }
-

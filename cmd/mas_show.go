@@ -19,12 +19,16 @@ func MasShowCmd() *cobra.Command {
 			id := args[0]
 			cfg, _ := config.Load()
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
-			if err != nil { return fmt.Errorf("failed to init storage: %w", err) }
+			if err != nil {
+				return fmt.Errorf("failed to init storage: %w", err)
+			}
 			defer mgr.Close()
 
 			resolver := storage.NewResolver(mgr.Registry())
 			arc, err := resolver.Resolve(id)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 
 			// File existence verification + last_seen/status update
 			now := time.Now()
@@ -45,7 +49,11 @@ func MasShowCmd() *cobra.Command {
 
 func printArchive(a *storage.Archive) {
 	status := a.Status
-	if status == "present" { status += " ✓" } else if status == "missing" { status += " ⚠️" }
+	if status == "present" {
+		status += " ✓"
+	} else if status == "missing" {
+		status += " ⚠️"
+	}
 	fmt.Printf("UID:        %s\n", a.UID)
 	fmt.Printf("Name:       %s\n", a.Name)
 	fmt.Printf("Path:       %s\n", a.Path)
@@ -53,8 +61,13 @@ func printArchive(a *storage.Archive) {
 	fmt.Printf("Status:     %s\n", status)
 	fmt.Printf("Size:       %d\n", a.Size)
 	fmt.Printf("Created:    %s\n", a.Created.Format("2006-01-02 15:04:05"))
-	if a.Checksum != "" { fmt.Printf("Checksum:   %s\n", a.Checksum) }
-	if a.Profile != "" { fmt.Printf("Profile:    %s\n", a.Profile) }
-	if a.Uploaded { fmt.Printf("Uploaded:   %t (%s)\n", a.Uploaded, a.Destination) }
+	if a.Checksum != "" {
+		fmt.Printf("Checksum:   %s\n", a.Checksum)
+	}
+	if a.Profile != "" {
+		fmt.Printf("Profile:    %s\n", a.Profile)
+	}
+	if a.Uploaded {
+		fmt.Printf("Uploaded:   %t (%s)\n", a.Uploaded, a.Destination)
+	}
 }
-
