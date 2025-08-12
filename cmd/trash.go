@@ -91,13 +91,14 @@ func trashListCmd() *cobra.Command {
 					}
 					rows = append(rows, row{UID: a.UID, Name: a.Name, Path: a.Path, DeletedAt: a.DeletedAt, PurgeDate: purgeStr, DaysLeft: days})
 				}
-				enc := json.NewEncoder(os.Stdout)
+				enc := json.NewEncoder(cmd.OutOrStdout())
 				enc.SetIndent("", "  ")
 				return enc.Encode(rows)
 			}
 
 			// Text output
-			fmt.Printf("🗑️  Deleted archives (%d)\n", len(out))
+			outWriter := cmd.OutOrStdout()
+			fmt.Fprintf(outWriter, "🗑️  Deleted archives (%d)\n", len(out))
 			for _, a := range out {
 				var delStr, purgeStr, countdown string
 				if a.DeletedAt != nil {
@@ -111,7 +112,7 @@ func trashListCmd() *cobra.Command {
 						countdown = fmt.Sprintf("%dd", days)
 					}
 				}
-				fmt.Printf("- %s (%s)\n  deleted: %s | purge: %s (%s)\n", a.Name, a.UID[:8], delStr, purgeStr, countdown)
+				fmt.Fprintf(outWriter, "- %s (%s)\n  deleted: %s | purge: %s (%s)\n", a.Name, a.UID[:8], delStr, purgeStr, countdown)
 			}
 			return nil
 		},
@@ -175,27 +176,27 @@ func trashPurgeCmd() *cobra.Command {
 			}
 
 			if len(eligible) == 0 {
-				fmt.Println("Nothing to purge.")
+				fmt.Fprintln(cmd.OutOrStdout(), "Nothing to purge.")
 				return nil
 			}
 
 			// Confirmation unless --force
 			if !flagForce {
-				fmt.Printf("About to purge %d archives. Proceed? [y/N]: ", len(eligible))
+				fmt.Fprintf(cmd.OutOrStdout(), "About to purge %d archives. Proceed? [y/N]: ", len(eligible))
 				reader := bufio.NewReader(os.Stdin)
 				line, _ := reader.ReadString('\n')
 				line = strings.TrimSpace(strings.ToLower(line))
 				if line != "y" && line != "yes" {
-					fmt.Println("Aborted.")
+					fmt.Fprintln(cmd.OutOrStdout(), "Aborted.")
 					return nil
 				}
 			}
 
 			// Dry-run summary
 			if flagDryRun {
-				fmt.Printf("Would purge %d archives:\n", len(eligible))
+				fmt.Fprintf(cmd.OutOrStdout(), "Would purge %d archives:\n", len(eligible))
 				for _, a := range eligible {
-					fmt.Printf("- %s (%s)\n", a.Name, a.UID[:8])
+					fmt.Fprintf(cmd.OutOrStdout(), "- %s (%s)\n", a.Name, a.UID[:8])
 				}
 				return nil
 			}
@@ -209,7 +210,7 @@ func trashPurgeCmd() *cobra.Command {
 				// Remove from registry
 				_ = mgr.Registry().Delete(a.Name)
 			}
-			fmt.Printf("Purged %d archives.\n", len(eligible))
+			fmt.Fprintf(cmd.OutOrStdout(), "Purged %d archives.\n", len(eligible))
 			return nil
 		},
 	}

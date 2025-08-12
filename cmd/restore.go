@@ -61,15 +61,6 @@ func RestoreCmd() *cobra.Command {
 				return fmt.Errorf("failed to prepare destination: %w", err)
 			}
 
-			// Handle existing target
-			if _, err := os.Stat(target); err == nil {
-				if !flagForce {
-					return fmt.Errorf("destination exists: %s (use --force to overwrite)", target)
-				}
-				// Try remove so move can succeed
-				_ = os.Remove(target)
-			}
-
 			// If managed archive, file lives in trash and needs moving back
 			if arc.Managed {
 				if err := moveOrCopy(arc.Path, target); err != nil {
