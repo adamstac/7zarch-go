@@ -38,9 +38,11 @@ Features:
 	rootCmd.AddCommand(cmd.ListCmd())
 	rootCmd.AddCommand(cmd.ProfilesCmd())
 	rootCmd.AddCommand(cmd.ConfigCmd())
-	// MAS commands (initial)
+	// MAS commands
 	rootCmd.AddCommand(cmd.MasShowCmd())
 	rootCmd.AddCommand(cmd.MasDbCmd())
+	rootCmd.AddCommand(cmd.MasDeleteCmd())
+	rootCmd.AddCommand(cmd.MasMoveCmd())
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {
