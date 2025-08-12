@@ -54,12 +54,12 @@ func setupRegistryWithArchives(tb testing.TB, archives []*storage.Archive) *stor
 	// Create temp directory for test database
 	tmpDir := tb.TempDir()
 	dbPath := fmt.Sprintf("%s/test.db", tmpDir)
-	
+
 	reg, err := storage.NewRegistry(dbPath)
 	if err != nil {
 		tb.Fatalf("Failed to create test registry: %v", err)
 	}
-	
+
 	tb.Cleanup(func() {
 		reg.Close()
 	})

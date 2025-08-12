@@ -33,10 +33,14 @@ func (e *AmbiguousIDError) Error() string {
 		}
 		age := humanizeAge(archive.Created)
 		size := humanizeSize(archive.Size)
-		
+
+		prefixLen := 8
+		if len(archive.UID) < prefixLen {
+			prefixLen = len(archive.UID)
+		}
 		sb.WriteString(fmt.Sprintf("[%d] %s %s (%s, %s, %s)\n",
-			i+1, 
-			archive.UID[:8], 
+			i+1,
+			archive.UID[:prefixLen],
 			archive.Name,
 			location,
 			size,
@@ -53,7 +57,7 @@ type RegistryError struct {
 }
 
 func (e *RegistryError) Error() string {
-	return fmt.Sprintf("Registry operation '%s' failed: %v\n💡 Run '7zarch-go db status' to check registry health", 
+	return fmt.Sprintf("Registry operation '%s' failed: %v\n💡 Run '7zarch-go db status' to check registry health",
 		e.Operation, e.Cause)
 }
 
@@ -82,7 +86,7 @@ func humanizeAge(t time.Time) string {
 	case dur < 30*24*time.Hour:
 		return fmt.Sprintf("%dw ago", int(dur.Hours()/(24*7)))
 	default:
-		return fmt.Sprintf("%dm ago", int(dur.Hours()/(24*30)))
+		return fmt.Sprintf("%dmo ago", int(dur.Hours()/(24*30)))
 	}
 }
 

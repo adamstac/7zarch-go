@@ -14,11 +14,11 @@ func BenchmarkRegistryOperations(b *testing.B) {
 		registry.Close()
 		os.RemoveAll(tempDir)
 	}()
-	
+
 	// Pre-populate registry with test data
 	numArchives := 1000
 	archives := make([]*Archive, numArchives)
-	
+
 	for i := 0; i < numArchives; i++ {
 		archives[i] = &Archive{
 			UID:      generateUID(),
@@ -31,20 +31,20 @@ func BenchmarkRegistryOperations(b *testing.B) {
 			Managed:  i%2 == 0,
 			Status:   "present",
 		}
-		
+
 		err := registry.Add(archives[i])
 		if err != nil {
 			b.Fatalf("Failed to add benchmark archive %d: %v", i, err)
 		}
 	}
-	
+
 	b.Run("Add", func(b *testing.B) {
 		tempRegistry, tempDir := setupTestRegistry(&testing.T{})
 		defer func() {
 			tempRegistry.Close()
 			os.RemoveAll(tempDir)
 		}()
-		
+
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			archive := &Archive{
@@ -57,14 +57,14 @@ func BenchmarkRegistryOperations(b *testing.B) {
 				Managed: true,
 				Status:  "present",
 			}
-			
+
 			err := tempRegistry.Add(archive)
 			if err != nil {
 				b.Fatalf("Add failed: %v", err)
 			}
 		}
 	})
-	
+
 	b.Run("Get", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -75,7 +75,7 @@ func BenchmarkRegistryOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("List", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -85,7 +85,7 @@ func BenchmarkRegistryOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("ListNotUploaded", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -95,7 +95,7 @@ func BenchmarkRegistryOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("ListOlderThan", func(b *testing.B) {
 		cutoff := 24 * time.Hour // 1 day
 		b.ResetTimer()
@@ -115,22 +115,22 @@ func BenchmarkResolverOperations(b *testing.B) {
 		registry.Close()
 		os.RemoveAll(tempDir)
 	}()
-	
+
 	// Create test data with known UIDs and checksums
 	numArchives := 1000
 	testUIDs := make([]string, numArchives)
 	testChecksums := make([]string, numArchives)
 	testNames := make([]string, numArchives)
-	
+
 	for i := 0; i < numArchives; i++ {
 		uid := generateUID()
 		checksum := fmt.Sprintf("checksum-%064d", i)
 		name := fmt.Sprintf("resolve-test-%04d.7z", i)
-		
+
 		testUIDs[i] = uid
 		testChecksums[i] = checksum
 		testNames[i] = name
-		
+
 		archive := &Archive{
 			UID:      uid,
 			Name:     name,
@@ -142,15 +142,15 @@ func BenchmarkResolverOperations(b *testing.B) {
 			Managed:  true,
 			Status:   "present",
 		}
-		
+
 		err := registry.Add(archive)
 		if err != nil {
 			b.Fatalf("Failed to add resolve test archive %d: %v", i, err)
 		}
 	}
-	
+
 	resolver := NewResolver(registry)
-	
+
 	b.Run("ResolveExactUID", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -161,7 +161,7 @@ func BenchmarkResolverOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("ResolveUIDPrefix", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -176,7 +176,7 @@ func BenchmarkResolverOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("ResolveChecksumPrefix", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -190,7 +190,7 @@ func BenchmarkResolverOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("ResolveName", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -198,6 +198,20 @@ func BenchmarkResolverOperations(b *testing.B) {
 			_, err := resolver.Resolve(name)
 			if err != nil {
 				b.Fatalf("Resolve name failed: %v", err)
+
+				b.Run("ResolveUnder50ms", func(b *testing.B) {
+					// Emulate user resolution patterns; expect average <50ms on test data
+					resolver := NewResolver(registry)
+					b.ResetTimer()
+					for i := 0; i < b.N; i++ {
+						uid := testUIDs[i%numArchives]
+						_, err := resolver.Resolve(uid)
+						if err != nil {
+							b.Fatalf("Resolve under 50ms failed: %v", err)
+						}
+					}
+				})
+
 			}
 		}
 	})
@@ -207,7 +221,7 @@ func BenchmarkResolverOperations(b *testing.B) {
 func BenchmarkManagerOperations(b *testing.B) {
 	manager, tempDir := setupTestManager(&testing.T{})
 	defer os.RemoveAll(tempDir)
-	
+
 	b.Run("ManagerAdd", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -219,7 +233,7 @@ func BenchmarkManagerOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("ManagerList", func(b *testing.B) {
 		// Pre-populate with some data
 		for i := 0; i < 100; i++ {
@@ -227,7 +241,7 @@ func BenchmarkManagerOperations(b *testing.B) {
 			path := fmt.Sprintf("/pre/populate-%d.7z", i)
 			manager.Add(name, path, int64(1024*i), "balanced", "", "", true)
 		}
-		
+
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			_, err := manager.List()
@@ -236,7 +250,7 @@ func BenchmarkManagerOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("ManagerGet", func(b *testing.B) {
 		// Pre-populate with test data
 		testNames := make([]string, 100)
@@ -246,7 +260,7 @@ func BenchmarkManagerOperations(b *testing.B) {
 			testNames[i] = name
 			manager.Add(name, path, int64(1024*i), "balanced", "", "", true)
 		}
-		
+
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			name := testNames[i%len(testNames)]
@@ -256,7 +270,7 @@ func BenchmarkManagerOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("ManagerMarkUploaded", func(b *testing.B) {
 		// Pre-populate with test data
 		testNames := make([]string, 100)
@@ -266,7 +280,7 @@ func BenchmarkManagerOperations(b *testing.B) {
 			testNames[i] = name
 			manager.Add(name, path, int64(1024*i), "balanced", "", "", true)
 		}
-		
+
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			name := testNames[i%len(testNames)]
@@ -284,9 +298,9 @@ func BenchmarkScalability(b *testing.B) {
 	if testing.Short() {
 		b.Skip("Skipping scalability benchmarks in short mode")
 	}
-	
+
 	datasets := []int{100, 1000, 10000}
-	
+
 	for _, size := range datasets {
 		b.Run(fmt.Sprintf("Registry%d", size), func(b *testing.B) {
 			registry, tempDir := setupTestRegistry(&testing.T{})
@@ -294,7 +308,7 @@ func BenchmarkScalability(b *testing.B) {
 				registry.Close()
 				os.RemoveAll(tempDir)
 			}()
-			
+
 			// Populate registry with test data
 			for i := 0; i < size; i++ {
 				archive := &Archive{
@@ -307,13 +321,13 @@ func BenchmarkScalability(b *testing.B) {
 					Managed: true,
 					Status:  "present",
 				}
-				
+
 				err := registry.Add(archive)
 				if err != nil {
 					b.Fatalf("Failed to populate registry: %v", err)
 				}
 			}
-			
+
 			// Benchmark list operation with large dataset
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
@@ -331,13 +345,13 @@ func BenchmarkConcurrentAccess(b *testing.B) {
 	if testing.Short() {
 		b.Skip("Skipping concurrent benchmarks in short mode")
 	}
-	
+
 	registry, tempDir := setupTestRegistry(&testing.T{})
 	defer func() {
 		registry.Close()
 		os.RemoveAll(tempDir)
 	}()
-	
+
 	// Pre-populate with test data
 	numArchives := 1000
 	for i := 0; i < numArchives; i++ {
@@ -351,13 +365,13 @@ func BenchmarkConcurrentAccess(b *testing.B) {
 			Managed: true,
 			Status:  "present",
 		}
-		
+
 		err := registry.Add(archive)
 		if err != nil {
 			b.Fatalf("Failed to populate concurrent test data: %v", err)
 		}
 	}
-	
+
 	b.Run("ConcurrentReads", func(b *testing.B) {
 		b.RunParallel(func(pb *testing.PB) {
 			counter := 0
@@ -371,7 +385,7 @@ func BenchmarkConcurrentAccess(b *testing.B) {
 			}
 		})
 	})
-	
+
 	b.Run("ConcurrentLists", func(b *testing.B) {
 		b.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
@@ -389,20 +403,20 @@ func BenchmarkMemoryUsage(b *testing.B) {
 	if testing.Short() {
 		b.Skip("Skipping memory benchmarks in short mode")
 	}
-	
+
 	registry, tempDir := setupTestRegistry(&testing.T{})
 	defer func() {
 		registry.Close()
 		os.RemoveAll(tempDir)
 	}()
-	
+
 	b.Run("MemoryScaling", func(b *testing.B) {
 		// Add archives and measure memory impact
 		numArchives := 10000
-		
+
 		b.ReportAllocs()
 		b.ResetTimer()
-		
+
 		for i := 0; i < b.N && i < numArchives; i++ {
 			archive := &Archive{
 				UID:     generateUID(),
@@ -414,14 +428,14 @@ func BenchmarkMemoryUsage(b *testing.B) {
 				Managed: true,
 				Status:  "present",
 			}
-			
+
 			err := registry.Add(archive)
 			if err != nil {
 				b.Fatalf("Memory test add failed: %v", err)
 			}
 		}
 	})
-	
+
 	b.Run("ListMemoryUsage", func(b *testing.B) {
 		// Pre-populate with large dataset
 		numArchives := 5000
@@ -436,19 +450,19 @@ func BenchmarkMemoryUsage(b *testing.B) {
 				Managed: true,
 				Status:  "present",
 			}
-			
+
 			registry.Add(archive)
 		}
-		
+
 		b.ReportAllocs()
 		b.ResetTimer()
-		
+
 		for i := 0; i < b.N; i++ {
 			archives, err := registry.List()
 			if err != nil {
 				b.Fatalf("List memory test failed: %v", err)
 			}
-			
+
 			// Process archives to prevent optimization
 			_ = len(archives)
 		}

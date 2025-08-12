@@ -13,16 +13,16 @@ type Archive struct {
 	Size         int64      `json:"size"`
 	Created      time.Time  `json:"created"`
 	Checksum     string     `json:"checksum,omitempty"`
-	Profile      string     `json:"profile,omitempty"`     // compression profile used
+	Profile      string     `json:"profile,omitempty"` // compression profile used
 	Managed      bool       `json:"managed"`
-	Status       string     `json:"status"`                // present | missing | deleted
+	Status       string     `json:"status"` // present | missing | deleted
 	LastSeen     *time.Time `json:"last_seen,omitempty"`
 	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
 	OriginalPath string     `json:"original_path,omitempty"`
 	Uploaded     bool       `json:"uploaded"`
 	Destination  string     `json:"destination,omitempty"` // where it was uploaded
 	UploadedAt   *time.Time `json:"uploaded_at,omitempty"`
-	Metadata     string     `json:"metadata,omitempty"`    // JSON blob for extensibility
+	Metadata     string     `json:"metadata,omitempty"` // JSON blob for extensibility
 }
 
 // IsManaged returns true if this archive is in managed storage
