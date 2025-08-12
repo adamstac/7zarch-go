@@ -64,19 +64,18 @@ type ProfileDistribution struct {
 
 // Archive represents a test archive (simplified from storage.Archive)
 type Archive struct {
-	UID         string
-	Name        string
-	Path        string
-	Size        int64
-	Created     time.Time
-	Modified    time.Time
-	Profile     string
-	Managed     bool
-	Status      string
-	Checksum    string
-	Uploaded    bool
-	UploadedAt  *time.Time
-	DeletedAt   *time.Time
+	UID          string
+	Name         string
+	Path         string
+	Size         int64
+	Created      time.Time
+	Profile      string
+	Managed      bool
+	Status       string
+	Checksum     string
+	Uploaded     bool
+	UploadedAt   *time.Time
+	DeletedAt    *time.Time
 	OriginalPath string
 }
 
@@ -111,7 +110,6 @@ func (g *Generator) GenerateScenario(tb testing.TB, spec ScenarioSpec) []*Archiv
 			Path:     fmt.Sprintf("/tmp/test-%s-%04d.7z", spec.Name, i),
 			Size:     selectSize(sizes, g.rng),
 			Created:  g.generateCreationTime(baseTime, spec.TimeSpread, i, spec.Count),
-			Modified: g.generateCreationTime(baseTime, spec.TimeSpread, i, spec.Count),
 			Profile:  selectProfile(profiles, g.rng),
 			Managed:  g.rng.Float32() < 0.9, // 90% managed (7EP-0006 pattern)
 			Status:   "present",
