@@ -21,7 +21,7 @@ func ProfilesCmd() *cobra.Command {
 
 func runProfiles(cmd *cobra.Command, args []string) error {
 	profiles := archive.ListProfiles()
-	
+
 	// Sort profiles by name for consistent output
 	sort.Slice(profiles, func(i, j int) bool {
 		return profiles[i].Name < profiles[j].Name
@@ -33,15 +33,15 @@ func runProfiles(cmd *cobra.Command, args []string) error {
 	for _, profile := range profiles {
 		fmt.Printf("📦 %s\n", profile.Name)
 		fmt.Printf("   %s\n", profile.Description)
-		fmt.Printf("   Settings: Level %d, Dictionary %s, Fast bytes %d", 
+		fmt.Printf("   Settings: Level %d, Dictionary %s, Fast bytes %d",
 			profile.Level, profile.DictionarySize, profile.FastBytes)
-		
+
 		if profile.SolidMode {
 			fmt.Printf(", Solid mode on\n")
 		} else {
 			fmt.Printf(", Solid mode off\n")
 		}
-		
+
 		// Add usage examples
 		switch profile.Name {
 		case "Media":
@@ -54,7 +54,7 @@ func runProfiles(cmd *cobra.Command, args []string) error {
 			fmt.Printf("   Best for: Mixed content, general backups\n")
 			fmt.Printf("   Example: 7zarch-go create backup-folder --profile balanced\n")
 		}
-		
+
 		fmt.Printf("\n")
 	}
 
@@ -63,17 +63,17 @@ func runProfiles(cmd *cobra.Command, args []string) error {
 	fmt.Printf("7zarch-go is smart by default - it analyzes your content and automatically\n")
 	fmt.Printf("selects the best profile for optimal performance:\n")
 	fmt.Printf("   7zarch-go create my-folder\n\n")
-	
+
 	fmt.Printf("Manual Profile Override\n")
 	fmt.Printf("=======================\n")
 	fmt.Printf("Force a specific profile when you know what you want:\n")
 	fmt.Printf("   7zarch-go create my-folder --profile media\n\n")
-	
+
 	fmt.Printf("Traditional Compression Level\n")
 	fmt.Printf("=============================\n")
 	fmt.Printf("Use traditional compression level (0-9) to disable smart behavior:\n")
 	fmt.Printf("   7zarch-go create my-folder --compression 9\n\n")
-	
+
 	fmt.Printf("Presets\n")
 	fmt.Printf("=======\n")
 	fmt.Printf("Use predefined combinations of settings for common workflows:\n")
