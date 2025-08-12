@@ -20,7 +20,7 @@ func MasShowCmd() *cobra.Command {
 			cfg, _ := config.Load()
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
 			if err != nil {
-				return fmt.Errorf("failed to init storage: %w", err)
+				return fmt.Errorf("failed to init storage (path=%q): %w", cfg.Storage.ManagedPath, err)
 			}
 			defer mgr.Close()
 
@@ -49,9 +49,10 @@ func MasShowCmd() *cobra.Command {
 
 func printArchive(a *storage.Archive) {
 	status := a.Status
-	if status == "present" {
+	switch status {
+	case "present":
 		status += " ✓"
-	} else if status == "missing" {
+	case "missing":
 		status += " ⚠️"
 	}
 	fmt.Printf("UID:        %s\n", a.UID)

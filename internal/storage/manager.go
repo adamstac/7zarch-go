@@ -143,6 +143,12 @@ func (m *Manager) GetTrashPath() string {
 
 // Exists checks if an archive exists in the registry
 func (m *Manager) Exists(name string) bool {
-	_, err := m.registry.Get(name)
-	return err == nil
+	if m.registry == nil {
+		return false
+	}
+	if _, err := m.registry.Get(name); err != nil {
+		// TODO: differentiate not-found vs other errors when Registry exposes sentinel error or Exists API
+		return false
+	}
+	return true
 }
