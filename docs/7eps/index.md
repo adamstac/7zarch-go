@@ -25,6 +25,7 @@ A 7EP is a design document that provides:
 - 🟡 **Draft** - Initial proposal, seeking feedback
 - 🔵 **Under Review** - Formal review in progress  
 - 🟢 **Accepted** - Approved for implementation
+- 🔄 **In Progress** - Implementation underway
 - 🔴 **Rejected** - Not moving forward (with rationale)
 - ✅ **Implemented** - Completed and merged
 
@@ -35,7 +36,8 @@ A 7EP is a design document that provides:
 | [0001](7ep-0001-trash-management.md) | Trash Management System | 🟡 Draft | AC | 3 | 2025-08-11 |
 | [0002](7ep-0002-ci-integration.md) | CI Integration & Automation | 🟡 Draft | CC | 2 | 2025-08-12 |
 | [0003](7ep-0003-database-migrations.md) | Database Migrations & Schema Management | 🟡 Draft | AC | 2 | 2025-08-12 |
-| [0004](7ep-0004-mas-foundation.md) | MAS Foundation Implementation | 🟡 Draft | AC | 4 | 2025-08-12 |
+| [0004](7ep-0004-mas-foundation.md) | MAS Foundation Implementation | 🔄 In Progress (90%) | AC | 4 | 2025-08-12 |
+| [0005](7ep-0005-test-dataset-system.md) | Comprehensive Test Dataset System | 🟡 Draft | CC | 3 | 2025-08-12 |
 
 ## How to Contribute
 
