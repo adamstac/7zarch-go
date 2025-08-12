@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test (${{ matrix.os }}, Go ${{ matrix.go-version }})
@@ -27,6 +31,7 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
+        cache: true
         
     - name: Download dependencies
       run: make deps
@@ -58,6 +63,7 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: '1.23'
+        cache: true
         
     - name: Download dependencies
       run: make deps
