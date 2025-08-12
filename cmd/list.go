@@ -28,6 +28,9 @@ func ListCmd() *cobra.Command {
 	cmd.Flags().Bool("managed", false, "Only managed archives")
 	cmd.Flags().Bool("external", false, "Only external archives")
 	cmd.Flags().Bool("missing", false, "Only missing archives")
+	cmd.Flags().String("status", "", "Filter by status (present|missing|deleted)")
+	cmd.Flags().String("profile", "", "Filter by profile (media|documents|balanced)")
+	cmd.Flags().Int64("larger-than", 0, "Filter by size larger than bytes (e.g., 1048576)")
 
 	return cmd
 }
@@ -41,6 +44,9 @@ func runList(cmd *cobra.Command, args []string) error {
 	onlyManaged, _ := cmd.Flags().GetBool("managed")
 	onlyExternal, _ := cmd.Flags().GetBool("external")
 	onlyMissing, _ := cmd.Flags().GetBool("missing")
+	statusFilter, _ := cmd.Flags().GetString("status")
+	profileFilter, _ := cmd.Flags().GetString("profile")
+	largerThan, _ := cmd.Flags().GetInt64("larger-than")
 
 	if directory != "" {
 		// List archives in a specific directory
@@ -48,11 +54,11 @@ func runList(cmd *cobra.Command, args []string) error {
 	}
 
 	// List registry-tracked archives
-	return listRegistryArchives(details, notUploaded, pattern, olderThan, onlyManaged, onlyExternal, onlyMissing)
+	return listRegistryArchives(details, notUploaded, pattern, olderThan, onlyManaged, onlyExternal, onlyMissing, statusFilter, profileFilter, largerThan)
 }
 
 
-func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, onlyManaged, onlyExternal, onlyMissing bool) error {
+func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, onlyManaged, onlyExternal, onlyMissing bool, statusFilter, profileFilter string, largerThan int64) error {
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
@@ -103,6 +109,30 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 		}
 		archives = filtered
 	}
+	// Apply status filter
+	if statusFilter != "" {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if a.Status == statusFilter { filtered = append(filtered, a) }
+		}
+		archives = filtered
+	}
+	// Apply profile filter
+	if profileFilter != "" {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if a.Profile == profileFilter { filtered = append(filtered, a) }
+		}
+		archives = filtered
+	}
+	// Apply larger-than filter
+	if largerThan > 0 {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if a.Size > largerThan { filtered = append(filtered, a) }
+		}
+		archives = filtered
+	}
 
 	if len(archives) == 0 {
 		fmt.Printf("No archives found.\n")
@@ -113,7 +143,7 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	// Group and summarize
 	var managedCount, externalCount, missingCount, deletedCount int
 	var activeManaged, activeExternal, deletedArchives []*storage.Archive
-	
+
 	for _, a := range archives {
 		if a.Status == "deleted" {
 			deletedCount++
@@ -129,7 +159,7 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	}
 
 	fmt.Printf("📦 Archives (%d found)\n", len(archives))
-	fmt.Printf("Active: %d (Managed: %d, External: %d) | Missing: %d | Deleted: %d\n\n", 
+	fmt.Printf("Active: %d (Managed: %d, External: %d) | Missing: %d | Deleted: %d\n\n",
 		managedCount+externalCount, managedCount, externalCount, missingCount, deletedCount)
 
 	// Print active archives
@@ -145,7 +175,7 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 			displayArchive(a, details)
 		}
 	}
-	
+
 	// Print deleted archives
 	if len(deletedArchives) > 0 {
 		// Load config to get actual retention days
