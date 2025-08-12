@@ -322,7 +322,7 @@ func displayDeletedArchive(archive *storage.Archive, details bool) {
 			daysLeft := int(time.Until(purgeDate).Hours() / 24)
 			
 			if daysLeft > 0 {
-				fmt.Printf("   Auto-purge: in %d days (%s)\n", daysLeft, purgeDate.Format("2006-01-02"))
+				fmt.Printf("   Auto-purge: %d days from now (%s)\n", daysLeft, purgeDate.Format("2006-01-02"))
 			} else if daysLeft == 0 {
 				fmt.Printf("   Auto-purge: today\n")
 			} else {
