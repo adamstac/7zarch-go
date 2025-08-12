@@ -27,24 +27,15 @@ func runUpload(cmd *cobra.Command, args []string) error {
 	archivePath := args[0]
 	remotePath, _ := cmd.Flags().GetString("path")
 
-<<<<<<< HEAD
 	out := cmd.OutOrStdout()
 	fmt.Fprintf(out, "Uploading %s to TrueNAS...\n", archivePath)
-=======
-	fmt.Printf("Uploading %s to TrueNAS...\n", archivePath)
->>>>>>> origin/main
 	if remotePath != "" {
 		fmt.Fprintf(out, "Remote path: %s\n", remotePath)
 	}
 
 	// TODO: Implement TrueNAS upload
-<<<<<<< HEAD
 	fmt.Fprintf(out, "\n⚠️  Upload functionality coming soon!\n")
 	fmt.Fprintf(out, "This will upload to TrueNAS via SSH/SFTP.\n")
-=======
-	fmt.Printf("\n⚠️  Upload functionality coming soon!\n")
-	fmt.Printf("This will upload to TrueNAS via SSH/SFTP.\n")
->>>>>>> origin/main
 
 	return nil
 }

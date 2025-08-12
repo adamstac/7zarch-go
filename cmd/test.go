@@ -148,11 +148,7 @@ func runTestDirectory(dir string) error {
 				return err
 			}
 
-<<<<<<< HEAD
 			// Test archive (per-archive timeout for parity with single mode)
-=======
-			// Test archive
->>>>>>> origin/main
 			manager := archive.NewManager()
 			ctxArchive, cancel := context.WithTimeout(ctx, 10*time.Minute)
 			defer cancel()

@@ -38,15 +38,9 @@ func runProfiles(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, profile := range profiles {
-<<<<<<< HEAD
 		fmt.Fprintf(out, "📦 %s\n", profile.Name)
 		fmt.Fprintf(out, "   %s\n", profile.Description)
 		fmt.Fprintf(out, "   Settings: Level %d, Dictionary %s, Fast bytes %d",
-=======
-		fmt.Printf("📦 %s\n", profile.Name)
-		fmt.Printf("   %s\n", profile.Description)
-		fmt.Printf("   Settings: Level %d, Dictionary %s, Fast bytes %d",
->>>>>>> origin/main
 			profile.Level, profile.DictionarySize, profile.FastBytes)
 
 		if profile.SolidMode {
@@ -68,7 +62,6 @@ func runProfiles(cmd *cobra.Command, args []string) error {
 			fmt.Fprintf(out, "   Example: 7zarch-go create backup-folder --profile balanced\n")
 		}
 
-<<<<<<< HEAD
 		fmt.Fprintf(out, "\n")
 	}
 
@@ -95,34 +88,6 @@ func runProfiles(cmd *cobra.Command, args []string) error {
 	fmt.Fprintf(out, "   7zarch-go create my-folder --preset backup\n")
 	fmt.Fprintf(out, "   7zarch-go create my-folder --preset source_code\n")
 	fmt.Fprintf(out, "\nRun '7zarch-go config show' to see available presets in your configuration.\n")
-=======
-		fmt.Printf("\n")
-	}
-
-	fmt.Printf("Smart Compression (Default Behavior)\n")
-	fmt.Printf("====================================\n")
-	fmt.Printf("7zarch-go is smart by default - it analyzes your content and automatically\n")
-	fmt.Printf("selects the best profile for optimal performance:\n")
-	fmt.Printf("   7zarch-go create my-folder\n\n")
-
-	fmt.Printf("Manual Profile Override\n")
-	fmt.Printf("=======================\n")
-	fmt.Printf("Force a specific profile when you know what you want:\n")
-	fmt.Printf("   7zarch-go create my-folder --profile media\n\n")
-
-	fmt.Printf("Traditional Compression Level\n")
-	fmt.Printf("=============================\n")
-	fmt.Printf("Use traditional compression level (0-9) to disable smart behavior:\n")
-	fmt.Printf("   7zarch-go create my-folder --compression 9\n\n")
-
-	fmt.Printf("Presets\n")
-	fmt.Printf("=======\n")
-	fmt.Printf("Use predefined combinations of settings for common workflows:\n")
-	fmt.Printf("   7zarch-go create my-folder --preset podcast\n")
-	fmt.Printf("   7zarch-go create my-folder --preset backup\n")
-	fmt.Printf("   7zarch-go create my-folder --preset source_code\n")
-	fmt.Printf("\nRun '7zarch-go config show' to see available presets in your configuration.\n")
->>>>>>> origin/main
 
 	return nil
 }

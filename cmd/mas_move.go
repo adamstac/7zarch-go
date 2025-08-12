@@ -46,15 +46,6 @@ func MasMoveCmd() *cobra.Command {
 			if err := os.Rename(arc.Path, dest); err != nil {
 				return err
 			}
-<<<<<<< HEAD
-			if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
-				return err
-			}
-			if err := os.Rename(arc.Path, dest); err != nil {
-				return err
-			}
-=======
->>>>>>> origin/main
 
 			arc.Path = dest
 			rel, err := filepath.Rel(mgr.GetBasePath(), dest)

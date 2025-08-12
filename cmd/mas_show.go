@@ -24,23 +24,16 @@ func MasShowCmd() *cobra.Command {
 			cfg, _ := config.Load()
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
 			if err != nil {
-<<<<<<< HEAD
 				return fmt.Errorf("failed to init storage (path=%q): %w", cfg.Storage.ManagedPath, err)
-=======
-				return fmt.Errorf("failed to init storage: %w", err)
->>>>>>> origin/main
 			}
 			defer mgr.Close()
 
 			resolver := storage.NewResolver(mgr.Registry())
 			arc, err := resolver.Resolve(id)
 			if err != nil {
-<<<<<<< HEAD
-=======
 				if amb, ok := err.(*storage.AmbiguousIDError); ok {
 					printAmbiguousOptions(amb)
 				}
->>>>>>> origin/main
 				return err
 			}
 
@@ -64,16 +57,10 @@ func MasShowCmd() *cobra.Command {
 
 func printArchive(a *storage.Archive, verify bool) {
 	status := a.Status
-<<<<<<< HEAD
 	switch status {
 	case "present":
 		status += " ✓"
 	case "missing":
-=======
-	if status == "present" {
-		status += " ✓"
-	} else if status == "missing" {
->>>>>>> origin/main
 		status += " ⚠️"
 	}
 	fmt.Printf("UID:        %s\n", a.UID)
@@ -83,9 +70,6 @@ func printArchive(a *storage.Archive, verify bool) {
 	fmt.Printf("Status:     %s\n", status)
 	fmt.Printf("Size:       %d\n", a.Size)
 	fmt.Printf("Created:    %s\n", a.Created.Format("2006-01-02 15:04:05"))
-<<<<<<< HEAD
-	if a.Checksum != "" {
-=======
 	// Checksum line
 	if a.Checksum == "" {
 		fmt.Printf("Checksum:   (none)\n")
@@ -99,7 +83,6 @@ func printArchive(a *storage.Archive, verify bool) {
 			fmt.Printf("Checksum:   %s (verify error: %v)\n", a.Checksum, err)
 		}
 	} else {
->>>>>>> origin/main
 		fmt.Printf("Checksum:   %s\n", a.Checksum)
 	}
 	if a.Profile != "" {
@@ -142,4 +125,3 @@ func safePrefix(s string, n int) string {
 	}
 	return s[:n]
 }
->>>>>>> origin/main
