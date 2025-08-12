@@ -6,6 +6,7 @@
 **Difficulty:** 3 (moderate - new commands + workflow integration)  
 **Created:** 2025-08-11  
 **Updated:** 2025-08-11  
+**Revised:** 2025-08-12 (post MAS Foundation completion)  
 
 ## Executive Summary
 
@@ -24,10 +25,12 @@ Implement comprehensive trash management for deleted archives including restore 
 - No manual purge capability for immediate cleanup
 - No trash-specific operations
 
-**Why now:**
-- Delete functionality is complete but incomplete without restore capability
-- User testing revealed confusion about deleted archive recovery
-- Auto-purge feature needs manual purge counterpart for user control
+**Why now (Post 7EP-0004):**
+- **MAS Foundation Complete**: ULID resolution and registry operations provide solid foundation
+- **Delete workflow incomplete**: Current delete moves to trash but no restore capability
+- **User workflow gap**: Accidental deletions have no recovery path
+- **Auto-purge needs control**: Manual purge counterpart required for user control
+- **Strategic timing**: Build on proven MAS patterns while they're fresh
 
 ## Use Cases
 
@@ -51,30 +54,109 @@ Implement comprehensive trash management for deleted archives including restore 
 ## Technical Design
 
 ### Overview
-Design a safe, reviewable, and automatable trash lifecycle for soft-deleted archives with intelligent retention policies and user control.
+Build on 7EP-0004's proven MAS Foundation patterns to implement a safe, reviewable, and automatable trash lifecycle for soft-deleted archives with intelligent retention policies and user control.
+
+### Building on MAS Foundation (7EP-0004)
+**Leveraging Completed Infrastructure:**
+- ✅ **ULID Resolution**: All trash commands will use established resolver patterns
+- ✅ **Registry Operations**: Proven `reg.Add()`, `reg.Update()` patterns
+- ✅ **Error Handling**: Standard error types with user-friendly messages
+- ✅ **List Filtering**: Extend existing list filtering for trash-specific views
+- ✅ **Show Command**: Trash items will work with existing show functionality
+
+**Implementation Strategy:**
+- **Consistent API**: Follow 7EP-0004's command patterns and flag conventions
+- **Resolver Integration**: All trash operations accept ULID, ULID prefix, checksum prefix, name
+- **Error Messages**: Use established error types (`ArchiveNotFoundError`, etc.)
+- **Performance**: Build on validated O(1) database operations
 
 ### New Commands
 
 #### `7zarch-go restore <id>`
-- **Resolver integration**: Accept ULID, name, checksum prefix
-- **Validation**: Only restore archives with `status="deleted"`
-- **File operations**: Move from trash back to original location
-- **Registry updates**: 
-  - `status` → `"present"`
-  - `path` → value from `original_path`
-  - `deleted_at` → `NULL`
-  - Preserve `original_path` for audit trail
+**Implementation using MAS Foundation patterns:**
+```go
+func runMasRestore(cmd *cobra.Command, args []string) error {
+    resolver := storage.NewResolver(registry) // 7EP-0004 pattern
+    
+    // Resolve archive (supports all MAS Foundation identifier types)
+    archive, err := resolver.Resolve(args[0])
+    if err != nil {
+        return handleResolutionError(err) // 7EP-0004 error handling
+    }
+    
+    // Validation: Only restore deleted archives
+    if archive.Status != "deleted" {
+        return &storage.InvalidOperationError{
+            Operation: "restore",
+            Archive:   archive,
+            Reason:    "Archive is not deleted",
+        }
+    }
+    
+    // Move file from trash back to original location
+    return restoreArchiveFile(archive)
+}
+```
+
+**Registry Updates Pattern:**
+- `status` → `"present"`
+- `path` → value from `original_path` 
+- `deleted_at` → `NULL`
+- Preserve `original_path` for audit trail
 
 #### `7zarch-go trash list [--details]`
-- **Filtering**: Only show archives with `status="deleted"`
-- **Display**: Similar to regular list but trash-focused
-- **Details**: Show deletion date, original location, purge countdown
+**Extends 7EP-0004 list filtering:**
+```go  
+func runMasTrashList(cmd *cobra.Command, args []string) error {
+    // Use existing list filtering with trash-specific filter
+    filter := storage.ListFilters{
+        Status: "deleted", // Only deleted archives
+    }
+    
+    archives, err := registry.ListWithFilters(filter) // 7EP-0004 pattern
+    if err != nil {
+        return err
+    }
+    
+    // Use enhanced display from 7EP-0004 with trash-specific formatting
+    return displayTrashList(archives, options.Details)
+}
+```
+
+**Display Features:**
+- Reuses 7EP-0004's tabular formatting patterns
+- Shows deletion date, original location, purge countdown
+- Status indicators: 🗑️ for deleted items
 
 #### `7zarch-go trash purge [<id>] [--older-than <duration>]`
-- **Manual purge**: Permanently delete specific archive or all trash
-- **Age-based**: `--older-than 30d` for bulk cleanup
-- **File operations**: Remove from filesystem and registry
-- **Confirmation**: Require `--force` for permanent deletion
+**Builds on resolver and error handling patterns:**
+```go
+func runMasTrashPurge(cmd *cobra.Command, args []string) error {
+    var archives []*storage.Archive
+    var err error
+    
+    if len(args) > 0 {
+        // Specific archive - use resolver
+        resolver := storage.NewResolver(registry)
+        archive, err := resolver.Resolve(args[0])
+        if err != nil {
+            return handleResolutionError(err)
+        }
+        archives = []*storage.Archive{archive}
+    } else {
+        // Age-based bulk purge - use filtering
+        cutoff := time.Now().Add(-options.OlderThan)
+        archives, err = findArchivesOlderThan(cutoff, "deleted")
+    }
+    
+    return executePurge(archives, options)
+}
+```
+
+**Safety Features:**
+- Require `--force` for permanent deletion (follows 7EP-0004 safety patterns)
+- Clear confirmation prompts with archive details
+- Dry-run support for bulk operations
 
 ### API Changes
 ```bash
@@ -122,24 +204,56 @@ trash:
 ### Data Model Changes
 Leverages existing `status`, `deleted_at`, `original_path` fields added in recent schema migration.
 
-## Implementation Plan
+## Implementation Plan (Building on MAS Foundation)
 
-### Phase 1: Core Functionality
-- [ ] Implement `restore` command with resolver integration
-- [ ] Add basic file movement and registry updates
-- [ ] Implement `trash list` command
-- [ ] Add `trash purge` with confirmation prompts
+### Phase 1: Core Commands (Estimated: 4-6 hours)
+- [ ] **Restore Command Implementation**
+  - [ ] Create `cmd/mas_restore.go` following 7EP-0004 command patterns
+  - [ ] Integrate with existing resolver system (`storage.NewResolver`)
+  - [ ] Implement file movement from trash to original location
+  - [ ] Add registry updates using proven `registry.Update()` pattern
+  - [ ] Use standard error types and user-friendly messages
 
-### Phase 2: Polish & Testing
-- [ ] Add bulk operations support
-- [ ] Implement `--older-than` filtering for purge
-- [ ] Add comprehensive error handling
-- [ ] Integration with existing list command improvements
+- [ ] **Trash List Command**
+  - [ ] Create `cmd/mas_trash.go` with list subcommand
+  - [ ] Extend existing `ListFilters` to include status filtering
+  - [ ] Reuse tabular display patterns from enhanced list command
+  - [ ] Add trash-specific formatting (deletion dates, purge countdown)
 
-### Dependencies
-- Existing resolver system (implemented)
-- Current trash infrastructure from delete command (implemented)
-- Enhanced list display (recently implemented)
+### Phase 2: Purge Operations (Estimated: 3-4 hours)
+- [ ] **Basic Purge Implementation**
+  - [ ] Add purge subcommand to `cmd/mas_trash.go`
+  - [ ] Implement single archive purge with resolver integration
+  - [ ] Add permanent deletion (file + registry removal)
+  - [ ] Implement safety confirmations and `--force` flag
+
+- [ ] **Bulk Purge Features**
+  - [ ] Add `--older-than` duration parsing (reuse existing patterns)
+  - [ ] Implement age-based filtering for bulk operations  
+  - [ ] Add batch processing with progress reporting
+  - [ ] Include `--dry-run` support for safety
+
+### Phase 3: Integration & Polish (Estimated: 2-3 hours)
+- [ ] **Command Registration**
+  - [ ] Update `main.go` to register new trash commands
+  - [ ] Add help text and usage examples
+  - [ ] Integrate with existing command structure
+
+- [ ] **Testing & Validation**
+  - [ ] Unit tests for core restore/purge functions
+  - [ ] Integration tests using existing test patterns
+  - [ ] Edge case testing (missing files, permission errors)
+  - [ ] Performance validation with large trash sets
+
+**Total Estimated Time: 9-13 hours**
+
+### Dependencies ✅ All Complete
+- **7EP-0004 MAS Foundation**: ✅ ULID resolution, registry operations, error handling
+- **7EP-0006 Performance Testing**: ✅ Performance patterns validated  
+- **Enhanced list display**: ✅ Tabular formatting and filtering implemented
+- **Current delete/trash infrastructure**: ✅ Database schema and file operations ready
+
+**Ready to Start**: All dependencies complete, implementation can begin immediately.
 
 ## Testing Strategy
 

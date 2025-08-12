@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
-
-	"github.com/oklog/ulid/v2"
 )
 
 // Test helpers for MAS operations per 7EP-0004
@@ -72,9 +70,9 @@ func CreateTestArchive(t *testing.T, reg *Registry, name string, opts ...TestArc
 		Status:   cfg.status,
 	}
 	
-	// Register archive
-	if err := reg.Register(archive); err != nil {
-		t.Fatalf("Failed to register test archive: %v", err)
+	// Add archive
+	if err := reg.Add(archive); err != nil {
+		t.Fatalf("Failed to add test archive: %v", err)
 	}
 	
 	return archive
@@ -160,7 +158,7 @@ func CreateTestSet(t *testing.T, reg *Registry) []*Archive {
 func AssertResolves(t *testing.T, resolver *Resolver, input string, expected *Archive) {
 	t.Helper()
 	
-	result, err := resolver.ResolveID(input)
+	result, err := resolver.Resolve(input)
 	if err != nil {
 		t.Errorf("Failed to resolve '%s': %v", input, err)
 		return
@@ -176,7 +174,7 @@ func AssertResolves(t *testing.T, resolver *Resolver, input string, expected *Ar
 func AssertAmbiguous(t *testing.T, resolver *Resolver, input string, expectedCount int) {
 	t.Helper()
 	
-	_, err := resolver.ResolveID(input)
+	_, err := resolver.Resolve(input)
 	if err == nil {
 		t.Errorf("Expected ambiguous error for '%s', got success", input)
 		return
@@ -198,7 +196,7 @@ func AssertAmbiguous(t *testing.T, resolver *Resolver, input string, expectedCou
 func AssertNotFound(t *testing.T, resolver *Resolver, input string) {
 	t.Helper()
 	
-	_, err := resolver.ResolveID(input)
+	_, err := resolver.Resolve(input)
 	if err == nil {
 		t.Errorf("Expected not found error for '%s', got success", input)
 		return
@@ -223,13 +221,13 @@ func BenchmarkResolver(b *testing.B, archiveCount int) {
 			UID:  fmt.Sprintf("01K2E%06d", i),
 			Name: fmt.Sprintf("archive-%d.7z", i),
 		}
-		reg.Register(archives[i])
+		reg.Add(archives[i])
 	}
 	
 	// Benchmark resolution
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Test various resolution types
-		resolver.ResolveID(archives[i%archiveCount].UID[:8])
+		resolver.Resolve(archives[i%archiveCount].UID[:8])
 	}
 }
