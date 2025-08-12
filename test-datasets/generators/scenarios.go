@@ -30,7 +30,7 @@ var PredefinedScenarios = map[string]ScenarioSpec{
 			{Profile: "media", Weight: 0.3},
 			{Profile: "balanced", Weight: 0.3},
 		},
-		SizePattern: SizeRealistic,       // Most small, few large
+		SizePattern: SizeRealistic,        // Most small, few large
 		TimeSpread:  365 * 24 * time.Hour, // Full year spread
 	},
 

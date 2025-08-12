@@ -34,9 +34,9 @@ const (
 type SizePattern string
 
 const (
-	SizeUniform   SizePattern = "uniform"   // Even distribution
-	SizeRealistic SizePattern = "realistic" // Log-normal (most files small, few large)
-	SizeLargeFiles SizePattern = "large"    // Focus on large file scenarios
+	SizeUniform    SizePattern = "uniform"   // Even distribution
+	SizeRealistic  SizePattern = "realistic" // Log-normal (most files small, few large)
+	SizeLargeFiles SizePattern = "large"     // Focus on large file scenarios
 )
 
 // EdgeCase defines special scenarios to test

@@ -69,7 +69,7 @@ func CreateTestArchive(t *testing.T, reg *Registry, name string, opts ...TestArc
 		Managed:  cfg.managed,
 		Status:   cfg.status,
 	}
-	
+
 	// Add archive
 	if err := reg.Add(archive); err != nil {
 		t.Fatalf("Failed to add test archive: %v", err)
@@ -157,7 +157,7 @@ func CreateTestSet(t *testing.T, reg *Registry) []*Archive {
 // AssertResolves verifies that an ID resolves to expected archive
 func AssertResolves(t *testing.T, resolver *Resolver, input string, expected *Archive) {
 	t.Helper()
-	
+
 	result, err := resolver.Resolve(input)
 	if err != nil {
 		t.Errorf("Failed to resolve '%s': %v", input, err)
@@ -173,7 +173,7 @@ func AssertResolves(t *testing.T, resolver *Resolver, input string, expected *Ar
 // AssertAmbiguous verifies that an ID is ambiguous
 func AssertAmbiguous(t *testing.T, resolver *Resolver, input string, expectedCount int) {
 	t.Helper()
-	
+
 	_, err := resolver.Resolve(input)
 	if err == nil {
 		t.Errorf("Expected ambiguous error for '%s', got success", input)
@@ -195,7 +195,7 @@ func AssertAmbiguous(t *testing.T, resolver *Resolver, input string, expectedCou
 // AssertNotFound verifies that an ID is not found
 func AssertNotFound(t *testing.T, resolver *Resolver, input string) {
 	t.Helper()
-	
+
 	_, err := resolver.Resolve(input)
 	if err == nil {
 		t.Errorf("Expected not found error for '%s', got success", input)

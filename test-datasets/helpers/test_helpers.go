@@ -18,7 +18,7 @@ func TestRegistryWithScenario(tb testing.TB, scenarioName string) (*storage.Regi
 	// Create temporary registry
 	tmpDir := tb.TempDir()
 	dbPath := filepath.Join(tmpDir, "test.db")
-	
+
 	reg, err := storage.NewRegistry(dbPath)
 	if err != nil {
 		tb.Fatalf("Failed to create test registry: %v", err)
@@ -44,18 +44,18 @@ func TestRegistryWithScenario(tb testing.TB, scenarioName string) (*storage.Regi
 	archives := make([]*storage.Archive, len(testArchives))
 	for i, ta := range testArchives {
 		archive := &storage.Archive{
-			UID:         ta.UID,
-			Name:        ta.Name,
-			Path:        ta.Path,
-			Size:        ta.Size,
-			Created:     ta.Created,
-			Profile:     ta.Profile,
-			Managed:     ta.Managed,
-			Status:      ta.Status,
-			Checksum:    ta.Checksum,
-			Uploaded:    ta.Uploaded,
-			UploadedAt:  ta.UploadedAt,
-			DeletedAt:   ta.DeletedAt,
+			UID:          ta.UID,
+			Name:         ta.Name,
+			Path:         ta.Path,
+			Size:         ta.Size,
+			Created:      ta.Created,
+			Profile:      ta.Profile,
+			Managed:      ta.Managed,
+			Status:       ta.Status,
+			Checksum:     ta.Checksum,
+			Uploaded:     ta.Uploaded,
+			UploadedAt:   ta.UploadedAt,
+			DeletedAt:    ta.DeletedAt,
 			OriginalPath: ta.OriginalPath,
 		}
 
@@ -69,11 +69,11 @@ func TestRegistryWithScenario(tb testing.TB, scenarioName string) (*storage.Regi
 }
 
 // BenchmarkWithScenario runs a benchmark with a predefined scenario
-func BenchmarkWithScenario(b *testing.B, scenarioName string, 
+func BenchmarkWithScenario(b *testing.B, scenarioName string,
 	benchmarkFn func(*testing.B, *storage.Registry, []*storage.Archive)) {
-	
+
 	reg, archives := TestRegistryWithScenario(b, scenarioName)
-	
+
 	b.ResetTimer()
 	benchmarkFn(b, reg, archives)
 }
@@ -95,7 +95,7 @@ func CreateTestRegistry(tb testing.TB, count int) (*storage.Registry, []*storage
 
 	tmpDir := tb.TempDir()
 	dbPath := filepath.Join(tmpDir, "test.db")
-	
+
 	reg, err := storage.NewRegistry(dbPath)
 	if err != nil {
 		tb.Fatalf("Failed to create test registry: %v", err)
@@ -136,12 +136,12 @@ func CreateTestRegistry(tb testing.TB, count int) (*storage.Registry, []*storage
 // AssertArchiveCount verifies the expected number of archives in the registry
 func AssertArchiveCount(tb testing.TB, reg *storage.Registry, expected int) {
 	tb.Helper()
-	
+
 	archives, err := reg.List()
 	if err != nil {
 		tb.Fatalf("Failed to list archives: %v", err)
 	}
-	
+
 	if len(archives) != expected {
 		tb.Errorf("Expected %d archives, got %d", expected, len(archives))
 	}
@@ -150,12 +150,12 @@ func AssertArchiveCount(tb testing.TB, reg *storage.Registry, expected int) {
 // AssertResolves verifies that a ULID prefix resolves to the expected archive
 func AssertResolves(tb testing.TB, resolver *storage.Resolver, prefix string, expectedUID string) {
 	tb.Helper()
-	
+
 	resolved, err := resolver.Resolve(prefix)
 	if err != nil {
 		tb.Fatalf("Failed to resolve %q: %v", prefix, err)
 	}
-	
+
 	if resolved.UID != expectedUID {
 		tb.Errorf("Expected resolution of %q to %q, got %q", prefix, expectedUID, resolved.UID)
 	}
@@ -164,12 +164,12 @@ func AssertResolves(tb testing.TB, resolver *storage.Resolver, prefix string, ex
 // AssertAmbiguous verifies that a ULID prefix is ambiguous
 func AssertAmbiguous(tb testing.TB, resolver *storage.Resolver, prefix string) {
 	tb.Helper()
-	
+
 	_, err := resolver.Resolve(prefix)
 	if err == nil {
 		tb.Errorf("Expected ambiguous error for prefix %q, but resolution succeeded", prefix)
 	}
-	
+
 	// Check if it's actually an ambiguous error
 	if err != nil && err.Error() != fmt.Sprintf("ambiguous prefix %q", prefix) {
 		tb.Errorf("Expected ambiguous error for prefix %q, got: %v", prefix, err)
