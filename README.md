@@ -18,6 +18,12 @@ An intelligent archive management tool that optimizes compression based on conte
 # Install 7-Zip (required)
 brew install p7zip    # macOS
 apt install p7zip     # Ubuntu/Debian
+
+## Documentation
+
+- Start here: docs/README.md
+- Design process: docs/7eps/index.md (7zarch Enhancement Proposals)
+
 ```
 
 ### Build from Source
@@ -331,7 +337,7 @@ go test ./...
 3. Open a GitHub issue linking to your 7EP for discussion
 4. Iterate based on feedback until ready for formal review
 
-### For Code Contributions  
+### For Code Contributions
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes following the accepted 7EP design (if applicable)
