@@ -250,6 +250,9 @@ func displayArchive(archive *storage.Archive, details bool) {
 	fmt.Printf("📦 %s - %s\n", archive.Name, status)
 
 	if details {
+		if archive.UID != "" {
+			fmt.Printf("   ID: %s\n", archive.UID)
+		}
 		fmt.Printf("   Path: %s\n", archive.Path)
 		fmt.Printf("   Size: %.2f MB\n", float64(archive.Size)/(1024*1024))
 		fmt.Printf("   Created: %s\n", archive.Created.Format("2006-01-02 15:04:05"))
