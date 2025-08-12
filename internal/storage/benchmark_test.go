@@ -239,7 +239,9 @@ func BenchmarkManagerOperations(b *testing.B) {
 		for i := 0; i < 100; i++ {
 			name := fmt.Sprintf("pre-populate-%d.7z", i)
 			path := fmt.Sprintf("/pre/populate-%d.7z", i)
-			manager.Add(name, path, int64(1024*i), "balanced", "", "", true)
+			if err := manager.Add(name, path, int64(1024*i), "balanced", "", "", true); err != nil {
+				b.Fatalf("pre-populate Manager.Add failed: %v", err)
+			}
 		}
 
 		b.ResetTimer()
@@ -258,7 +260,9 @@ func BenchmarkManagerOperations(b *testing.B) {
 			name := fmt.Sprintf("get-test-%d.7z", i)
 			path := fmt.Sprintf("/get/test-%d.7z", i)
 			testNames[i] = name
-			manager.Add(name, path, int64(1024*i), "balanced", "", "", true)
+			if err := manager.Add(name, path, int64(1024*i), "balanced", "", "", true); err != nil {
+				b.Fatalf("pre-populate Manager.Add failed: %v", err)
+			}
 		}
 
 		b.ResetTimer()
@@ -278,7 +282,9 @@ func BenchmarkManagerOperations(b *testing.B) {
 			name := fmt.Sprintf("upload-test-%d.7z", i)
 			path := fmt.Sprintf("/upload/test-%d.7z", i)
 			testNames[i] = name
-			manager.Add(name, path, int64(1024*i), "balanced", "", "", true)
+			if err := manager.Add(name, path, int64(1024*i), "balanced", "", "", true); err != nil {
+				b.Fatalf("pre-populate Manager.Add failed: %v", err)
+			}
 		}
 
 		b.ResetTimer()

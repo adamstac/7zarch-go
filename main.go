@@ -43,6 +43,9 @@ Features:
 	rootCmd.AddCommand(cmd.MasDbCmd())     // "db" command
 	rootCmd.AddCommand(cmd.MasDeleteCmd()) // "delete" command
 	rootCmd.AddCommand(cmd.MasMoveCmd())   // "move" command
+	// Trash Management (7EP-0001)
+	rootCmd.AddCommand(cmd.RestoreCmd())
+	rootCmd.AddCommand(cmd.TrashCmd())
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {
