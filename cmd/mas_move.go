@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/adamstac/7zarch-go/internal/config"
 	"github.com/adamstac/7zarch-go/internal/storage"
@@ -31,11 +32,23 @@ func MasMoveCmd() *cobra.Command {
 			if dest == "" {
 				dest = mgr.GetManagedPath(arc.Name)
 			}
-			if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil { return err }
-			if err := os.Rename(arc.Path, dest); err != nil { return err }
+			// If dest is an existing directory, place the file under it by name
+			if info, err := os.Stat(dest); err == nil && info.IsDir() {
+				dest = filepath.Join(dest, arc.Name)
+			}
+			if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
+				return err
+			}
+			if err := os.Rename(arc.Path, dest); err != nil {
+				return err
+			}
 
 			arc.Path = dest
-			arc.Managed = filepath.HasPrefix(dest, mgr.GetBasePath())
+			rel, err := filepath.Rel(mgr.GetBasePath(), dest)
+			if err != nil {
+				return err
+			}
+			arc.Managed = !strings.HasPrefix(rel, "..")
 			return mgr.Registry().Update(arc)
 		},
 	}
