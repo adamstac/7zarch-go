@@ -4,12 +4,37 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/adamstac/7zarch-go/internal/config"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
 )
+
+// parseHumanDuration supports 'd' (days) and 'w' (weeks) in addition to time.ParseDuration units
+func parseHumanDuration(s string) (time.Duration, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0, fmt.Errorf("empty duration")
+	}
+	if strings.HasSuffix(s, "d") {
+		n, err := strconv.ParseInt(strings.TrimSuffix(s, "d"), 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid days: %w", err)
+		}
+		return time.Duration(n) * 24 * time.Hour, nil
+	}
+	if strings.HasSuffix(s, "w") {
+		n, err := strconv.ParseInt(strings.TrimSuffix(s, "w"), 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid weeks: %w", err)
+		}
+		return time.Duration(n) * 7 * 24 * time.Hour, nil
+	}
+	return time.ParseDuration(s)
+}
 
 func ListCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -75,7 +100,7 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	if notUploaded {
 		archives, err = storageManager.ListNotUploaded()
 	} else if olderThan != "" {
-		dur, parseErr := time.ParseDuration(olderThan)
+		dur, parseErr := parseHumanDuration(olderThan)
 		if parseErr != nil {
 			return fmt.Errorf("invalid duration format: %w", parseErr)
 		}
@@ -264,7 +289,7 @@ func listManagedArchives(details, notUploaded bool, pattern, olderThan string) e
 	if notUploaded {
 		archives, err = storageManager.ListNotUploaded()
 	} else if olderThan != "" {
-		duration, parseErr := time.ParseDuration(olderThan)
+		duration, parseErr := parseHumanDuration(olderThan)
 		if parseErr != nil {
 			return fmt.Errorf("invalid duration format: %w", parseErr)
 		}

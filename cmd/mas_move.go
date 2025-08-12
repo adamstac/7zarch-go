@@ -19,7 +19,10 @@ func MasMoveCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
-			cfg, _ := config.Load()
+			cfg, err := config.Load()
+			if err != nil {
+				return fmt.Errorf("failed to load config: %w", err)
+			}
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
 			if err != nil {
 				return fmt.Errorf("failed to init storage: %w", err)

@@ -211,7 +211,7 @@ func AssertNotFound(t *testing.T, resolver *Resolver, input string) {
 // BenchmarkResolver helps benchmark resolution performance
 func BenchmarkResolver(b *testing.B, archiveCount int) {
 	// Create registry with many archives
-	reg := &Registry{} // Would use TestRegistry in real implementation
+	reg := TestRegistry(&testing.T{})
 	resolver := NewResolver(reg)
 
 	// Create test archives
