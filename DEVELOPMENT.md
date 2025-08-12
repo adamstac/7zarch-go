@@ -411,3 +411,45 @@ This section summarizes the current development state, active PRs, and near-term
   - Finalize mas_move.go reconciliation and push to PR #5.
   - Patch PR #8 to align resolver/test helpers, re-run CI, and confirm green.
   - Proceed with PR #9 review; minimal risk since no behavior changes were introduced.
+
+### Active PR Status & Action Items for AC
+
+**PR #5: Main MAS Foundation Implementation** (🚨 **Needs Immediate Attention**)
+- **Status**: Good progress, but has **compilation errors** that prevent building
+- **Critical Issues** (from CodeRabbit review):
+  - `filepath.HasPrefix` doesn't exist in Go stdlib - causing compile failure
+  - Need to use `filepath.Rel` for proper managed path detection
+  - Missing error handling in config loading (potential nil dereference)
+- **Action Required**: Fix compilation issues before further development
+- **Estimated Fix Time**: 1-2 hours
+
+**PR #9: List Command Refactor** (✅ **Good to Merge**)
+- **Status**: High quality refactor with human-duration parsing
+- **Minor Improvements** (optional):
+  - Add support for uppercase duration units ('D', 'W') 
+  - Consolidate duplicate archive grouping logic between functions
+  - Add error cases to duration parsing tests
+- **Action**: Can merge as-is or address suggestions first
+
+**Infrastructure PRs** (📋 **Housekeeping**)
+- **PR #8**: Resolver benchmarks - ready to merge
+- **PR #7**: Documentation updates - ready to merge  
+- **PR #4**: 7EPs index improvements - ready to merge
+- **PR #3**: CodeRabbit auto-iterate - can merge or close
+- **PR #2**: CodeRabbit config - can merge or close
+
+**Recommended AC Priority Order:**
+1. **Fix PR #5 compilation errors** (blocking all development)
+2. **Merge PR #9** (solid improvement, ready)
+3. **Clean up infrastructure PRs** (merge #4, #7, #8; close #2, #3)
+4. **Return to PR #5 development** (continue MAS foundation)
+
+**Key CodeRabbit Feedback Summary:**
+- Code quality is generally high
+- Main issues are technical correctness (compilation, error handling)
+- Architectural patterns are sound
+- Test coverage improvements suggested but not blocking
+
+---
+
+**Note**: This file serves as shared context for all AI agents. For private development notes and half-formed ideas, use PRIVATE.md (git-ignored).
