@@ -56,14 +56,14 @@ func runTest(cmd *cobra.Command, args []string) error {
 
 func runTestDryRun(target string) error {
 	fmt.Printf("DRY RUN MODE - No tests will be executed\n\n")
-	
+
 	if testDirectory {
 		// Find archives in directory
 		archives, err := findArchives(target)
 		if err != nil {
 			return fmt.Errorf("failed to find archives: %w", err)
 		}
-		
+
 		fmt.Printf("Would test %d archives in %s:\n", len(archives), target)
 		for _, arch := range archives {
 			fmt.Printf("  - %s\n", filepath.Base(arch))
@@ -82,36 +82,36 @@ func runTestDryRun(target string) error {
 		fmt.Printf("  ✓ Metadata validation\n")
 		fmt.Printf("  ✓ Extraction test\n")
 	}
-	
+
 	if testRemote {
 		fmt.Printf("\nExecution mode: Remote (on TrueNAS)\n")
 	} else {
 		fmt.Printf("\nExecution mode: Local\n")
 	}
-	
+
 	return nil
 }
 
 func runTestSingle(archivePath string) error {
 	fmt.Printf("Testing archive: %s\n\n", filepath.Base(archivePath))
-	
+
 	manager := archive.NewManager()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
-	
+
 	// Run tests
 	result, err := manager.Test(ctx, archivePath)
 	if err != nil {
 		return fmt.Errorf("test failed: %w", err)
 	}
-	
+
 	// Display results
 	printTestResult(archivePath, result)
-	
+
 	if !result.Passed {
 		return fmt.Errorf("archive verification failed")
 	}
-	
+
 	return nil
 }
 
@@ -121,28 +121,28 @@ func runTestDirectory(dir string) error {
 	if err != nil {
 		return fmt.Errorf("failed to find archives: %w", err)
 	}
-	
+
 	if len(archives) == 0 {
 		fmt.Printf("No archives found in %s\n", dir)
 		return nil
 	}
-	
+
 	fmt.Printf("Testing %d archives in %s\n\n", len(archives), dir)
-	
+
 	// Create progress bar
 	bar := progressbar.Default(int64(len(archives)))
-	
+
 	// Results storage
 	results := make([]*archive.TestResult, len(archives))
 	var resultsMu sync.Mutex
-	
+
 	// Run tests concurrently
 	g, ctx := errgroup.WithContext(context.Background())
 	sem := make(chan struct{}, maxConcurrent)
-	
+
 	for i, archivePath := range archives {
 		i, archivePath := i, archivePath // Capture loop variables
-		
+
 		g.Go(func() error {
 			// Acquire semaphore
 			select {
@@ -151,7 +151,7 @@ func runTestDirectory(dir string) error {
 			case <-ctx.Done():
 				return ctx.Err()
 			}
-			
+
 			// Test archive
 			manager := archive.NewManager()
 			result, err := manager.Test(ctx, archivePath)
@@ -161,28 +161,28 @@ func runTestDirectory(dir string) error {
 					Errors: []string{err.Error()},
 				}
 			}
-			
+
 			// Store result
 			resultsMu.Lock()
 			results[i] = result
 			bar.Add(1)
 			resultsMu.Unlock()
-			
+
 			return nil
 		})
 	}
-	
+
 	// Wait for all tests to complete
 	if err := g.Wait(); err != nil {
 		return fmt.Errorf("testing failed: %w", err)
 	}
-	
+
 	bar.Finish()
 	fmt.Printf("\n")
-	
+
 	// Print summary
 	printBatchSummary(archives, results)
-	
+
 	// Check if any failed
 	failedCount := 0
 	for _, result := range results {
@@ -190,29 +190,29 @@ func runTestDirectory(dir string) error {
 			failedCount++
 		}
 	}
-	
+
 	if failedCount > 0 {
 		return fmt.Errorf("%d archives failed verification", failedCount)
 	}
-	
+
 	return nil
 }
 
 func findArchives(dir string) ([]string, error) {
 	var archives []string
-	
+
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		
+
 		if !info.IsDir() && strings.HasSuffix(path, ".7z") {
 			archives = append(archives, path)
 		}
-		
+
 		return nil
 	})
-	
+
 	return archives, err
 }
 
@@ -244,7 +244,7 @@ func printBatchSummary(archives []string, results []*archive.TestResult) {
 	passed := 0
 	failed := 0
 	totalFiles := 0
-	
+
 	for _, result := range results {
 		if result.Passed {
 			passed++
@@ -253,13 +253,13 @@ func printBatchSummary(archives []string, results []*archive.TestResult) {
 		}
 		totalFiles += result.FilesVerified
 	}
-	
+
 	fmt.Printf("Batch Summary:\n")
 	fmt.Printf("- Total archives tested: %d\n", len(archives))
 	fmt.Printf("- Passed: %d (%.1f%%)\n", passed, float64(passed)/float64(len(archives))*100)
 	if failed > 0 {
 		fmt.Printf("- Failed: %d (%.1f%%)\n", failed, float64(failed)/float64(len(archives))*100)
-		
+
 		// List failed archives
 		fmt.Printf("\nFailed archives:\n")
 		for i, result := range results {
@@ -269,7 +269,7 @@ func printBatchSummary(archives []string, results []*archive.TestResult) {
 		}
 	}
 	fmt.Printf("- Total files verified: %d\n", totalFiles)
-	
+
 	if passed == len(archives) {
 		fmt.Printf("\n✅ All archives passed verification!\n")
 	}

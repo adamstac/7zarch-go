@@ -98,7 +98,6 @@ func (m *Manager) Get(name string) (*Archive, error) {
 // Registry exposes the underlying registry instance (for DB operations)
 func (m *Manager) Registry() *Registry { return m.registry }
 
-
 // MarkUploaded marks an archive as uploaded
 func (m *Manager) MarkUploaded(name string, destination string) error {
 	archive, err := m.registry.Get(name)
