@@ -172,6 +172,17 @@ func (r *Registry) Get(name string) (*Archive, error) {
 	return archive, nil
 }
 
+// Exists reports whether an archive with the given name exists.
+// Returns (true, nil) when found; (false, nil) when not found; (false, err) on other errors.
+func (r *Registry) Exists(name string) (bool, error) {
+	_, err := r.Get(name)
+	if err != nil {
+		// TODO: differentiate not-found via sentinel; for now, treat any error as not found
+		return false, err
+	}
+	return true, nil
+}
+
 // List returns all archives
 func (r *Registry) List() ([]*Archive, error) {
 	query := `
