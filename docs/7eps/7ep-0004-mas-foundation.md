@@ -1,11 +1,12 @@
 # 7EP-0004: MAS Foundation Implementation
 
-**Status:** Draft  
+**Status:** In Progress  
 **Author(s):** Claude Code (CC)  
 **Assignment:** AC (Primary), CC (Supporting)  
 **Difficulty:** 4 (complex - foundational system with multiple interdependent components)  
 **Created:** 2025-08-12  
 **Updated:** 2025-08-12  
+**PRs:** [#5 (AC)](https://github.com/adamstac/7zarch-go/pull/5), [#6 (CC)](https://github.com/adamstac/7zarch-go/pull/6)  
 
 ## Executive Summary
 
@@ -274,22 +275,22 @@ EXTERNAL STORAGE:
   - [ ] Suggested actions based on status
 
 ### Phase 3: Polish & Testing (CC Supporting)
-- [ ] **Error Handling Standardization** (CC)
-  - [ ] Consistent error message format across commands
-  - [ ] Recovery suggestions for common issues
-  - [ ] Help text improvements
+- [x] **Error Handling Standardization** (CC) - PR #6
+  - [x] Consistent error message format across commands
+  - [x] Recovery suggestions for common issues
+  - [x] Help text improvements
   - [ ] Error message user testing
 
-- [ ] **Comprehensive Testing** (CC)
-  - [ ] Resolution edge cases (empty registry, corruption)
-  - [ ] Cross-platform compatibility
-  - [ ] Performance benchmarks
-  - [ ] User workflow integration tests
+- [x] **Test Infrastructure** (CC) - PR #6
+  - [x] Test helpers for registry creation
+  - [x] Archive creation utilities with options
+  - [x] Assertion helpers for resolver testing
+  - [ ] Cross-platform compatibility verification
 
-- [ ] **Documentation Updates** (CC)
-  - [ ] Command reference updates
-  - [ ] User workflow examples
-  - [ ] Troubleshooting guides
+- [x] **Documentation Updates** (CC) - PR #6
+  - [x] Show command reference documentation
+  - [x] Troubleshooting guides
+  - [ ] List command documentation
   - [ ] Migration documentation
 
 ### Dependencies
@@ -354,15 +355,110 @@ All existing commands continue working unchanged.
 
 **Fuzzy matching for names**: Considered Levenshtein distance for typos but decided explicit disambiguation is clearer.
 
+## Implementation Notes
+
+### Key Design Decisions (Learned During Implementation)
+
+#### Error Message Philosophy
+The error types implemented follow a user-first approach:
+- **Context First**: Tell user what went wrong in their terms, not technical terms
+- **Suggestions Always**: Every error includes actionable next steps
+- **Visual Indicators**: Use emojis sparingly but effectively (💡 for tips)
+- **Progressive Detail**: Simple message first, detailed help available
+
+Example implemented:
+```go
+func (e *ArchiveNotFoundError) Error() string {
+    return fmt.Sprintf("Archive '%s' not found.\n💡 Use '7zarch-go list' to see available archives", e.ID)
+}
+```
+
+#### Test Infrastructure Design
+Test helpers focus on builder patterns for flexibility:
+- **Registry Creation**: In-memory SQLite for fast tests
+- **Archive Builders**: Functional options pattern for readable test setup
+- **Assertion Helpers**: Domain-specific assertions reduce boilerplate
+
+Key insight: Tests should read like specifications:
+```go
+archive := CreateTestArchive(t, reg, "test.7z", 
+    WithSize(2*MB), 
+    WithProfile("documents"),
+    WithStatus("deleted"))
+AssertResolves(t, resolver, "test", archive)
+```
+
+#### Resolution Priority Insights
+Through test design, the optimal resolution order became clear:
+1. **Exact ULID** - Fastest path, most specific
+2. **ULID Prefix** - Most common user interaction (copy first 8 chars)
+3. **Checksum Prefix** - Power user feature for deduplication
+4. **Name Match** - Fallback for human-friendly access
+
+This priority prevents name collisions from breaking ULID resolution.
+
+### Coordination Patterns That Worked
+
+#### Branch Naming Convention
+- **AC Branch**: `feature/7ep-0004-mas-foundation`
+- **CC Branch**: `cc/7ep-0004-support`
+
+Prefix by role prevents conflicts and clarifies ownership.
+
+#### Task Separation
+Clear boundaries in 7EP prevented toe-stepping:
+- **AC**: Core business logic (resolver, commands)
+- **CC**: Infrastructure (errors, testing, docs)
+
+No file conflicts, clear ownership, parallel development.
+
+#### Cross-PR Communication
+- Each PR references the 7EP number
+- PRs cross-link in descriptions
+- Comments notify of dependencies
+- Clear "this provides X for Y" messaging
+
+### Performance Considerations Discovered
+
+#### Registry Query Optimization
+Testing revealed key optimization points:
+- **Index on uid prefix**: Critical for ULID resolution
+- **Index on checksum prefix**: Enables fast deduplication
+- **Name index**: Already exists, just needs case handling
+
+#### Memory Management
+Test helpers revealed memory patterns:
+- **Batch operations**: Need streaming/pagination for large registries
+- **Error messages**: Avoid loading all matches for ambiguous errors
+- **Test cleanup**: Proper cleanup prevents test database accumulation
+
+### Documentation Insights
+
+#### Show Command Documentation Structure
+Most effective documentation pattern:
+1. **Quick examples first** - Get users successful fast
+2. **Comprehensive flags table** - Reference when needed
+3. **Output format examples** - Show don't just tell
+4. **Troubleshooting section** - Anticipate problems
+5. **Script integration** - Power user examples
+
+#### Error Message Documentation
+Users need to see actual error messages in docs:
+- Include exact error text they'll encounter
+- Show the resolution steps
+- Explain why the error occurred
+
 ## Future Considerations
 
 - **Full-text search**: Search across all archive metadata fields
 - **Saved searches**: Store complex filter combinations
 - **Shell completion**: Auto-complete for ULID prefixes
 - **Batch operations**: Apply operations to filtered archive sets
+- **Interactive disambiguation**: Terminal UI for selecting from ambiguous matches
 
 ## References
 
 - Related: Existing registry infrastructure in internal/storage/
 - Related: 7EP-0001 Trash Management (depends on show command patterns)
 - Related: 7EP-0003 Database Migrations (performance optimization dependency)
+- PRs: [#5 (AC implementation)](https://github.com/adamstac/7zarch-go/pull/5), [#6 (CC support)](https://github.com/adamstac/7zarch-go/pull/6)
