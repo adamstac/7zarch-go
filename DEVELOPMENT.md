@@ -94,13 +94,10 @@ if err != nil {
 5. **Archive**: 7EPs remain for historical reference
 
 ### Current Active 7EPs
-- **7EP-0001**: Trash Management System (AC assigned, difficulty 3) - 🔷 Ready to implement
-- **7EP-0002**: CI Integration & Automation (CC assigned, difficulty 2) - 🟡 Draft
-- **7EP-0003**: Database Migrations & Schema Management (AC assigned, difficulty 2) - 🟡 Draft
-- **7EP-0004**: MAS Foundation Implementation (AC assigned, difficulty 4) - ✅ Completed
-- **7EP-0005**: Comprehensive Test Dataset System (CC assigned, difficulty 3) - 🟡 Draft
-- **7EP-0006**: Minimal Performance Testing (CC assigned, difficulty 1) - ✅ Completed
-- **7EP-0007**: Enhanced MAS Operations (AC/CC assigned, difficulty 3) - 🟡 Draft
+- **7EP-0001**: Trash Management System (AC assigned, difficulty 3)
+- **7EP-0002**: CI Integration & Automation (CC assigned, difficulty 2)
+- **7EP-0003**: Database Migrations & Schema Management (AC assigned, difficulty 2)
+- **7EP-0004**: MAS Foundation Implementation (AC assigned, difficulty 4)
 
 ## Code Quality Requirements
 
@@ -130,46 +127,38 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Current Development Status
 
 ### Completed Features
-- ✅ **MAS Foundation (7EP-0004)**: ULID resolution, show command, enhanced list
-- ✅ **Performance Validation (7EP-0006)**: All requirements exceeded by 100-2,941x margins
+- ✅ Managed Archive Storage (MAS) with SQLite registry
 - ✅ Enhanced list display with ULID support and status indicators
 - ✅ Delete/move commands with soft delete and trash management
 - ✅ Auto-purge countdown with configurable retention days
 - ✅ 7EP system for formal enhancement proposals
 - ✅ Documentation workflow process
 
-### Active Development  
-- 🔷 **Trash Management Commands** (AC): restore, trash list, trash purge (7EP-0001) - Ready to start
-- 🟡 **Enhanced MAS Operations** (AC/CC): move, import, batch operations (7EP-0007) - Draft
-- 🔄 **Database Migrations** (AC): Safe schema evolution system (7EP-0003) - Draft
-- 🔄 **CI Integration** (CC): GitHub Actions workflows (7EP-0002) - Draft
-- 🟡 **Comprehensive Test System** (CC): Edge cases and integration scenarios (7EP-0005) - Draft
+### Active Development
+- 🔄 **Trash Management Commands** (AC): restore, trash list, trash purge (7EP-0001)
+- 🔄 **Database Migrations** (AC): Safe schema evolution system (7EP-0003)
+- 🔄 **CI Integration** (CC): GitHub Actions workflows (7EP-0002)
+- 🔄 **CodeRabbit Integration** (AC): Enhanced PR review workflows
 
 ## Development Roadmap
 
-### **Current Sprint: Trash Management & Enhanced Operations**
+### **Current Sprint: MAS Foundation** (AC Priority)
+**7EP-0004: MAS Foundation Implementation** (AC assigned, difficulty 4)
+- Status: 📋 7EP Complete, ready for implementation
+- Primary: ULID resolution, show command, enhanced list
+- Supporting: Error handling standards, testing, documentation
+- **See 7EP-0004 for detailed implementation checklist**
+
+### **Next Sprint: Data Safety & Lifecycle**
+**7EP-0003: Database Migration System** (AC assigned, difficulty 2)
+- Status: 📋 7EP Complete, ready for implementation
+- Blockers: None (can run parallel with 7EP-0004)
+- Focus: Safe schema evolution with backup/recovery
+
 **7EP-0001: Trash Management System** (AC assigned, difficulty 3)
-- Status: 🔷 Ready for implementation - all dependencies complete
-- Primary: restore, trash list, trash purge commands
-- Foundation: 7EP-0004 MAS patterns proven and ready to use
-- **Estimated time: 9-13 hours total**
-
-**7EP-0007: Enhanced MAS Operations** (AC/CC assigned, difficulty 3)
-- Status: 🟡 Draft - comprehensive advanced operations
-- Primary: move/relocate, import workflows, batch operations
-- Dependencies: 7EP-0004 complete, builds on proven patterns
-- **Complements trash management for complete lifecycle**
-
-### **Next Sprint: Development Infrastructure**
-**7EP-0002: CI Integration & Automation** (CC assigned, difficulty 2)
-- Status: 🟡 Draft - GitHub Actions workflows needed
-- Dependencies: None (parallel work)
-- Focus: Automated testing, quality gates, release automation
-
-**7EP-0005: Comprehensive Test Dataset System** (CC assigned, difficulty 3)
-- Status: 🟡 Draft - builds on 7EP-0006 learnings
-- Dependencies: 7EP-0006 patterns proven successful
-- Focus: Edge case coverage, integration scenarios
+- Status: 📋 7EP Complete, schema ready
+- Blockers: Show command patterns from 7EP-0004
+- Focus: Restore, trash list, purge operations
 
 ### **Future Sprints: Advanced Features**
 **Import Command** - Bulk registration of existing archives
@@ -187,23 +176,22 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ### **Development Milestones**
 
-#### **Milestone 1: MAS Core Complete** ✅ (Completed 2025-08-12)
+#### **Milestone 1: MAS Core Complete** (Target: 2-3 weeks)
 - ✅ ULID resolution working
 - ✅ Show command operational  
 - ✅ Enhanced list with filters
-- ✅ Performance validated (100-2,941x faster than requirements)
 - **Success Criteria**: Users can manage archives by ID without paths
 
-#### **Milestone 2: Production Ready** (Target: 2-3 weeks from now)
-- 🔄 Database migrations automated
-- 🔷 Trash management complete (ready to start)
-- 🔄 CI pipeline operational
+#### **Milestone 2: Production Ready** (Target: 4-6 weeks)
+- ✅ Database migrations automated
+- ✅ Trash management complete
+- ✅ CI pipeline operational
 - **Success Criteria**: Safe for daily use, automated testing
 
-#### **Milestone 3: Advanced Workflows** (Target: 4-6 weeks from now)  
-- 🔄 Enhanced MAS operations (move, import, batch)
-- 🔄 Comprehensive test dataset system
-- 🔄 Performance optimization for large collections
+#### **Milestone 3: Advanced Workflows** (Target: 8-12 weeks)
+- ✅ Import command for existing archives
+- ✅ Multi-location support
+- ✅ Performance optimization
 - **Success Criteria**: Handles large archive collections efficiently
 
 ### **Risk Management**
@@ -286,102 +274,16 @@ ln -sf $(pwd)/7zarch-go /usr/local/bin/7zarch-go
 ## Future Enhancement Areas
 
 ### Planned 7EPs
-- **7EP-0008**: Multi-Location Storage Support (TrueNAS, cloud backends)
-- **7EP-0009**: Archive Deduplication and Content Management  
-- **7EP-0010**: Performance Optimization for Large Collections
-- **7EP-0011**: Configuration Management and User Profiles
+- **External Archive Registration**: Track non-managed archives
+- **Backup Integration**: Cloud storage and rsync workflows  
+- **Performance Optimization**: Large-scale archive handling
+- **Configuration Enhancement**: Advanced config management
 
 ### CodeRabbit Integration Improvements (AC Focus)
 - Enhanced PR review context
 - Automated code pattern enforcement
 - Integration with 7EP compliance checking
 - Quality gate automation
-
----
-
-## Session Summary - 2025-08-12 (Claude Code)
-
-### Context Resume for AC/CR
-
-**Previous Session Status:**
-- User resumed from previous conversation that ran out of context
-- 7EP-0004 MAS Foundation was 90% complete, needed performance validation
-- 7EP-0006 minimal performance testing was implemented and validated all requirements
-- User requested creation of 7EP-0007 for Enhanced MAS Operations
-- User requested clarification of 7EP-0001 Trash Management for implementation readiness
-
-### What Was Accomplished Today
-
-**1. 7EP-0007 Enhanced MAS Operations Created**
-- Comprehensive specification for advanced archive management (460 lines)
-- Covers move/relocate, import workflows, batch operations, registry maintenance
-- Technical design builds on proven 7EP-0004 MAS Foundation patterns
-- Implementation plan with 4 phases: Move Operations, Import Workflow, Batch Operations, Registry Maintenance
-- **Status**: Draft, ready for AC review and implementation planning
-
-**2. 7EP-0001 Trash Management Enhanced**  
-- Updated with MAS Foundation integration patterns and specific implementation examples
-- Added clear time estimates (9-13 hours total) and marked all dependencies as complete
-- Provided concrete code examples using 7EP-0004 resolver patterns
-- **Status**: Ready for immediate implementation (all blockers resolved)
-
-**3. Roadmap Documentation Updated**
-- Updated 7EPs index with new 7EP-0007 and Ready status for 7EP-0001
-- Revised DEVELOPMENT.md milestones and sprint priorities
-- Marked MAS Foundation milestone as completed
-- Current focus: Trash Management (ready) + Enhanced Operations (draft)
-
-### Key Technical Insights
-
-**Building on 7EP-0006 Success:**
-- 7EP-0007 leverages the proven metadata-only approach from performance testing
-- ULID generation patterns and registry integration work excellently 
-- O(1) database performance confirmed - can scale to enterprise usage
-
-**Implementation Patterns Established:**
-- `storage.NewResolver(registry)` pattern for all ULID operations
-- `reg.Add()` and `reg.Update()` for registry modifications  
-- Fixed seed (42) for reproducible test data generation
-- Standard error types and user-friendly message patterns
-
-### Concerns and Considerations
-
-**Scope Management:**
-- 7EP-0007 is comprehensive (move, import, batch, maintenance) - might be better split
-- AC should consider implementing in phases to avoid complexity overload
-
-**Coordination:**
-- 7EP-0001 is ready for AC implementation using established patterns
-- 7EP-0007 could be split between AC (user commands) and CC (infrastructure)
-- Both 7EPs build heavily on 7EP-0004 foundation - patterns are proven
-
-### Recommendations for AC
-
-**Immediate Priority: 7EP-0001 Implementation**
-- All dependencies complete, clear implementation path provided
-- Use established resolver patterns from 7EP-0004
-- Focus on restore, trash list, trash purge commands
-- Estimated 9-13 hours total with detailed breakdown provided
-
-**7EP-0007 Planning:**
-- Review comprehensive design - consider implementing in phases
-- Phase 1 (Move Operations) most critical for user workflows
-- Import functionality highly requested but complex - plan carefully
-- Batch operations powerful but can wait until core operations solid
-
-### Files Modified This Session
-
-- `docs/7eps/7ep-0007-enhanced-mas-operations.md` - New comprehensive specification
-- `docs/7eps/7ep-0001-trash-management.md` - Enhanced with implementation clarity
-- `docs/7eps/index.md` - Added 7EP-0007, updated statuses
-- `DEVELOPMENT.md` - Updated roadmap and milestones
-
-### Next Session Context
-
-- 7EP-0001 ready for AC implementation (highest priority)
-- 7EP-0007 needs AC review and implementation planning
-- MAS Foundation complete and proven - focus on user-facing features
-- Performance validated - can confidently build advanced operations
 
 ---
 
