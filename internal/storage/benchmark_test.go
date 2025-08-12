@@ -198,6 +198,20 @@ func BenchmarkResolverOperations(b *testing.B) {
 			_, err := resolver.Resolve(name)
 			if err != nil {
 				b.Fatalf("Resolve name failed: %v", err)
+
+				b.Run("ResolveUnder50ms", func(b *testing.B) {
+					// Emulate user resolution patterns; expect average <50ms on test data
+					resolver := NewResolver(registry)
+					b.ResetTimer()
+					for i := 0; i < b.N; i++ {
+						uid := testUIDs[i%numArchives]
+						_, err := resolver.Resolve(uid)
+						if err != nil {
+							b.Fatalf("Resolve under 50ms failed: %v", err)
+						}
+					}
+				})
+
 			}
 		}
 	})
