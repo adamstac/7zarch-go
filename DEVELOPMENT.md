@@ -94,10 +94,13 @@ if err != nil {
 5. **Archive**: 7EPs remain for historical reference
 
 ### Current Active 7EPs
-- **7EP-0001**: Trash Management System (AC assigned, difficulty 3)
-- **7EP-0002**: CI Integration & Automation (CC assigned, difficulty 2)
-- **7EP-0003**: Database Migrations & Schema Management (AC assigned, difficulty 2)
-- **7EP-0004**: MAS Foundation Implementation (AC assigned, difficulty 4)
+- **7EP-0001**: Trash Management System (AC assigned, difficulty 3) - 🔷 Ready to implement
+- **7EP-0002**: CI Integration & Automation (CC assigned, difficulty 2) - 🟡 Draft
+- **7EP-0003**: Database Migrations & Schema Management (AC assigned, difficulty 2) - 🟡 Draft
+- **7EP-0004**: MAS Foundation Implementation (AC assigned, difficulty 4) - ✅ Completed
+- **7EP-0005**: Comprehensive Test Dataset System (CC assigned, difficulty 3) - 🟡 Draft
+- **7EP-0006**: Minimal Performance Testing (CC assigned, difficulty 1) - ✅ Completed
+- **7EP-0007**: Enhanced MAS Operations (AC/CC assigned, difficulty 3) - 🟡 Draft
 
 ## Code Quality Requirements
 
@@ -127,38 +130,46 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Current Development Status
 
 ### Completed Features
-- ✅ Managed Archive Storage (MAS) with SQLite registry
+- ✅ **MAS Foundation (7EP-0004)**: ULID resolution, show command, enhanced list
+- ✅ **Performance Validation (7EP-0006)**: All requirements exceeded by 100-2,941x margins
 - ✅ Enhanced list display with ULID support and status indicators
 - ✅ Delete/move commands with soft delete and trash management
 - ✅ Auto-purge countdown with configurable retention days
 - ✅ 7EP system for formal enhancement proposals
 - ✅ Documentation workflow process
 
-### Active Development
-- 🔄 **Trash Management Commands** (AC): restore, trash list, trash purge (7EP-0001)
-- 🔄 **Database Migrations** (AC): Safe schema evolution system (7EP-0003)
-- 🔄 **CI Integration** (CC): GitHub Actions workflows (7EP-0002)
-- 🔄 **CodeRabbit Integration** (AC): Enhanced PR review workflows
+### Active Development  
+- 🔷 **Trash Management Commands** (AC): restore, trash list, trash purge (7EP-0001) - Ready to start
+- 🟡 **Enhanced MAS Operations** (AC/CC): move, import, batch operations (7EP-0007) - Draft
+- 🔄 **Database Migrations** (AC): Safe schema evolution system (7EP-0003) - Draft
+- 🔄 **CI Integration** (CC): GitHub Actions workflows (7EP-0002) - Draft
+- 🟡 **Comprehensive Test System** (CC): Edge cases and integration scenarios (7EP-0005) - Draft
 
 ## Development Roadmap
 
-### **Current Sprint: MAS Foundation** (AC Priority)
-**7EP-0004: MAS Foundation Implementation** (AC assigned, difficulty 4)
-- Status: 📋 7EP Complete, ready for implementation
-- Primary: ULID resolution, show command, enhanced list
-- Supporting: Error handling standards, testing, documentation
-- **See 7EP-0004 for detailed implementation checklist**
-
-### **Next Sprint: Data Safety & Lifecycle**
-**7EP-0003: Database Migration System** (AC assigned, difficulty 2)
-- Status: 📋 7EP Complete, ready for implementation
-- Blockers: None (can run parallel with 7EP-0004)
-- Focus: Safe schema evolution with backup/recovery
-
+### **Current Sprint: Trash Management & Enhanced Operations**
 **7EP-0001: Trash Management System** (AC assigned, difficulty 3)
-- Status: 📋 7EP Complete, schema ready
-- Blockers: Show command patterns from 7EP-0004
-- Focus: Restore, trash list, purge operations
+- Status: 🔷 Ready for implementation - all dependencies complete
+- Primary: restore, trash list, trash purge commands
+- Foundation: 7EP-0004 MAS patterns proven and ready to use
+- **Estimated time: 9-13 hours total**
+
+**7EP-0007: Enhanced MAS Operations** (AC/CC assigned, difficulty 3)
+- Status: 🟡 Draft - comprehensive advanced operations
+- Primary: move/relocate, import workflows, batch operations
+- Dependencies: 7EP-0004 complete, builds on proven patterns
+- **Complements trash management for complete lifecycle**
+
+### **Next Sprint: Development Infrastructure**
+**7EP-0002: CI Integration & Automation** (CC assigned, difficulty 2)
+- Status: 🟡 Draft - GitHub Actions workflows needed
+- Dependencies: None (parallel work)
+- Focus: Automated testing, quality gates, release automation
+
+**7EP-0005: Comprehensive Test Dataset System** (CC assigned, difficulty 3)
+- Status: 🟡 Draft - builds on 7EP-0006 learnings
+- Dependencies: 7EP-0006 patterns proven successful
+- Focus: Edge case coverage, integration scenarios
 
 ### **Future Sprints: Advanced Features**
 **Import Command** - Bulk registration of existing archives
@@ -176,22 +187,23 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ### **Development Milestones**
 
-#### **Milestone 1: MAS Core Complete** (Target: 2-3 weeks)
+#### **Milestone 1: MAS Core Complete** ✅ (Completed 2025-08-12)
 - ✅ ULID resolution working
 - ✅ Show command operational  
 - ✅ Enhanced list with filters
+- ✅ Performance validated (100-2,941x faster than requirements)
 - **Success Criteria**: Users can manage archives by ID without paths
 
-#### **Milestone 2: Production Ready** (Target: 4-6 weeks)
-- ✅ Database migrations automated
-- ✅ Trash management complete
-- ✅ CI pipeline operational
+#### **Milestone 2: Production Ready** (Target: 2-3 weeks from now)
+- 🔄 Database migrations automated
+- 🔷 Trash management complete (ready to start)
+- 🔄 CI pipeline operational
 - **Success Criteria**: Safe for daily use, automated testing
 
-#### **Milestone 3: Advanced Workflows** (Target: 8-12 weeks)
-- ✅ Import command for existing archives
-- ✅ Multi-location support
-- ✅ Performance optimization
+#### **Milestone 3: Advanced Workflows** (Target: 4-6 weeks from now)  
+- 🔄 Enhanced MAS operations (move, import, batch)
+- 🔄 Comprehensive test dataset system
+- 🔄 Performance optimization for large collections
 - **Success Criteria**: Handles large archive collections efficiently
 
 ### **Risk Management**
@@ -274,10 +286,10 @@ ln -sf $(pwd)/7zarch-go /usr/local/bin/7zarch-go
 ## Future Enhancement Areas
 
 ### Planned 7EPs
-- **External Archive Registration**: Track non-managed archives
-- **Backup Integration**: Cloud storage and rsync workflows  
-- **Performance Optimization**: Large-scale archive handling
-- **Configuration Enhancement**: Advanced config management
+- **7EP-0008**: Multi-Location Storage Support (TrueNAS, cloud backends)
+- **7EP-0009**: Archive Deduplication and Content Management  
+- **7EP-0010**: Performance Optimization for Large Collections
+- **7EP-0011**: Configuration Management and User Profiles
 
 ### CodeRabbit Integration Improvements (AC Focus)
 - Enhanced PR review context
