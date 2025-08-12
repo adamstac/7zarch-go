@@ -55,3 +55,6 @@ tmp/
 private.md
 
 PRIVATE.md
+
+# Claude Code local settings
+.claude/
