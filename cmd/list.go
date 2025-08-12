@@ -68,6 +68,9 @@ func ListCmd() *cobra.Command {
 	cmd.Flags().Bool("managed", false, "Only managed archives")
 	cmd.Flags().Bool("external", false, "Only external archives")
 	cmd.Flags().Bool("missing", false, "Only missing archives")
+	cmd.Flags().String("status", "", "Filter by status (present|missing|deleted)")
+	cmd.Flags().String("profile", "", "Filter by profile (media|documents|balanced)")
+	cmd.Flags().Int64("larger-than", 0, "Filter by size larger than bytes (e.g., 1048576)")
 
 	return cmd
 }
@@ -82,6 +85,9 @@ func runList(cmd *cobra.Command, args []string) error {
 		onlyManaged:  getBool(cmd, "managed"),
 		onlyExternal: getBool(cmd, "external"),
 		onlyMissing:  getBool(cmd, "missing"),
+		status:       getString(cmd, "status"),
+		profile:      getString(cmd, "profile"),
+		largerThan:   getInt64(cmd, "larger-than"),
 	}
 
 	if directory != "" {
@@ -267,15 +273,11 @@ func printGroupedArchives(archives []*storage.Archive, details bool) error {
 	// Print active archives
 	if len(activeManaged) > 0 {
 		fmt.Printf("ACTIVE - MANAGED\n")
-		for _, a := range activeManaged {
-			displayArchive(a, details)
-		}
+		printArchiveTable(activeManaged, details)
 	}
 	if len(activeExternal) > 0 {
 		fmt.Printf("ACTIVE - EXTERNAL\n")
-		for _, a := range activeExternal {
-			displayArchive(a, details)
-		}
+		printArchiveTable(activeExternal, details)
 	}
 
 	// Print deleted archives
@@ -285,6 +287,7 @@ func printGroupedArchives(archives []*storage.Archive, details bool) error {
 		retentionDays := 7 // default fallback
 		if cfg != nil && cfg.Storage.RetentionDays > 0 {
 			retentionDays = cfg.Storage.RetentionDays
+
 		}
 		fmt.Printf("DELETED (auto-purge older than %d days)\n", retentionDays)
 		for _, a := range deletedArchives {
@@ -293,6 +296,43 @@ func printGroupedArchives(archives []*storage.Archive, details bool) error {
 	}
 
 	return nil
+}
+
+func printArchiveTable(archives []*storage.Archive, details bool) {
+	// Headers
+	if details {
+		fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", "ID", "Name", "Size", "Profile", "Created", "Status")
+	} else {
+		fmt.Printf("%-8s  %-30s  %8s  %-7s\n", "ID", "Name", "Size", "Status")
+	}
+	for _, a := range archives {
+		id := a.UID
+		if len(id) > 8 {
+			id = id[:8]
+		}
+		sizeMB := fmt.Sprintf("%.1f MB", float64(a.Size)/(1024*1024))
+		status := a.Status
+		if status == "present" {
+			status = "✓"
+		} else if status == "missing" {
+			status = "⚠️"
+		}
+		if details {
+			created := a.Created.Format("2006-01-02 15:04:05")
+			name := a.Name
+			if len(name) > 30 {
+				name = name[:29] + "…"
+			}
+			fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", id, name, sizeMB, a.Profile, created, status)
+		} else {
+			name := a.Name
+			if len(name) > 30 {
+				name = name[:29] + "…"
+			}
+			fmt.Printf("%-8s  %-30s  %8s  %-7s\n", id, name, sizeMB, status)
+		}
+	}
+	fmt.Println()
 }
 
 func listManagedArchives(details, notUploaded bool, pattern, olderThan string) error {
@@ -314,7 +354,7 @@ func listManagedArchives(details, notUploaded bool, pattern, olderThan string) e
 	if notUploaded {
 		archives, err = storageManager.ListNotUploaded()
 	} else if olderThan != "" {
-		duration, parseErr := time.ParseDuration(olderThan)
+		duration, parseErr := parseHumanDuration(olderThan)
 		if parseErr != nil {
 			return fmt.Errorf("invalid duration format: %w", parseErr)
 		}

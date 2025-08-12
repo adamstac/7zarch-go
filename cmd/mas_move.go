@@ -48,7 +48,10 @@ func MasMoveCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
-			cfg, _ := config.Load()
+			cfg, err := config.Load()
+			if err != nil {
+				return fmt.Errorf("failed to load config: %w", err)
+			}
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
 			if err != nil {
 				return fmt.Errorf("failed to init storage: %w", err)
@@ -63,6 +66,7 @@ func MasMoveCmd() *cobra.Command {
 
 			dest := to
 			if dest == "" {
+
 				name := arc.Name
 				if name == "" {
 					name = filepath.Base(arc.Path)
@@ -108,6 +112,7 @@ func MasMoveCmd() *cobra.Command {
 			rel, _ := filepath.Rel(mgr.GetBasePath(), dest)
 			up := ".." + string(os.PathSeparator)
 			arc.Managed = rel != ".." && !strings.HasPrefix(rel, up)
+
 			return mgr.Registry().Update(arc)
 		},
 	}

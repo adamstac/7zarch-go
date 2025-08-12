@@ -31,6 +31,12 @@ func NewManager(basePath string) (*Manager, error) {
 		return nil, fmt.Errorf("failed to create managed storage directory: %w", err)
 	}
 
+	// Also ensure trash directory exists
+	trashPath := filepath.Join(basePath, "trash")
+	if err := os.MkdirAll(trashPath, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create managed trash directory: %w", err)
+	}
+
 	// Initialize the registry
 	dbPath := filepath.Join(basePath, "registry.db")
 	registry, err := NewRegistry(dbPath)
@@ -113,6 +119,14 @@ func (m *Manager) MarkUploaded(name string, destination string) error {
 	return m.registry.Update(archive)
 }
 
+// GetBasePath returns the managed base path
+func (m *Manager) GetBasePath() string { return m.basePath }
+
+// GetTrashPath returns the trash directory under managed storage
+func (m *Manager) GetTrashPath() string {
+	return filepath.Join(m.basePath, "trash")
+}
+
 // Delete removes an archive from the registry (does not delete the file)
 func (m *Manager) Delete(name string) error {
 	return m.registry.Delete(name)
@@ -126,19 +140,9 @@ func (m *Manager) Close() error {
 	return nil
 }
 
-// GetBasePath returns the base path for managed storage
-func (m *Manager) GetBasePath() string {
-	return m.basePath
-}
-
 // GetArchivesPath returns the path where archives are stored
 func (m *Manager) GetArchivesPath() string {
 	return filepath.Join(m.basePath, "archives")
-}
-
-// GetTrashPath returns the trash directory under managed storage
-func (m *Manager) GetTrashPath() string {
-	return filepath.Join(m.basePath, "trash")
 }
 
 // Exists checks if an archive exists in the registry
