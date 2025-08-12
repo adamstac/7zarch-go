@@ -301,14 +301,14 @@ func printGroupedArchives(archives []*storage.Archive, details bool) error {
 func printArchiveTable(archives []*storage.Archive, details bool) {
 	// Headers
 	if details {
-		fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", "ID", "Name", "Size", "Profile", "Created", "Status")
+		fmt.Printf("%-12s  %-30s  %8s  %-10s  %-19s  %-7s\n", "ID", "Name", "Size", "Profile", "Created", "Status")
 	} else {
-		fmt.Printf("%-8s  %-30s  %8s  %-7s\n", "ID", "Name", "Size", "Status")
+		fmt.Printf("%-12s  %-30s  %8s  %-7s\n", "ID", "Name", "Size", "Status")
 	}
 	for _, a := range archives {
 		id := a.UID
-		if len(id) > 8 {
-			id = id[:8]
+		if len(id) > 12 {
+			id = id[:12]
 		}
 		sizeMB := fmt.Sprintf("%.1f MB", float64(a.Size)/(1024*1024))
 		status := a.Status
@@ -323,13 +323,13 @@ func printArchiveTable(archives []*storage.Archive, details bool) {
 			if len(name) > 30 {
 				name = name[:29] + "…"
 			}
-			fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", id, name, sizeMB, a.Profile, created, status)
+			fmt.Printf("%-12s  %-30s  %8s  %-10s  %-19s  %-7s\n", id, name, sizeMB, a.Profile, created, status)
 		} else {
 			name := a.Name
 			if len(name) > 30 {
 				name = name[:29] + "…"
 			}
-			fmt.Printf("%-8s  %-30s  %8s  %-7s\n", id, name, sizeMB, status)
+			fmt.Printf("%-12s  %-30s  %8s  %-7s\n", id, name, sizeMB, status)
 		}
 	}
 	fmt.Println()
