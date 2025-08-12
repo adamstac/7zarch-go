@@ -1,18 +1,10 @@
 # 7EP-0004: MAS Foundation Implementation
 
-<<<<<<< HEAD
-**Status:** Draft
+**Status:** ✅ Completed (100%)
 **Author(s):** Claude Code (CC)
 **Assignment:** AC (Primary), CC (Supporting)
 **Difficulty:** 4 (complex - foundational system with multiple interdependent components)
 **Created:** 2025-08-12
-**Updated:** 2025-08-12
-=======
-**Status:** ✅ Completed (100%)  
-**Author(s):** Claude Code (CC)  
-**Assignment:** AC (Primary), CC (Supporting)  
-**Difficulty:** 4 (complex - foundational system with multiple interdependent components)  
-**Created:** 2025-08-12  
 **Updated:** 2025-08-12
 
 ## Current Status (August 12, 2025)
@@ -37,10 +29,9 @@
 - ✅ Comprehensive benchmark suite with 1K-10K archive datasets
 - ✅ All performance requirements exceeded by significant margins
 - ✅ Resolution: <1ms (target <50ms) - up to 2,941x faster
-- ✅ List filtering: ~35ms (target <200ms) - 5.5-6.25x faster  
+- ✅ List filtering: ~35ms (target <200ms) - 5.5-6.25x faster
 - ✅ Show command: <1ms (target <100ms) - up to 5,882x faster
-- ✅ O(1) scaling confirmed across all archive counts  
->>>>>>> origin/main
+- ✅ O(1) scaling confirmed across all archive counts
 
 ## Executive Summary
 
@@ -137,7 +128,7 @@ func (r *Resolver) HandleAmbiguous(err *AmbiguousIDError) (*Archive, error) {
 func runMasShow(cmd *cobra.Command, args []string) error {
     resolver := storage.NewResolver(registry)
 
-    archive, err := resolver.ResolveID(args[0])
+    archive, err := resolver.Resolve(args[0])
     if err != nil {
         return handleResolutionError(err)
     }
