@@ -57,7 +57,6 @@ func runList(cmd *cobra.Command, args []string) error {
 	return listRegistryArchives(details, notUploaded, pattern, olderThan, onlyManaged, onlyExternal, onlyMissing, statusFilter, profileFilter, largerThan)
 }
 
-
 func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, onlyManaged, onlyExternal, onlyMissing bool, statusFilter, profileFilter string, largerThan int64) error {
 	// Load configuration
 	cfg, err := config.Load()
@@ -66,7 +65,9 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	}
 	// Initialize storage manager
 	storageManager, err := storage.NewManager(cfg.Storage.ManagedPath)
-	if err != nil { return fmt.Errorf("failed to initialize managed storage: %w", err) }
+	if err != nil {
+		return fmt.Errorf("failed to initialize managed storage: %w", err)
+	}
 	defer storageManager.Close()
 
 	// Get archives based on filters
@@ -82,13 +83,17 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	} else {
 		archives, err = storageManager.List()
 	}
-	if err != nil { return fmt.Errorf("failed to list archives: %w", err) }
+	if err != nil {
+		return fmt.Errorf("failed to list archives: %w", err)
+	}
 
 	// Apply pattern filter
 	if pattern != "" {
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
-			if matched, _ := filepath.Match(pattern, a.Name); matched { filtered = append(filtered, a) }
+			if matched, _ := filepath.Match(pattern, a.Name); matched {
+				filtered = append(filtered, a)
+			}
 		}
 		archives = filtered
 	}
@@ -96,8 +101,12 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	if onlyManaged || onlyExternal {
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
-			if onlyManaged && a.Managed { filtered = append(filtered, a) }
-			if onlyExternal && !a.Managed { filtered = append(filtered, a) }
+			if onlyManaged && a.Managed {
+				filtered = append(filtered, a)
+			}
+			if onlyExternal && !a.Managed {
+				filtered = append(filtered, a)
+			}
 		}
 		archives = filtered
 	}
@@ -105,7 +114,9 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	if onlyMissing {
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
-			if a.Status == "missing" { filtered = append(filtered, a) }
+			if a.Status == "missing" {
+				filtered = append(filtered, a)
+			}
 		}
 		archives = filtered
 	}
@@ -113,7 +124,9 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	if statusFilter != "" {
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
-			if a.Status == statusFilter { filtered = append(filtered, a) }
+			if a.Status == statusFilter {
+				filtered = append(filtered, a)
+			}
 		}
 		archives = filtered
 	}
@@ -121,7 +134,9 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	if profileFilter != "" {
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
-			if a.Profile == profileFilter { filtered = append(filtered, a) }
+			if a.Profile == profileFilter {
+				filtered = append(filtered, a)
+			}
 		}
 		archives = filtered
 	}
@@ -129,7 +144,9 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	if largerThan > 0 {
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
-			if a.Size > largerThan { filtered = append(filtered, a) }
+			if a.Size > largerThan {
+				filtered = append(filtered, a)
+			}
 		}
 		archives = filtered
 	}
@@ -155,7 +172,9 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 			externalCount++
 			activeExternal = append(activeExternal, a)
 		}
-		if a.Status == "missing" { missingCount++ }
+		if a.Status == "missing" {
+			missingCount++
+		}
 	}
 
 	fmt.Printf("📦 Archives (%d found)\n", len(archives))
@@ -165,15 +184,11 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	// Print active archives
 	if len(activeManaged) > 0 {
 		fmt.Printf("ACTIVE - MANAGED\n")
-		for _, a := range activeManaged {
-			displayArchive(a, details)
-		}
+		printArchiveTable(activeManaged, details)
 	}
 	if len(activeExternal) > 0 {
 		fmt.Printf("ACTIVE - EXTERNAL\n")
-		for _, a := range activeExternal {
-			displayArchive(a, details)
-		}
+		printArchiveTable(activeExternal, details)
 	}
 
 	// Print deleted archives
@@ -190,6 +205,35 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 		}
 	}
 	return nil
+}
+
+func printArchiveTable(archives []*storage.Archive, details bool) {
+	// Headers
+	if details {
+		fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", "ID", "Name", "Size", "Profile", "Created", "Status")
+	} else {
+		fmt.Printf("%-8s  %-30s  %8s  %-7s\n", "ID", "Name", "Size", "Status")
+	}
+	for _, a := range archives {
+		id := a.UID
+		if len(id) > 8 {
+			id = id[:8]
+		}
+		sizeMB := fmt.Sprintf("%.1f MB", float64(a.Size)/(1024*1024))
+		status := a.Status
+		if status == "present" {
+			status = "✓"
+		} else if status == "missing" {
+			status = "⚠️"
+		}
+		if details {
+			created := a.Created.Format("2006-01-02 15:04:05")
+			fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", id, a.Name, sizeMB, a.Profile, created, status)
+		} else {
+			fmt.Printf("%-8s  %-30s  %8s  %-7s\n", id, a.Name, sizeMB, status)
+		}
+	}
+	fmt.Println()
 }
 
 func listManagedArchives(details, notUploaded bool, pattern, olderThan string) error {
@@ -334,12 +378,12 @@ func displayDeletedArchive(archive *storage.Archive, details bool) {
 		deleteTime = archive.DeletedAt.Format("2006-01-02 15:04:05")
 	}
 	fmt.Printf("🗑️  %s - Deleted %s\n", archive.Name, deleteTime)
-	
+
 	if details {
 		if archive.UID != "" {
 			fmt.Printf("   ID: %s\n", archive.UID)
 		}
-		
+
 		// Calculate days until auto-purge
 		if archive.DeletedAt != nil {
 			cfg, _ := config.Load()
@@ -347,10 +391,10 @@ func displayDeletedArchive(archive *storage.Archive, details bool) {
 			if cfg != nil && cfg.Storage.RetentionDays > 0 {
 				retentionDays = cfg.Storage.RetentionDays
 			}
-			
+
 			purgeDate := archive.DeletedAt.AddDate(0, 0, retentionDays)
 			daysLeft := int(time.Until(purgeDate).Hours() / 24)
-			
+
 			if daysLeft > 1 {
 				fmt.Printf("   Auto-purge: %d days (%s)\n", daysLeft, purgeDate.Format("2006-01-02"))
 			} else if daysLeft == 1 {
@@ -361,7 +405,7 @@ func displayDeletedArchive(archive *storage.Archive, details bool) {
 				fmt.Printf("   Auto-purge: overdue by %d days\n", -daysLeft)
 			}
 		}
-		
+
 		if archive.OriginalPath != "" {
 			fmt.Printf("   Original: %s\n", archive.OriginalPath)
 		}

@@ -1,9 +1,15 @@
 package archive
 
-type sltCase struct{ in string; want int }
+type sltCase struct {
+	in   string
+	want int
+}
 
 // Sample minimal -slt outputs for tests
-type filesCountCase struct{ in string; want int }
+type filesCountCase struct {
+	in   string
+	want int
+}
 
 var sltCases = []sltCase{
 	{in: "Path = file1.txt\nSize = 10\n\nPath = dir/file2.bin\nSize = 20\n", want: 2},
@@ -23,4 +29,3 @@ func Example_countPathsInSlt() {
 	}
 	// Output:
 }
-

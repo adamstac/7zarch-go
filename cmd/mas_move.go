@@ -21,12 +21,16 @@ func MasMoveCmd() *cobra.Command {
 			id := args[0]
 			cfg, _ := config.Load()
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
-			if err != nil { return fmt.Errorf("failed to init storage: %w", err) }
+			if err != nil {
+				return fmt.Errorf("failed to init storage: %w", err)
+			}
 			defer mgr.Close()
 
 			resolver := storage.NewResolver(mgr.Registry())
 			arc, err := resolver.Resolve(id)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 
 			dest := to
 			if dest == "" {
@@ -36,12 +40,18 @@ func MasMoveCmd() *cobra.Command {
 			if info, err := os.Stat(dest); err == nil && info.IsDir() {
 				dest = filepath.Join(dest, arc.Name)
 			}
-			if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil { return err }
-			if err := os.Rename(arc.Path, dest); err != nil { return err }
+			if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
+				return err
+			}
+			if err := os.Rename(arc.Path, dest); err != nil {
+				return err
+			}
 
 			arc.Path = dest
 			rel, err := filepath.Rel(mgr.GetBasePath(), dest)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			arc.Managed = !strings.HasPrefix(rel, "..")
 			return mgr.Registry().Update(arc)
 		},
@@ -49,4 +59,3 @@ func MasMoveCmd() *cobra.Command {
 	cmd.Flags().StringVar(&to, "to", "", "Destination path or managed default if omitted")
 	return cmd
 }
-

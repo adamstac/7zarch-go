@@ -63,20 +63,24 @@ type CreateOptions struct {
 	Comprehensive    bool   // Create log and checksums
 	Force            bool   // Overwrite existing files
 	// Config-driven thresholds (percent values); 0 means use defaults
-	MediaThreshold   int
-	DocsThreshold    int
+	MediaThreshold int
+	DocsThreshold  int
 }
 
 // Create creates a new archive
 func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, error) {
 	var profile CompressionProfile
 	var err error
-	
+
 	// Always analyze content to educate the user, with config-driven thresholds
 	mediaTh := opts.MediaThreshold
 	docsTh := opts.DocsThreshold
-	if mediaTh <= 0 { mediaTh = 70 }
-	if docsTh <= 0 { docsTh = 60 }
+	if mediaTh <= 0 {
+		mediaTh = 70
+	}
+	if docsTh <= 0 {
+		docsTh = 60
+	}
 	stats, recommended, analyzeErr := AnalyzeContentWithThresholds(opts.Source, mediaTh, docsTh)
 	if analyzeErr != nil {
 		// Don't fail on analysis error, just skip the educational output
@@ -114,7 +118,7 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 		}
 		fmt.Printf("🎯 Using Profile: %s\n", profile.Name)
 		fmt.Printf("   %s\n", profile.Description)
-		fmt.Printf("   Settings: Level %d, Dictionary %s, Fast bytes %d\n\n", 
+		fmt.Printf("   Settings: Level %d, Dictionary %s, Fast bytes %d\n\n",
 			profile.Level, profile.DictionarySize, profile.FastBytes)
 	} else if opts.CompressionLevel > 0 {
 		// Manual compression level specified - use traditional mode
@@ -125,10 +129,10 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 			SolidMode:      true,
 			Algorithm:      "lzma2",
 		}
-		
+
 		// Educational message about available optimizations
 		if analyzeErr == nil {
-			fmt.Printf("💡 Optimization Tip: Based on your content, --profile %s might be faster\n", 
+			fmt.Printf("💡 Optimization Tip: Based on your content, --profile %s might be faster\n",
 				strings.ToLower(recommended.Name))
 			fmt.Printf("   Run '7zarch-go profiles' to see all available profiles\n\n")
 		}
@@ -140,22 +144,22 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 		} else {
 			fmt.Printf("🎯 Using Smart Profile: %s\n", recommended.Name)
 			fmt.Printf("   %s\n", recommended.Description)
-			fmt.Printf("   Settings: Level %d, Dictionary %s, Fast bytes %d\n\n", 
+			fmt.Printf("   Settings: Level %d, Dictionary %s, Fast bytes %d\n\n",
 				recommended.Level, recommended.DictionarySize, recommended.FastBytes)
-			
+
 			profile = recommended
 		}
 	}
-	
+
 	// Build 7z command
 	args := []string{"a"}
-	
+
 	// Add output file
 	args = append(args, opts.Output)
-	
+
 	// Force overwrite without prompting
 	args = append(args, "-y")
-	
+
 	// Apply compression profile parameters
 	args = append(args, "-t7z")
 	args = append(args, fmt.Sprintf("-m0=%s", profile.Algorithm))
@@ -167,42 +171,42 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 	} else {
 		args = append(args, "-ms=off")
 	}
-	
+
 	// Add thread count if specified
 	if opts.Threads > 0 {
 		args = append(args, fmt.Sprintf("-mmt=%d", opts.Threads))
 	}
-	
+
 	// Add source
 	args = append(args, opts.Source)
-	
+
 	// Add excludes
 	for _, exclude := range opts.Exclude {
 		args = append(args, fmt.Sprintf("-x!%s", exclude))
 	}
-	
+
 	// Execute 7z command
 	cmd := exec.CommandContext(ctx, "7z", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("7z failed: %w\nOutput: %s", err, string(output))
 	}
-	
+
 	// Get archive info
 	info, err := os.Stat(opts.Output)
 	if err != nil {
 		return nil, fmt.Errorf("failed to stat archive: %w", err)
 	}
-	
+
 	// Calculate checksum
 	checksum, err := calculateFileChecksum(opts.Output)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate checksum: %w", err)
 	}
-	
+
 	// Get file count from output
 	fileCount := extractFileCount(string(output))
-	
+
 	archive := &Archive{
 		Path:      opts.Output,
 		Size:      info.Size(),
@@ -211,7 +215,7 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 		Checksum:  checksum,
 		Profile:   profile,
 	}
-	
+
 	// Use analysis totals as original size to avoid a second directory walk
 	if analyzeErr == nil && stats != nil {
 		archive.OriginalSize = stats.TotalBytes
@@ -226,7 +230,7 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 		} else {
 			fmt.Printf("Log created: %s\n", logPath)
 		}
-		
+
 		// Create checksum file
 		checksumPath := archive.Path + ".sha256"
 		if err := CreateChecksumFile(checksumPath, archive); err != nil {
@@ -235,7 +239,7 @@ func (m *Manager) Create(ctx context.Context, opts CreateOptions) (*Archive, err
 			fmt.Printf("Checksum created: %s\n", checksumPath)
 		}
 	}
-	
+
 	return archive, nil
 }
 
@@ -256,13 +260,13 @@ func (m *Manager) Test(ctx context.Context, archivePath string) (*TestResult, er
 		Passed: true,
 		Errors: []string{},
 	}
-	
+
 	// Test 1: Archive structure integrity
 	if err := m.testArchiveIntegrity(ctx, archivePath); err != nil {
 		result.Passed = false
 		result.Errors = append(result.Errors, fmt.Sprintf("Archive integrity: %v", err))
 	}
-	
+
 	// Test 2: Checksum verification (if .sha256 exists)
 	checksumFile := archivePath + ".sha256"
 	if _, err := os.Stat(checksumFile); err == nil {
@@ -274,7 +278,7 @@ func (m *Manager) Test(ctx context.Context, archivePath string) (*TestResult, er
 			result.ChecksumValid = true
 		}
 	}
-	
+
 	// Test 3: Metadata validation (if .log exists)
 	metadataFile := archivePath + ".log"
 	if _, err := os.Stat(metadataFile); err == nil {
@@ -286,7 +290,7 @@ func (m *Manager) Test(ctx context.Context, archivePath string) (*TestResult, er
 			result.MetadataValid = true
 		}
 	}
-	
+
 	// Test 4: List files (quick extraction test)
 	fileCount, err := m.listArchiveFiles(ctx, archivePath)
 	if err != nil {
@@ -295,7 +299,7 @@ func (m *Manager) Test(ctx context.Context, archivePath string) (*TestResult, er
 	} else {
 		result.FilesVerified = fileCount
 	}
-	
+
 	result.Duration = time.Since(startTime)
 	return result, nil
 }
@@ -329,25 +333,25 @@ func (m *Manager) verifyChecksum(archivePath, checksumFile string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read checksum file: %w", err)
 	}
-	
+
 	// Parse checksum (format: "hash  filename")
 	parts := strings.Fields(string(data))
 	if len(parts) < 1 {
 		return fmt.Errorf("invalid checksum file format")
 	}
 	expectedChecksum := parts[0]
-	
+
 	// Calculate actual checksum
 	actualChecksum, err := calculateFileChecksum(archivePath)
 	if err != nil {
 		return fmt.Errorf("failed to calculate checksum: %w", err)
 	}
-	
+
 	// Compare
 	if actualChecksum != expectedChecksum {
 		return fmt.Errorf("checksum mismatch: expected %s, got %s", expectedChecksum, actualChecksum)
 	}
-	
+
 	return nil
 }
 
@@ -359,9 +363,9 @@ func (m *Manager) validateMetadata(ctx context.Context, archivePath, metadataFil
 	if err != nil {
 		return fmt.Errorf("failed to read metadata: %w", err)
 	}
-	
+
 	// TODO: Parse and validate metadata against actual archive contents
-	
+
 	return nil
 }
 
@@ -392,12 +396,12 @@ func calculateFileChecksum(path string) (string, error) {
 		return "", err
 	}
 	defer file.Close()
-	
+
 	hash := sha256.New()
 	if _, err := io.Copy(hash, file); err != nil {
 		return "", err
 	}
-	
+
 	return hex.EncodeToString(hash.Sum(nil)), nil
 }
 
@@ -458,14 +462,14 @@ func CreateLogFile(logPath string, archive *Archive, sourcePath string) error {
 	fmt.Fprintf(file, "Size: %d bytes\n", archive.Size)
 	fmt.Fprintf(file, "Files: %d\n", archive.FileCount)
 	fmt.Fprintf(file, "Checksum: %s\n", archive.Checksum)
-	
+
 	if archive.OriginalSize > 0 {
 		ratio := float64(archive.Size) / float64(archive.OriginalSize) * 100
 		fmt.Fprintf(file, "Compression: %.1f%%\n", ratio)
 	}
 
 	// TODO: Add file listing with details
-	
+
 	return nil
 }
 
@@ -479,6 +483,6 @@ func CreateChecksumFile(checksumPath string, archive *Archive) error {
 
 	// Write checksum in standard format: "hash  filename"
 	fmt.Fprintf(file, "%s  %s\n", archive.Checksum, filepath.Base(archive.Path))
-	
+
 	return nil
 }

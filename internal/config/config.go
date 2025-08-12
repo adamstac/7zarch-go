@@ -9,20 +9,20 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	Compression CompressionConfig `yaml:"compression"`
-	Defaults    DefaultsConfig    `yaml:"defaults"`
-	UI          UIConfig          `yaml:"ui"`
+	Compression CompressionConfig        `yaml:"compression"`
+	Defaults    DefaultsConfig           `yaml:"defaults"`
+	UI          UIConfig                 `yaml:"ui"`
 	Profiles    map[string]CustomProfile `yaml:"profiles"`
-	TrueNAS     TrueNASConfig     `yaml:"truenas"`
-	Presets     map[string]PresetConfig `yaml:"presets"`
-	Storage     StorageConfig     `yaml:"storage"`
+	TrueNAS     TrueNASConfig            `yaml:"truenas"`
+	Presets     map[string]PresetConfig  `yaml:"presets"`
+	Storage     StorageConfig            `yaml:"storage"`
 }
 
 type CompressionConfig struct {
-	SmartDefault    bool `yaml:"smart_default"`
-	Level           int  `yaml:"level"`
-	MediaThreshold  int  `yaml:"media_threshold"`
-	DocsThreshold   int  `yaml:"docs_threshold"`
+	SmartDefault   bool `yaml:"smart_default"`
+	Level          int  `yaml:"level"`
+	MediaThreshold int  `yaml:"media_threshold"`
+	DocsThreshold  int  `yaml:"docs_threshold"`
 }
 
 type DefaultsConfig struct {
@@ -42,20 +42,20 @@ type TestDefaults struct {
 }
 
 type UIConfig struct {
-	ShowAnalysis   bool   `yaml:"show_analysis"`
-	ShowTips       bool   `yaml:"show_tips"`
-	ProgressStyle  string `yaml:"progress_style"`
-	Emojis         bool   `yaml:"emojis"`
+	ShowAnalysis  bool   `yaml:"show_analysis"`
+	ShowTips      bool   `yaml:"show_tips"`
+	ProgressStyle string `yaml:"progress_style"`
+	Emojis        bool   `yaml:"emojis"`
 }
 
 type CustomProfile struct {
-	Name         string `yaml:"name"`
-	Description  string `yaml:"description"`
-	Level        int    `yaml:"level"`
-	Dictionary   string `yaml:"dictionary"`
-	FastBytes    int    `yaml:"fast_bytes"`
-	SolidMode    bool   `yaml:"solid_mode"`
-	Algorithm    string `yaml:"algorithm"`
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
+	Level       int    `yaml:"level"`
+	Dictionary  string `yaml:"dictionary"`
+	FastBytes   int    `yaml:"fast_bytes"`
+	SolidMode   bool   `yaml:"solid_mode"`
+	Algorithm   string `yaml:"algorithm"`
 }
 
 type TrueNASConfig struct {
@@ -75,11 +75,11 @@ type PresetConfig struct {
 }
 
 type StorageConfig struct {
-	ManagedPath        string `yaml:"managed_path"`
-	UseManagedDefault  bool   `yaml:"use_managed_default"`
-	RegisterExternal   bool   `yaml:"register_external"`
-	AutoOrganize       string `yaml:"auto_organize"` // flat, by_date, by_type
-	RetentionDays      int    `yaml:"retention_days"`
+	ManagedPath       string `yaml:"managed_path"`
+	UseManagedDefault bool   `yaml:"use_managed_default"`
+	RegisterExternal  bool   `yaml:"register_external"`
+	AutoOrganize      string `yaml:"auto_organize"` // flat, by_date, by_type
+	RetentionDays     int    `yaml:"retention_days"`
 }
 
 // DefaultConfig returns the default configuration
@@ -145,31 +145,31 @@ func DefaultConfig() *Config {
 // Load loads configuration from ~/.7zarch-go-config
 func Load() (*Config, error) {
 	config := DefaultConfig()
-	
+
 	// Get config file path
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return config, nil // Return defaults if we can't find home
 	}
-	
+
 	configPath := filepath.Join(home, ".7zarch-go-config")
-	
+
 	// Check if config file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return config, nil // Return defaults if config doesn't exist
 	}
-	
+
 	// Read config file
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return config, nil // Return defaults on read error
 	}
-	
+
 	// Parse YAML
 	if err := yaml.Unmarshal(data, config); err != nil {
 		return config, nil // Return defaults on parse error
 	}
-	
+
 	return config, nil
 }
 

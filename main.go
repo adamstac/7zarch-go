@@ -39,10 +39,10 @@ Features:
 	rootCmd.AddCommand(cmd.ProfilesCmd())
 	rootCmd.AddCommand(cmd.ConfigCmd())
 	// MAS commands (as top-level commands for convenience)
-	rootCmd.AddCommand(cmd.MasShowCmd())    // "show" command
-	rootCmd.AddCommand(cmd.MasDbCmd())      // "db" command  
-	rootCmd.AddCommand(cmd.MasDeleteCmd())  // "delete" command
-	rootCmd.AddCommand(cmd.MasMoveCmd())    // "move" command
+	rootCmd.AddCommand(cmd.MasShowCmd())   // "show" command
+	rootCmd.AddCommand(cmd.MasDbCmd())     // "db" command
+	rootCmd.AddCommand(cmd.MasDeleteCmd()) // "delete" command
+	rootCmd.AddCommand(cmd.MasMoveCmd())   // "move" command
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {
