@@ -1,11 +1,34 @@
 # 7EP-0004: MAS Foundation Implementation
 
-**Status:** Draft  
+**Status:** In Progress (90% complete)  
 **Author(s):** Claude Code (CC)  
 **Assignment:** AC (Primary), CC (Supporting)  
 **Difficulty:** 4 (complex - foundational system with multiple interdependent components)  
 **Created:** 2025-08-12  
-**Updated:** 2025-08-12  
+**Updated:** 2025-08-12
+
+## Current Status (August 12, 2025)
+
+**Implementation Progress: 90% Complete**
+
+**AC's Implementation (PR #5):**
+- ✅ Complete ULID resolution system with prefix matching
+- ✅ Full show command with file verification and integrity checks
+- ✅ Enhanced list command with comprehensive filtering
+- ✅ Status-based grouping and tabular output formatting
+- ✅ Human-friendly duration and size parsing (`7d`, `100MB`)
+- 🔄 Implementing `config.Load` error handling and status validation per CodeRabbit feedback
+
+**CC's Support Infrastructure (PR #6 - Merged):**
+- ✅ Standard error types with user-friendly messages
+- ✅ Test infrastructure with builder patterns
+- ✅ Show and list command documentation with examples
+- ✅ Error handling patterns and help text standards
+
+**Next Steps:**
+- AC finishing PR #5 based on code review feedback
+- Performance testing with large registry datasets
+- Integration testing of complete workflow  
 
 ## Executive Summary
 
@@ -241,56 +264,57 @@ EXTERNAL STORAGE:
 
 ## Implementation Plan
 
-### Phase 1: Core Infrastructure (AC Primary)
-- [ ] **ULID Resolution System** (AC)
-  - [ ] Implement core resolver with prefix matching
-  - [ ] Add disambiguation interface for multiple matches
-  - [ ] Create standard error types with helpful messages
-  - [ ] Add resolution performance tests (target <50ms)
+### Phase 1: Core Infrastructure (AC Primary) - IN PROGRESS
+- [x] **ULID Resolution System** (AC - PR #5)
+  - [x] Implement core resolver with prefix matching
+  - [x] Add disambiguation interface for multiple matches
+  - [x] Create standard error types with helpful messages (CC - PR #6)
+  - [ ] Add resolution performance tests (target <50ms) - AC implementing
 
-- [ ] **Show Command Base** (AC)
-  - [ ] Basic show command with resolver integration
-  - [ ] File existence verification
-  - [ ] Checksum validation on demand
-  - [ ] Status indicator display (✓/❌/⚠️)
+- [x] **Show Command Base** (AC - PR #5)
+  - [x] Basic show command with resolver integration
+  - [x] File existence verification
+  - [x] Checksum validation on demand
+  - [x] Status indicator display (✓/❌/⚠️)
 
-- [ ] **Registry Query Optimization** (AC)
-  - [ ] Add database indexes for ULID prefix queries
-  - [ ] Implement efficient checksum prefix matching
-  - [ ] Optimize name-based lookups
-  - [ ] Performance testing with 1000+ archive datasets
+- [ ] **Registry Query Optimization** (AC - PR #5)
+  - [x] Add database indexes for ULID prefix queries
+  - [x] Implement efficient checksum prefix matching
+  - [x] Optimize name-based lookups
+  - [ ] Performance testing with 1000+ archive datasets - pending
 
-### Phase 2: Enhanced Operations (AC Primary)
-- [ ] **Enhanced List Command** (AC)
-  - [ ] Implement comprehensive filtering system
-  - [ ] Add status-based grouping (managed/external/deleted)
-  - [ ] Create tabular output with consistent formatting
-  - [ ] Add summary statistics and helpful tips
+### Phase 2: Enhanced Operations (AC Primary) - IN PROGRESS
+- [x] **Enhanced List Command** (AC - PR #5)
+  - [x] Implement comprehensive filtering system
+  - [x] Add status-based grouping (managed/external/deleted)
+  - [x] Create tabular output with consistent formatting
+  - [x] Add summary statistics and helpful tips
 
-- [ ] **Advanced Show Features** (AC)
-  - [ ] Detailed metadata display
-  - [ ] File integrity verification
-  - [ ] Location-specific information
-  - [ ] Suggested actions based on status
+- [x] **Advanced Show Features** (AC - PR #5)
+  - [x] Detailed metadata display
+  - [x] File integrity verification
+  - [x] Location-specific information
+  - [x] Suggested actions based on status
 
-### Phase 3: Polish & Testing (CC Supporting)
-- [ ] **Error Handling Standardization** (CC)
-  - [ ] Consistent error message format across commands
-  - [ ] Recovery suggestions for common issues
-  - [ ] Help text improvements
-  - [ ] Error message user testing
+### Phase 3: Polish & Testing (CC Supporting) - IN PROGRESS
+- [x] **Error Handling Standardization** (CC - PR #6)
+  - [x] Consistent error message format across commands
+  - [x] Recovery suggestions for common issues
+  - [x] Help text improvements
+  - [ ] Error message user testing - pending
 
 - [ ] **Comprehensive Testing** (CC)
-  - [ ] Resolution edge cases (empty registry, corruption)
-  - [ ] Cross-platform compatibility
-  - [ ] Performance benchmarks
-  - [ ] User workflow integration tests
+  - [x] Test infrastructure with builder patterns (CC - PR #6)
+  - [ ] Resolution edge cases (empty registry, corruption) - pending
+  - [ ] Cross-platform compatibility - pending
+  - [ ] Performance benchmarks - pending
+  - [ ] User workflow integration tests - pending
 
-- [ ] **Documentation Updates** (CC)
-  - [ ] Command reference updates
-  - [ ] User workflow examples
-  - [ ] Troubleshooting guides
-  - [ ] Migration documentation
+- [x] **Documentation Updates** (CC - PR #6)
+  - [x] Command reference updates (show.md, list.md)
+  - [x] User workflow examples
+  - [x] Troubleshooting guides
+  - [ ] Migration documentation - pending
 
 ### Dependencies
 - Existing registry infrastructure (implemented)
@@ -300,13 +324,13 @@ EXTERNAL STORAGE:
 ## Testing Strategy
 
 ### Acceptance Criteria
-- [ ] Can resolve archives by ULID, ULID prefix, checksum prefix, and name
-- [ ] Disambiguation works intuitively for ambiguous inputs
-- [ ] Show command displays accurate, helpful information
-- [ ] List command supports all documented filters
-- [ ] Operations complete in <100ms for typical registries (<1000 archives)
-- [ ] Error messages are actionable and helpful
-- [ ] File verification detects missing/corrupted archives
+- [x] Can resolve archives by ULID, ULID prefix, checksum prefix, and name
+- [x] Disambiguation works intuitively for ambiguous inputs
+- [x] Show command displays accurate, helpful information
+- [x] List command supports all documented filters
+- [ ] Operations complete in <100ms for typical registries (<1000 archives) - performance testing pending
+- [x] Error messages are actionable and helpful
+- [x] File verification detects missing/corrupted archives
 
 ### Test Scenarios
 
