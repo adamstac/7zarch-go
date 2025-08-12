@@ -148,7 +148,13 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	
 	// Print deleted archives
 	if len(deletedArchives) > 0 {
-		fmt.Printf("DELETED (auto-purge older than 7 days)\n")
+		// Load config to get actual retention days
+		cfg, _ := config.Load()
+		retentionDays := 7 // default fallback
+		if cfg != nil && cfg.Storage.RetentionDays > 0 {
+			retentionDays = cfg.Storage.RetentionDays
+		}
+		fmt.Printf("DELETED (auto-purge older than %d days)\n", retentionDays)
 		for _, a := range deletedArchives {
 			displayDeletedArchive(a, details)
 		}
