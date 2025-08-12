@@ -29,7 +29,7 @@ func MasMoveCmd() *cobra.Command {
 
 			dest := to
 			if dest == "" {
-				dest = mgr.GetManagedPath(filepath.Base(arc.Path))
+				dest = mgr.GetManagedPath(arc.Name)
 			}
 			if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil { return err }
 			if err := os.Rename(arc.Path, dest); err != nil { return err }
