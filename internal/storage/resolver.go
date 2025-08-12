@@ -1,25 +1,9 @@
 package storage
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
-
-// Error types
-
-type ArchiveNotFoundError struct{ ID string }
-
-func (e *ArchiveNotFoundError) Error() string { return fmt.Sprintf("archive not found: %s", e.ID) }
-
-type AmbiguousIDError struct {
-	ID      string
-	Matches []*Archive
-}
-
-func (e *AmbiguousIDError) Error() string {
-	return fmt.Sprintf("ambiguous id '%s' (%d matches)", e.ID, len(e.Matches))
-}
 
 // Resolver resolves user input into a single registry archive
 // Resolution order: numeric ID -> exact UID -> UID prefix -> checksum prefix -> exact name
