@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+version: 2
+
+reviews:
+  auto_review: true
+  review_profile: CHILL
+  allow_review_on_draft: false
+  path_filters:
+    - include: ["internal/storage/**"]
+      review_profile: STRICT
+    - include: ["cmd/**", "main.go"]
+      review_profile: NORMAL
+    - include: ["internal/**_test.go", "Makefile", "scripts/**"]
+      review_profile: CHILL
+    - exclude: ["dist/**", "vendor/**", "**/*.sum", "**/*.min.*", ".claude/**"]
+
+summaries:
+  enabled: true
+  placement: PR_BODY
+
+fail_conditions:
+  # Treat high severity issues in STRICT areas as blockers
+  high_severity_block: true
+
+labels:
+  # Apply STRICT profile when PR is labeled "strict"
+  - label: strict
+    review_profile: STRICT
+  # Chill for docs/chore
+  - label: docs
+    review_profile: CHILL
+  - label: chore
+    review_profile: CHILL
+
+comments:
+  nits: true
+  style_suggestions: true
+  request_tests: true
+  max_comments: 50
+
+ignore:
+  files:
+    - "dist/**"
+    - "vendor/**"
+    - "**/*.sum"
+    - "**/*.min.*"
+    - ".claude/**"
+    - ".coderabbit.yaml"  # do not review config changes themselves
+
+ui:
+  finishing_touches_checklist: true
+
+# Optional: customize severity mapping if needed later.
+# severities:
+#   STRICT:
+#     - BUG
+#     - SECURITY
+#     - PERFORMANCE
+#   NORMAL:
+#     - BUG
+#     - PERFORMANCE
+#   CHILL:
+#     - NIT
+
