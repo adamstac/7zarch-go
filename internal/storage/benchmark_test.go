@@ -149,13 +149,13 @@ func BenchmarkResolverOperations(b *testing.B) {
 		}
 	}
 	
-	resolver := NewMockResolver(registry)
+	resolver := NewResolver(registry)
 	
 	b.Run("ResolveExactUID", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			uid := testUIDs[i%numArchives]
-			_, err := resolver.ResolveID(uid)
+			_, err := resolver.Resolve(uid)
 			if err != nil {
 				b.Fatalf("Resolve exact UID failed: %v", err)
 			}
@@ -167,7 +167,7 @@ func BenchmarkResolverOperations(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			uid := testUIDs[i%numArchives]
 			prefix := uid[:8] // Use 8-character prefix
-			_, err := resolver.ResolveID(prefix)
+			_, err := resolver.Resolve(prefix)
 			if err != nil {
 				// May be ambiguous - that's expected
 				if _, isAmbiguous := err.(*AmbiguousIDError); !isAmbiguous {
@@ -182,7 +182,7 @@ func BenchmarkResolverOperations(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			checksum := testChecksums[i%numArchives]
 			prefix := checksum[:16] // Use 16-character prefix
-			_, err := resolver.ResolveID(prefix)
+			_, err := resolver.Resolve(prefix)
 			if err != nil {
 				if _, isAmbiguous := err.(*AmbiguousIDError); !isAmbiguous {
 					b.Fatalf("Resolve checksum prefix failed: %v", err)
@@ -195,7 +195,7 @@ func BenchmarkResolverOperations(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			name := testNames[i%numArchives]
-			_, err := resolver.ResolveID(name)
+			_, err := resolver.Resolve(name)
 			if err != nil {
 				b.Fatalf("Resolve name failed: %v", err)
 			}

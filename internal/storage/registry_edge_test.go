@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -307,8 +306,9 @@ func TestRegistryConsistency(t *testing.T) {
 		registry, _ := setupTestRegistry(t)
 		
 		// Manually insert archive without UID to simulate legacy data
-		query := `INSERT INTO archives (name, path, size, created, profile, managed, status) VALUES (?, ?, ?, ?, ?, ?, ?)`
-		_, err := registry.db.Exec(query, "legacy.7z", "/legacy/legacy.7z", 1024, time.Now(), "balanced", true, "present")
+		// Include all fields to avoid NULL issues - set empty strings for text fields
+		query := `INSERT INTO archives (name, path, size, created, checksum, profile, managed, status, uploaded, destination, original_path, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		_, err := registry.db.Exec(query, "legacy.7z", "/legacy/legacy.7z", 1024, time.Now(), "", "balanced", true, "present", false, "", "", "")
 		if err != nil {
 			t.Fatalf("Failed to insert legacy archive: %v", err)
 		}

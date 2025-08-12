@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -38,37 +37,58 @@ func setupTestRegistry(t *testing.T) (*Registry, string) {
 func seedTestArchives(t *testing.T, registry *Registry) []*Archive {
 	archives := []*Archive{
 		{
-			UID:      "01JEX4RT2N9K3M6P8Q7S5V4W2X",
-			Name:     "project-backup.7z",
-			Path:     "/managed/project-backup.7z",
-			Size:     2097152, // 2MB
-			Created:  time.Now().Add(-2 * 24 * time.Hour),
-			Checksum: "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
-			Profile:  "media",
-			Managed:  true,
-			Status:   "present",
+			UID:          "01JEX4RT2N9K3M6P8Q7S5V4W2X",
+			Name:         "project-backup.7z",
+			Path:         "/managed/project-backup.7z",
+			Size:         2097152, // 2MB
+			Created:      time.Now().Add(-2 * 24 * time.Hour),
+			Checksum:     "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
+			Profile:      "media",
+			Managed:      true,
+			Status:       "present",
+			LastSeen:     nil,
+			DeletedAt:    nil,
+			OriginalPath: "",
+			Uploaded:     false,
+			Destination:  "",
+			UploadedAt:   nil,
+			Metadata:     "",
 		},
 		{
-			UID:      "01JEY5SU3O0L4N7Q9R8T6W5X3Y",
-			Name:     "project-docs.7z", 
-			Path:     "/external/project-docs.7z",
-			Size:     524288, // 512KB
-			Created:  time.Now().Add(-7 * 24 * time.Hour),
-			Checksum: "b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef234567",
-			Profile:  "documents",
-			Managed:  false,
-			Status:   "present",
+			UID:          "01JEY5SU3O0L4N7Q9R8T6W5X3Y",
+			Name:         "project-docs.7z", 
+			Path:         "/external/project-docs.7z",
+			Size:         524288, // 512KB
+			Created:      time.Now().Add(-7 * 24 * time.Hour),
+			Checksum:     "b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef234567",
+			Profile:      "documents",
+			Managed:      false,
+			Status:       "present",
+			LastSeen:     nil,
+			DeletedAt:    nil,
+			OriginalPath: "",
+			Uploaded:     false,
+			Destination:  "",
+			UploadedAt:   nil,
+			Metadata:     "",
 		},
 		{
-			UID:      "01JEZ6TV4P1M5O8R0S9U7X6Y4Z",
-			Name:     "podcast-103.7z",
-			Path:     "/managed/podcast-103.7z", 
-			Size:     163577856, // 156MB
-			Created:  time.Now().Add(-7 * 24 * time.Hour),
-			Checksum: "c3d4e5f6789012345678901234567890abcdef1234567890abcdef345678",
-			Profile:  "media",
-			Managed:  true,
-			Status:   "present",
+			UID:          "01JEZ6TV4P1M5O8R0S9U7X6Y4Z",
+			Name:         "podcast-103.7z",
+			Path:         "/managed/podcast-103.7z", 
+			Size:         163577856, // 156MB
+			Created:      time.Now().Add(-7 * 24 * time.Hour),
+			Checksum:     "c3d4e5f6789012345678901234567890abcdef1234567890abcdef345678",
+			Profile:      "media",
+			Managed:      true,
+			Status:       "present",
+			LastSeen:     nil,
+			DeletedAt:    nil,
+			OriginalPath: "",
+			Uploaded:     false,
+			Destination:  "",
+			UploadedAt:   nil,
+			Metadata:     "",
 		},
 	}
 	
@@ -82,102 +102,23 @@ func seedTestArchives(t *testing.T, registry *Registry) []*Archive {
 	return archives
 }
 
-// Resolver error types that AC will implement
-type ArchiveNotFoundError struct {
-	ID string
-}
+// Error types are now implemented by AC in resolver.go
 
-func (e *ArchiveNotFoundError) Error() string {
-	return fmt.Sprintf("archive not found: %s", e.ID)
-}
-
-type AmbiguousIDError struct {
-	ID      string
-	Matches []*Archive
-}
-
-func (e *AmbiguousIDError) Error() string {
-	return fmt.Sprintf("ambiguous ID '%s': %d matches found", e.ID, len(e.Matches))
-}
-
-// Mock Resolver implementation for testing - AC will replace this
-type MockResolver struct {
-	registry *Registry
-}
-
-func NewMockResolver(registry *Registry) *MockResolver {
-	return &MockResolver{registry: registry}
-}
-
-func (r *MockResolver) ResolveID(input string) (*Archive, error) {
-	// This is a simplified mock - AC will implement the full algorithm
-	
-	// Try exact UID match first
-	archives, err := r.registry.List()
-	if err != nil {
-		return nil, err
-	}
-	
-	var uidMatches []*Archive
-	var checksumMatches []*Archive
-	var nameMatches []*Archive
-	
-	for _, archive := range archives {
-		// Exact UID match
-		if archive.UID == input {
-			return archive, nil
-		}
-		
-		// UID prefix match
-		if len(input) >= 4 && len(archive.UID) >= len(input) && 
-		   archive.UID[:len(input)] == input {
-			uidMatches = append(uidMatches, archive)
-		}
-		
-		// Checksum prefix match
-		if len(input) >= 8 && len(archive.Checksum) >= len(input) &&
-		   archive.Checksum[:len(input)] == input {
-			checksumMatches = append(checksumMatches, archive)
-		}
-		
-		// Name match
-		if archive.Name == input {
-			nameMatches = append(nameMatches, archive)
-		}
-	}
-	
-	// Check UID prefix matches
-	if len(uidMatches) == 1 {
-		return uidMatches[0], nil
-	} else if len(uidMatches) > 1 {
-		return nil, &AmbiguousIDError{ID: input, Matches: uidMatches}
-	}
-	
-	// Check checksum prefix matches  
-	if len(checksumMatches) == 1 {
-		return checksumMatches[0], nil
-	} else if len(checksumMatches) > 1 {
-		return nil, &AmbiguousIDError{ID: input, Matches: checksumMatches}
-	}
-	
-	// Check name matches
-	if len(nameMatches) == 1 {
-		return nameMatches[0], nil
-	} else if len(nameMatches) > 1 {
-		return nil, &AmbiguousIDError{ID: input, Matches: nameMatches}
-	}
-	
-	return nil, &ArchiveNotFoundError{ID: input}
+// setupTestResolver creates a test resolver with AC's real implementation
+func setupTestResolver(t *testing.T) (*Resolver, *Registry) {
+	registry, _ := setupTestRegistry(t)
+	resolver := NewResolver(registry)
+	resolver.MinPrefixLength = 4 // Use shorter prefix for tests
+	return resolver, registry
 }
 
 // Test exact ULID resolution
 func TestResolveExactULID(t *testing.T) {
-	registry, _ := setupTestRegistry(t)
+	resolver, registry := setupTestResolver(t)
 	archives := seedTestArchives(t, registry)
-	resolver := NewMockResolver(registry)
 	
 	// Test exact ULID match
-	result, err := resolver.ResolveID("01JEX4RT2N9K3M6P8Q7S5V4W2X")
+	result, err := resolver.Resolve("01JEX4RT2N9K3M6P8Q7S5V4W2X")
 	if err != nil {
 		t.Fatalf("Expected successful resolution, got error: %v", err)
 	}
@@ -193,9 +134,8 @@ func TestResolveExactULID(t *testing.T) {
 
 // Test ULID prefix resolution
 func TestResolveULIDPrefix(t *testing.T) {
-	registry, _ := setupTestRegistry(t)
+	resolver, registry := setupTestResolver(t)
 	seedTestArchives(t, registry)
-	resolver := NewMockResolver(registry)
 	
 	testCases := []struct {
 		prefix   string
@@ -209,7 +149,7 @@ func TestResolveULIDPrefix(t *testing.T) {
 	
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("prefix_%s", tc.prefix), func(t *testing.T) {
-			result, err := resolver.ResolveID(tc.prefix)
+			result, err := resolver.Resolve(tc.prefix)
 			if err != nil {
 				t.Fatalf("Expected successful resolution for prefix '%s', got error: %v", tc.prefix, err)
 			}
@@ -223,12 +163,11 @@ func TestResolveULIDPrefix(t *testing.T) {
 
 // Test ambiguous ULID prefix resolution
 func TestResolveAmbiguousULIDPrefix(t *testing.T) {
-	registry, _ := setupTestRegistry(t)
+	resolver, registry := setupTestResolver(t)
 	seedTestArchives(t, registry)
-	resolver := NewMockResolver(registry)
 	
 	// All test ULIDs start with "01JE" - should be ambiguous
-	_, err := resolver.ResolveID("01JE")
+	_, err := resolver.Resolve("01JE")
 	
 	if err == nil {
 		t.Fatal("Expected ambiguous error, got nil")
@@ -250,9 +189,8 @@ func TestResolveAmbiguousULIDPrefix(t *testing.T) {
 
 // Test checksum prefix resolution
 func TestResolveChecksumPrefix(t *testing.T) {
-	registry, _ := setupTestRegistry(t)
+	resolver, registry := setupTestResolver(t)
 	seedTestArchives(t, registry)
-	resolver := NewMockResolver(registry)
 	
 	testCases := []struct {
 		prefix   string
@@ -266,7 +204,7 @@ func TestResolveChecksumPrefix(t *testing.T) {
 	
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("checksum_%s", tc.prefix), func(t *testing.T) {
-			result, err := resolver.ResolveID(tc.prefix)
+			result, err := resolver.Resolve(tc.prefix)
 			if err != nil {
 				t.Fatalf("Expected successful resolution for checksum prefix '%s', got error: %v", tc.prefix, err)
 			}
@@ -280,11 +218,10 @@ func TestResolveChecksumPrefix(t *testing.T) {
 
 // Test name resolution
 func TestResolveName(t *testing.T) {
-	registry, _ := setupTestRegistry(t)
+	resolver, registry := setupTestResolver(t)
 	seedTestArchives(t, registry)
-	resolver := NewMockResolver(registry)
 	
-	result, err := resolver.ResolveID("project-backup.7z")
+	result, err := resolver.Resolve("project-backup.7z")
 	if err != nil {
 		t.Fatalf("Expected successful name resolution, got error: %v", err)
 	}
@@ -300,11 +237,10 @@ func TestResolveName(t *testing.T) {
 
 // Test archive not found
 func TestResolveNotFound(t *testing.T) {
-	registry, _ := setupTestRegistry(t)
+	resolver, registry := setupTestResolver(t)
 	seedTestArchives(t, registry)
-	resolver := NewMockResolver(registry)
 	
-	_, err := resolver.ResolveID("nonexistent")
+	_, err := resolver.Resolve("nonexistent")
 	
 	if err == nil {
 		t.Fatal("Expected not found error, got nil")
@@ -322,10 +258,9 @@ func TestResolveNotFound(t *testing.T) {
 
 // Test empty registry
 func TestResolveEmptyRegistry(t *testing.T) {
-	registry, _ := setupTestRegistry(t)
-	resolver := NewMockResolver(registry)
+	resolver, _ := setupTestResolver(t)
 	
-	_, err := resolver.ResolveID("01JEX")
+	_, err := resolver.Resolve("01JEX")
 	
 	if err == nil {
 		t.Fatal("Expected not found error, got nil")
@@ -361,11 +296,11 @@ func BenchmarkResolverULIDPrefix(b *testing.B) {
 		registry.Add(archive)
 	}
 	
-	resolver := NewMockResolver(registry)
+	resolver := NewResolver(registry)
 	
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Test resolving a ULID prefix
-		resolver.ResolveID("01J")
+		resolver.Resolve("01J")
 	}
 }
