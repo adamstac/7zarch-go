@@ -37,7 +37,6 @@ func NewManager(basePath string) (*Manager, error) {
 		return nil, fmt.Errorf("failed to create managed trash directory: %w", err)
 	}
 
-
 	// Initialize the registry
 	dbPath := filepath.Join(basePath, "registry.db")
 	registry, err := NewRegistry(dbPath)
@@ -145,7 +144,6 @@ func (m *Manager) Close() error {
 func (m *Manager) GetArchivesPath() string {
 	return filepath.Join(m.basePath, "archives")
 }
-
 
 // Exists checks if an archive exists in the registry
 func (m *Manager) Exists(name string) bool {
