@@ -51,7 +51,7 @@ func NewSimpleApp(themeName string) *SimpleApp {
 	// Initialize viewport with minimal margins
 	vp := viewport.New(80, 24) // Default size, will be updated on window resize
 	vp.Style = lipgloss.NewStyle().
-		MarginTop(1).    // 1 line from top
+		MarginTop(0).    // 0 lines from top
 		MarginLeft(1).   // 1 char from left
 		Border(lipgloss.HiddenBorder())
 
@@ -106,7 +106,7 @@ func (a *SimpleApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.width, a.height = m.Width, m.Height
 		// Update viewport size with minimal margins
 		a.viewport.Width = m.Width - 2   // 1 char left margin + 1 char right space
-		a.viewport.Height = m.Height - 2 // 1 line top margin + 1 line bottom space
+		a.viewport.Height = m.Height     // Full height, no top margin
 		
 	case archivesLoadedMsg:
 		if m.err == nil {
