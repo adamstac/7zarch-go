@@ -32,6 +32,9 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
         cache: true
+        check-latest: true
+      env:
+        GOTOOLCHAIN: local
         
     - name: Download dependencies
       run: make deps
@@ -64,6 +67,9 @@ jobs:
       with:
         go-version: '1.23'
         cache: true
+        check-latest: true
+      env:
+        GOTOOLCHAIN: local
         
     - name: Download dependencies
       run: make deps
