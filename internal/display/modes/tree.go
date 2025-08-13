@@ -39,10 +39,10 @@ func (td *TreeDisplay) Render(archives []*storage.Archive, opts display.Options)
 
 	// Group archives by directory structure
 	tree := td.buildDirectoryTree(archives)
-	
+
 	// Print summary header
 	td.printSummary(archives)
-	
+
 	// Print the tree
 	fmt.Printf("\nDirectory Structure:\n")
 	td.printTree(tree, "", true, opts)
@@ -79,7 +79,7 @@ func (td *TreeDisplay) buildDirectoryTree(archives []*storage.Archive) *Director
 func (td *TreeDisplay) addToTree(root *DirectoryNode, archive *storage.Archive) {
 	// Determine the grouping path
 	var groupPath string
-	
+
 	if archive.Managed {
 		// For managed archives, group by storage location
 		groupPath = "Managed Storage"
@@ -96,12 +96,12 @@ func (td *TreeDisplay) addToTree(root *DirectoryNode, archive *storage.Archive) 
 	// Navigate/create the path in the tree
 	current := root
 	parts := strings.Split(groupPath, string(filepath.Separator))
-	
+
 	for _, part := range parts {
 		if part == "" || part == "." {
 			continue
 		}
-		
+
 		if _, exists := current.Children[part]; !exists {
 			current.Children[part] = &DirectoryNode{
 				Name:     part,
@@ -111,7 +111,7 @@ func (td *TreeDisplay) addToTree(root *DirectoryNode, archive *storage.Archive) 
 		}
 		current = current.Children[part]
 	}
-	
+
 	// Add archive to the final node
 	current.Archives = append(current.Archives, archive)
 }
@@ -119,7 +119,7 @@ func (td *TreeDisplay) addToTree(root *DirectoryNode, archive *storage.Archive) 
 // printSummary prints the archive summary
 func (td *TreeDisplay) printSummary(archives []*storage.Archive) {
 	var managedCount, externalCount, missingCount, deletedCount int
-	
+
 	for _, a := range archives {
 		if a.Status == "deleted" {
 			deletedCount++
@@ -132,7 +132,7 @@ func (td *TreeDisplay) printSummary(archives []*storage.Archive) {
 			missingCount++
 		}
 	}
-	
+
 	fmt.Printf("Archive Collection (%d archives found)\n", len(archives))
 	fmt.Printf("Active: %d (Managed: %d, External: %d) | Missing: %d | Deleted: %d\n",
 		managedCount+externalCount, managedCount, externalCount, missingCount, deletedCount)
@@ -146,33 +146,33 @@ func (td *TreeDisplay) printTree(node *DirectoryNode, prefix string, isLast bool
 		if isLast {
 			connector = "└── "
 		}
-		
+
 		fmt.Printf("%s%s%s", prefix, connector, node.Name)
-		
+
 		// Add archive count if any
 		if len(node.Archives) > 0 {
 			fmt.Printf(" (%d archives)", len(node.Archives))
 		}
 		fmt.Println()
-		
+
 		// Print archives in this directory
 		if len(node.Archives) > 0 {
 			td.printArchivesInDirectory(node.Archives, prefix, isLast, opts)
 		}
 	}
-	
+
 	// Sort children by name for consistent output
 	var childNames []string
 	for name := range node.Children {
 		childNames = append(childNames, name)
 	}
 	sort.Strings(childNames)
-	
+
 	// Print child directories
 	for i, childName := range childNames {
 		child := node.Children[childName]
 		childIsLast := i == len(childNames)-1
-		
+
 		var childPrefix string
 		if node.IsRoot {
 			childPrefix = ""
@@ -181,7 +181,7 @@ func (td *TreeDisplay) printTree(node *DirectoryNode, prefix string, isLast bool
 		} else {
 			childPrefix = prefix + "│   "
 		}
-		
+
 		td.printTree(child, childPrefix, childIsLast, opts)
 	}
 }
@@ -192,29 +192,29 @@ func (td *TreeDisplay) printArchivesInDirectory(archives []*storage.Archive, pre
 	sort.Slice(archives, func(i, j int) bool {
 		return archives[i].Name < archives[j].Name
 	})
-	
+
 	for i, archive := range archives {
 		archiveIsLast := i == len(archives)-1
-		
+
 		var archivePrefix string
 		if isLast {
 			archivePrefix = prefix + "    "
 		} else {
 			archivePrefix = prefix + "│   "
 		}
-		
+
 		connector := "├── "
 		if archiveIsLast {
 			connector = "└── "
 		}
-		
+
 		// Format archive entry
 		status := td.formatTreeStatus(archive)
 		size := display.FormatSize(archive.Size)
 		age := td.formatTreeAge(archive.Created)
-		
+
 		fmt.Printf("%s%s📦 %s", archivePrefix, connector, archive.Name)
-		
+
 		if opts.Details {
 			// Show detailed info
 			id := archive.UID
@@ -225,13 +225,13 @@ func (td *TreeDisplay) printArchivesInDirectory(archives []*storage.Archive, pre
 			if profile == "" {
 				profile = "default"
 			}
-			
+
 			fmt.Printf(" [%s] (%s, %s, %s, %s)", id, size, profile, age, status)
 		} else {
 			// Show basic info
 			fmt.Printf(" (%s, %s, %s)", size, age, status)
 		}
-		
+
 		fmt.Println()
 	}
 }
@@ -244,7 +244,7 @@ func (td *TreeDisplay) formatTreeStatus(archive *storage.Archive) string {
 // formatTreeAge formats duration since creation for tree display
 func (td *TreeDisplay) formatTreeAge(created time.Time) string {
 	age := time.Since(created)
-	
+
 	if age < time.Hour {
 		mins := int(age.Minutes())
 		return fmt.Sprintf("%dm", mins)

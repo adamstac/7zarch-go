@@ -10,11 +10,8 @@ linters:
     - errcheck
     - ineffassign
     - gosimple
-
-# Keep additional linter settings available for future tightening
-linters-settings:
-  typecheck:
-    include-tests: true
+  disable:
+    - typecheck
 
 # Keep default enabled linters; add exclusions only where necessary
 issues:

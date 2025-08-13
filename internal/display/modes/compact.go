@@ -77,7 +77,7 @@ func (cd *CompactDisplay) Render(archives []*storage.Archive, opts display.Optio
 // printCompactArchive prints a single archive in compact format
 func (cd *CompactDisplay) printCompactArchive(archive *storage.Archive, opts display.Options) {
 	// Format: ID  name  size  age  status
-	
+
 	// Truncate ID to 12 chars for consistency with show command
 	id := archive.UID
 	if len(id) > 12 {
@@ -92,10 +92,10 @@ func (cd *CompactDisplay) printCompactArchive(archive *storage.Archive, opts dis
 
 	// Format size compactly
 	size := display.FormatSize(archive.Size)
-	
+
 	// Format age compactly
 	age := formatCompactAge(archive.Created)
-	
+
 	// Format status compactly
 	status := cd.formatCompactStatus(archive)
 
@@ -114,11 +114,11 @@ func (cd *CompactDisplay) printCompactArchive(archive *storage.Archive, opts dis
 			location = "MANAGED"
 		}
 
-		fmt.Printf("%-12s  %-25s  %8s  %-8s  %3s  %-8s  %s\n", 
+		fmt.Printf("%-12s  %-25s  %8s  %-8s  %3s  %-8s  %s\n",
 			id, name, size, profile, age, location, status)
 	} else {
 		// Basic compact format
-		fmt.Printf("%-12s  %-25s  %8s  %3s  %s\n", 
+		fmt.Printf("%-12s  %-25s  %8s  %3s  %s\n",
 			id, name, size, age, status)
 	}
 }
@@ -131,7 +131,7 @@ func (cd *CompactDisplay) formatCompactStatus(archive *storage.Archive) string {
 // formatCompactAge formats duration in a very compact way
 func formatCompactAge(created time.Time) string {
 	age := time.Since(created)
-	
+
 	if age < time.Minute {
 		return "now"
 	}

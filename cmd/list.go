@@ -73,7 +73,7 @@ func ListCmd() *cobra.Command {
 	cmd.Flags().String("status", "", "Filter by status (present|missing|deleted)")
 	cmd.Flags().String("profile", "", "Filter by profile (media|documents|balanced)")
 	cmd.Flags().Int64("larger-than", 0, "Filter by size larger than bytes (e.g., 1048576)")
-	
+
 	// Display mode flags
 	cmd.Flags().Bool("table", false, "Use table display mode (enhanced)")
 	cmd.Flags().Bool("compact", false, "Use compact display mode")
@@ -175,7 +175,7 @@ func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error 
 	if mode == display.ModeTable || mode == display.ModeCompact || mode == display.ModeCard || mode == display.ModeTree || mode == display.ModeDashboard {
 		// Initialize display manager
 		displayManager := display.NewManager()
-		
+
 		// Register available display modes
 		tableDisplay := modes.NewTableDisplay()
 		compactDisplay := modes.NewCompactDisplay()

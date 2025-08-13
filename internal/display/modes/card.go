@@ -118,11 +118,11 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 	if len(id) > 12 {
 		id = id[:12]
 	}
-	
+
 	// Calculate the full content: "name [id]"
 	fullContent := fmt.Sprintf("%s [%s]", name, id)
 	maxContentLen := cardWidth - 4 // 4 for "│ " + " │"
-	
+
 	// Truncate name if the full content is too long
 	if len(fullContent) > maxContentLen {
 		availableNameLen := maxContentLen - len(id) - 3 // 3 for " [" + "]"
@@ -130,14 +130,14 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 			name = name[:availableNameLen-3] + "..."
 		}
 	}
-	
+
 	// Recalculate with potentially truncated name
 	nameAndId := fmt.Sprintf("%s [%s]", name, id)
 	titlePadding := cardWidth - 4 - len(nameAndId) // 4 for "│ " + " │"
 	if titlePadding < 0 {
 		titlePadding = 0
 	}
-	
+
 	fmt.Printf("│ %s%s │\n", nameAndId, strings.Repeat(" ", titlePadding))
 
 	// Separator
@@ -149,7 +149,7 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 	if archive.Managed {
 		location = "MANAGED"
 	}
-	
+
 	// Calculate padding for this row
 	statusPart := fmt.Sprintf("Status: %s", status)
 	locationPart := fmt.Sprintf("Location: %s", location)
@@ -158,7 +158,7 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 	if padding1 < 0 {
 		padding1 = 0
 	}
-	
+
 	fmt.Printf("│ %s                           Location: %s\n", statusPart, location)
 
 	// Size and profile
@@ -167,7 +167,7 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 	if profile == "" {
 		profile = "default"
 	}
-	
+
 	// Calculate padding for this row
 	sizePart := fmt.Sprintf("Size: %s", size)
 	profilePart := fmt.Sprintf("Profile: %s", profile)
@@ -176,13 +176,13 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 	if padding2 < 0 {
 		padding2 = 0
 	}
-	
+
 	fmt.Printf("│ %s                                Profile: %s\n", sizePart, profile)
 
 	// Created and age
 	created := archive.Created.Format("2006-01-02 15:04:05")
 	age := cd.formatCardAge(archive.Created)
-	
+
 	// Calculate padding for this row
 	createdPart := fmt.Sprintf("Created: %s", created)
 	agePart := fmt.Sprintf("Age: %s", age)
@@ -191,13 +191,13 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 	if padding3 < 0 {
 		padding3 = 0
 	}
-	
+
 	fmt.Printf("│ %s                   Age: %s\n", createdPart, age)
 
 	// Path
 	path := archive.Path
 	pathPart := fmt.Sprintf("Path: %s", path)
-	
+
 	// Truncate path if too long
 	maxPathPartLen := cardWidth - 4 // 4 for "│ " + " │"
 	if len(pathPart) > maxPathPartLen {
@@ -207,24 +207,24 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 			pathPart = fmt.Sprintf("Path: %s", truncatedPath)
 		}
 	}
-	
+
 	// Calculate padding for path row
 	padding4 := cardWidth - 4 - len(pathPart) // 4 for "│ " + " │"
 	if padding4 < 0 {
 		padding4 = 0
 	}
-	
+
 	fmt.Printf("│\n│ %s\n", pathPart)
 
 	// Additional details if requested
 	if opts.Details {
 		fmt.Printf("│%s│\n", strings.Repeat("─", cardWidth-2))
-		
+
 		// Checksum (if available)
 		if archive.Checksum != "" {
 			checksum := archive.Checksum
 			checksumPart := fmt.Sprintf("Checksum: %s", checksum)
-			
+
 			// Truncate checksum if too long
 			maxChecksumPartLen := cardWidth - 4 // 4 for "│ " + " │"
 			if len(checksumPart) > maxChecksumPartLen {
@@ -234,13 +234,13 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 					checksumPart = fmt.Sprintf("Checksum: %s", truncatedChecksum)
 				}
 			}
-			
+
 			// Calculate padding for checksum row
 			padding5 := cardWidth - 4 - len(checksumPart) // 4 for "│ " + " │"
 			if padding5 < 0 {
 				padding5 = 0
 			}
-			
+
 			fmt.Printf("│ %s%s │\n", checksumPart, strings.Repeat(" ", padding5))
 		}
 
@@ -248,15 +248,15 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 		if archive.Status == "deleted" && archive.DeletedAt != nil {
 			deletedTime := archive.DeletedAt.Format("2006-01-02 15:04:05")
 			deletedPart := fmt.Sprintf("Deleted: %s", deletedTime)
-			
+
 			// Calculate padding for deleted row
 			padding6 := cardWidth - 4 - len(deletedPart) // 4 for "│ " + " │"
 			if padding6 < 0 {
 				padding6 = 0
 			}
-			
+
 			fmt.Printf("│ %s%s │\n", deletedPart, strings.Repeat(" ", padding6))
-			
+
 			// Days until auto-purge (assuming 7 day retention)
 			purgeDate := archive.DeletedAt.AddDate(0, 0, 7)
 			daysLeft := int(time.Until(purgeDate).Hours() / 24)
@@ -266,13 +266,13 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 			} else {
 				purgePart = "Auto-purge: overdue"
 			}
-			
+
 			// Calculate padding for purge row
 			padding7 := cardWidth - 4 - len(purgePart) // 4 for "│ " + " │"
 			if padding7 < 0 {
 				padding7 = 0
 			}
-			
+
 			fmt.Printf("│ %s%s │\n", purgePart, strings.Repeat(" ", padding7))
 		}
 
@@ -280,7 +280,7 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 		if archive.OriginalPath != "" && archive.OriginalPath != archive.Path {
 			origPath := archive.OriginalPath
 			originalPart := fmt.Sprintf("Original: %s", origPath)
-			
+
 			// Truncate original path if too long
 			maxOriginalPartLen := cardWidth - 4 // 4 for "│ " + " │"
 			if len(originalPart) > maxOriginalPartLen {
@@ -290,13 +290,13 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 					originalPart = fmt.Sprintf("Original: %s", truncatedOrigPath)
 				}
 			}
-			
+
 			// Calculate padding for original path row
 			padding8 := cardWidth - 4 - len(originalPart) // 4 for "│ " + " │"
 			if padding8 < 0 {
 				padding8 = 0
 			}
-			
+
 			fmt.Printf("│ %s%s │\n", originalPart, strings.Repeat(" ", padding8))
 		}
 	}
@@ -315,7 +315,7 @@ func (cd *CardDisplay) formatCardStatus(archive *storage.Archive) string {
 // formatCardAge formats duration since creation for cards
 func (cd *CardDisplay) formatCardAge(created time.Time) string {
 	age := time.Since(created)
-	
+
 	if age < time.Hour {
 		mins := int(age.Minutes())
 		return fmt.Sprintf("%d minutes ago", mins)
