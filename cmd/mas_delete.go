@@ -81,12 +81,15 @@ func moveOrCopy(src, dst string) error {
 		return nil
 	}
 	// fallback to copy + remove
+	// #nosec G304: src and dst are derived from managed paths within storage; validated upstream
 	srcF, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer srcF.Close()
-	dstF, err := os.Create(dst)
+	// Use restrictive permissions for destination file
+	// #nosec G304: destination is inside managed trash or archives path
+	dstF, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}

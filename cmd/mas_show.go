@@ -94,6 +94,7 @@ func printArchive(a *storage.Archive, verify bool) {
 }
 
 func computeSHA256(path string) (string, error) {
+	// #nosec G304: path originates from registry-managed archive object
 	f, err := os.Open(path)
 	if err != nil {
 		return "", err

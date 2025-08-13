@@ -163,7 +163,7 @@ func runTestDirectory(dir string) error {
 			// Store result
 			resultsMu.Lock()
 			results[i] = result
-			bar.Add(1)
+			_ = bar.Add(1) // best-effort UI update
 			resultsMu.Unlock()
 
 			return nil
@@ -175,7 +175,7 @@ func runTestDirectory(dir string) error {
 		return fmt.Errorf("testing failed: %w", err)
 	}
 
-	bar.Finish()
+	_ = bar.Finish() // best-effort UI cleanup
 	fmt.Printf("\n")
 
 	// Print summary
@@ -211,7 +211,7 @@ func findArchives(dir string) ([]string, error) {
 	return archives, err
 }
 
-func printTestResult(path string, result *archive.TestResult) {
+func printTestResult(_ string, result *archive.TestResult) {
 	if result.Passed {
 		fmt.Printf("✅ PASS: Archive integrity verified\n")
 		fmt.Printf("  Archive structure: VALID\n")

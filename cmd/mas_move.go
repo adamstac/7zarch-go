@@ -16,13 +16,16 @@ import (
 
 // copyFile copies src to dst with mode preservation
 func copyFile(src, dst string) error {
+	// #nosec G304: src/dst validated via resolver and managed paths
 	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
 
-	out, err := os.Create(dst)
+	// Use restrictive permissions for new file
+	// #nosec G304: destination path validated/constructed earlier and rooted within managed base when applicable
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}

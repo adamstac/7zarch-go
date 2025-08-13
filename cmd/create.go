@@ -236,7 +236,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 			case <-ctx.Done():
 				return
 			default:
-				bar.Add(1)
+				_ = bar.Add(1) // best-effort UI update
 				time.Sleep(100 * time.Millisecond)
 			}
 		}
@@ -270,7 +270,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create archive: %w", err)
 	}
 
-	bar.Finish()
+	_ = bar.Finish() // best-effort UI cleanup
 	duration := time.Since(startTime)
 
 	// Artifact creation (log/checksum) is handled inside archive.Manager when --comprehensive is used.

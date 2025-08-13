@@ -33,7 +33,7 @@ func NewRegistry(dbPath string) (*Registry, error) {
 
 	// Set file permissions
 	if err := os.Chmod(dbPath, 0600); err != nil && !os.IsNotExist(err) {
-		db.Close()
+		_ = db.Close() // best-effort close on error
 		return nil, fmt.Errorf("failed to set database permissions: %w", err)
 	}
 
@@ -41,7 +41,7 @@ func NewRegistry(dbPath string) (*Registry, error) {
 
 	// Initialize the schema
 	if err := r.initSchema(); err != nil {
-		db.Close()
+		_ = db.Close() // best-effort close on error
 		return nil, fmt.Errorf("failed to initialize schema: %w", err)
 	}
 

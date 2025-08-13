@@ -160,6 +160,7 @@ func Load() (*Config, error) {
 	}
 
 	// Read config file
+	// #nosec G304: configPath is constructed from $HOME and a fixed filename
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return config, nil // Return defaults on read error
