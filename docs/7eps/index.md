@@ -41,6 +41,7 @@ A 7EP is a design document that provides:
 | [0005](7ep-0005-test-dataset-system.md) | Comprehensive Test Dataset System | 🟡 Draft | CC | 3 | 2025-08-12 |
 | [0006](7ep-0006-minimal-performance-testing.md) | Minimal Performance Testing for 7EP-0004 | ✅ Completed | CC | 1 | 2025-08-12 |
 | [0007](7ep-0007-enhanced-mas-operations.md) | Enhanced MAS Operations | 🟢 **Planned** | AC/CC | 3 | 2025-08-12 |
+| [0011](7ep-0011-re-tighten-golangci-lint.md) | Re-tighten golangci-lint rules in stages | 🟡 Draft | CC | 2 | 2025-08-13 |
 
 ## How to Contribute
 
