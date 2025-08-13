@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/adamstac/7zarch-go/internal/config"
+	errs "github.com/adamstac/7zarch-go/internal/errors"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
 )
@@ -64,7 +65,26 @@ func MasMoveCmd() *cobra.Command {
 			resolver := storage.NewResolver(mgr.Registry())
 			arc, err := resolver.Resolve(id)
 			if err != nil {
+				if _, ok := err.(*storage.AmbiguousIDError); ok {
+					return &errs.ValidationError{
+						Field:   "archive ID",
+						Value:   id,
+						Message: "matches multiple archives. Use a longer prefix or full UID",
+					}
+				}
+				if _, ok := err.(*storage.ArchiveNotFoundError); ok {
+					return errs.NewArchiveNotFound(id)
+				}
 				return err
+			}
+			
+			// Check if archive can be moved
+			if arc.Status == "deleted" {
+				return &errs.InvalidOperationError{
+					Operation: "move",
+					Resource:  "archive",
+					Reason:    "archive is deleted",
+				}
 			}
 
 			dest := to

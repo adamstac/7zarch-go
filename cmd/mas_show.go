@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/adamstac/7zarch-go/internal/config"
+	errs "github.com/adamstac/7zarch-go/internal/errors"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
 )
@@ -33,6 +34,15 @@ func MasShowCmd() *cobra.Command {
 			if err != nil {
 				if amb, ok := err.(*storage.AmbiguousIDError); ok {
 					printAmbiguousOptions(amb)
+					return &errs.ValidationError{
+						Field:   "archive ID",
+						Value:   id,
+						Message: "matches multiple archives. Use a longer prefix or full UID",
+					}
+				}
+				// Check if it's a not found error
+				if _, ok := err.(*storage.ArchiveNotFoundError); ok {
+					return errs.NewArchiveNotFound(id)
 				}
 				return err
 			}
