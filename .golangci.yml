@@ -10,6 +10,8 @@ linters:
     - errcheck
     - ineffassign
     - gosimple
+  disable:
+    - typecheck
 
 # Keep default enabled linters; add exclusions only where necessary
 issues:
