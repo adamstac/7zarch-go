@@ -15,16 +15,35 @@ COVERAGE_HTML := $(COVERAGE_DIR)/coverage.html
 .PHONY: test-all test-unit test-integration test-bench test-coverage test-coverage-html
 .PHONY: test-mas test-resolver test-registry test-edge-cases
 .PHONY: dev-tools debug-registry mas-inspect mas-stats
+.PHONY: dev dist release validate goreleaser-build
 
 build: ## Build for current platform
 	go build -ldflags "$(LDFLAGS)" -o 7zarch-go
 
-build-all: ## Build for all platforms
+build-all: ## Build for all platforms (legacy method)
 	GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/7zarch-go-darwin-amd64
 	GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o dist/7zarch-go-darwin-arm64
 	GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/7zarch-go-linux-amd64
 	GOOS=linux GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o dist/7zarch-go-linux-arm64
 	GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/7zarch-go-windows-amd64.exe
+
+##@ Goreleaser Targets
+
+dev: ## Local build and install to ~/bin (using Goreleaser)
+	goreleaser build --single-target --clean --snapshot
+	mkdir -p ~/bin && cp dist/7zarch-go_*/7zarch-go ~/bin/
+
+dist: ## Build for current platform (using Goreleaser)
+	goreleaser build --single-target --clean --snapshot
+
+release: ## Create release (CI only - requires git tag)
+	goreleaser release --clean
+
+validate: ## Validate Goreleaser configuration
+	goreleaser check
+
+goreleaser-build: ## Build all platforms using Goreleaser (snapshot mode)
+	goreleaser build --clean --snapshot
 
 clean: ## Clean build artifacts
 	rm -f 7zarch-go
@@ -108,7 +127,7 @@ symlink: build ## Create symlink in ~/bin
 	ln -sf $(PWD)/7zarch-go ~/bin/7zarch-go
 	@echo "Symlinked $(PWD)/7zarch-go to ~/bin/7zarch-go"
 
-dev: build symlink ## Build and symlink for development
+dev-legacy: build symlink ## Build and symlink for development (legacy method)
 
 dev-tools: build mas-inspect mas-stats ## Build development utilities
 

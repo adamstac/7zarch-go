@@ -57,7 +57,8 @@
 ### Important Files
 - `go.mod` - Dependencies (check for conflicts)
 - `.github/workflows/` - CI/CD pipelines
-- `Makefile` - Build commands (`make build`, `make test`)
+- `Makefile` - Build commands (`make dev`, `make dist`, `make validate`) 
+- `.goreleaser.yml` - Professional build pipeline with Level 2 reproducibility
 
 ## 🚀 Quick Start Checklist
 
@@ -88,8 +89,8 @@ When starting a new session:
 
 4. **Test the build**
    ```bash
-   go build -o 7zarch-go .
-   ./7zarch-go list --dashboard  # Test our display modes
+   make dev            # Build with Goreleaser and install
+   ~/bin/7zarch-go list --dashboard  # Test display modes
    ```
 
 ## 🎯 Current Project State (as of 2025-08-13)
@@ -147,7 +148,12 @@ type Display interface {
 
 ### Git Workflow
 - Feature branches: `feat/7ep-XXXX-description`
+- **Always create feature branches for new work** - Never work directly on main
+- **Branch from main** for all new features, not from other feature branches  
+- **Keep branches focused** - One branch per 7EP or major feature
+- **Clean working directory** before starting new feature work
 - Squash merge PRs with branch deletion
+- **GPG SIGNING REQUIRED**: All commits to the remote repo must be GPG signed. Any unsigned commits must be squashed with a GPG signed commit before pushing
 - **NO SIGNATURES**: Don't add "🤖 Generated with Claude Code" or "Co-Authored-By" to commits
 - No Claude mentions in commits (Adam will say "no claude mention" if needed)
 - Comprehensive commit messages with what and why
@@ -156,10 +162,16 @@ type Display interface {
 
 ### Build & Test
 ```bash
+# Goreleaser build system (Level 2 reproducible) - JUST IMPLEMENTED!
+make dev            # Build and install to ~/bin
+make dist           # Build for current platform  
+make validate       # Validate Goreleaser config
+make release        # Create release (CI only)
+
+# Legacy build system (still available)
 make build          # Build binary
 make test           # Run tests
 make lint           # Run linter
-go build -o 7zarch-go .  # Direct build
 ```
 
 ### Display Modes Testing

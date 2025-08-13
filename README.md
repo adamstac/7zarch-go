@@ -31,6 +31,11 @@ apt install p7zip     # Ubuntu/Debian
 ```bash
 git clone https://github.com/adamstac/7zarch-go.git
 cd 7zarch-go
+
+# Professional build system (recommended)
+make dev            # Build and install to ~/bin
+
+# Alternative: Direct Go build
 go build -o 7zarch-go .
 ```
 
@@ -307,6 +312,12 @@ apt install p7zip   # Ubuntu/Debian
 
 ### Building
 ```bash
+# Professional build system with Goreleaser
+make dev            # Build and install to ~/bin  
+make dist           # Build for current platform
+make validate       # Validate build configuration
+
+# Legacy build method
 go build -o 7zarch-go .
 ```
 
