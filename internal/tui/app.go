@@ -123,31 +123,34 @@ func (a *SimpleApp) View() string {
 func (a *SimpleApp) renderList() string {
 	var lines []string
 	
-	// Header
-	header := lipgloss.NewStyle().
+	// Top margin
+	lines = append(lines, "")
+	
+	// Header with left margin
+	header := "  " + lipgloss.NewStyle().
 		Foreground(a.theme.Header).
 		Bold(true).
 		Render("7zarch-go")
 	lines = append(lines, header)
 	lines = append(lines, "")
 	
-	// Summary
-	summary := lipgloss.NewStyle().
+	// Summary with left margin
+	summary := "  " + lipgloss.NewStyle().
 		Foreground(a.theme.Foreground).
 		Render(fmt.Sprintf("Archives: %d", len(a.archives)))
 	lines = append(lines, summary)
 	lines = append(lines, "")
 	
-	// Archives
+	// Archives with left margin
 	for i, archive := range a.archives {
-		line := a.renderArchive(archive, i == a.cursor)
+		line := "  " + a.renderArchive(archive, i == a.cursor)
 		lines = append(lines, line)
 	}
 	
 	lines = append(lines, "")
 	
-	// Commands
-	commands := lipgloss.NewStyle().
+	// Commands with left margin
+	commands := "  " + lipgloss.NewStyle().
 		Foreground(a.theme.Commands).
 		Render("[Enter] Details  [Space] Select  [d] Delete  [m] Move  [u] Upload  [q] Quit")
 	lines = append(lines, commands)
@@ -195,29 +198,34 @@ func (a *SimpleApp) renderArchive(archive *storage.Archive, isSelected bool) str
 // Detail view renderer
 func (a *SimpleApp) renderDetail() string {
 	if len(a.archives) == 0 || a.cursor >= len(a.archives) {
-		return "No archive selected"
+		return "  No archive selected"
 	}
 	
 	archive := a.archives[a.cursor]
 	var lines []string
 	
-	// Header
-	header := lipgloss.NewStyle().
+	// Top margin
+	lines = append(lines, "")
+	
+	// Header with left margin
+	header := "  " + lipgloss.NewStyle().
 		Foreground(a.theme.Header).
 		Bold(true).
 		Render(archive.Name)
 	lines = append(lines, header)
 	lines = append(lines, "")
 	
-	// Details
-	lines = append(lines, "Size: "+humanize.Bytes(uint64(archive.Size)))
-	lines = append(lines, "Status: Present ✓")
+	// Details with left margin
+	lines = append(lines, "  Size: "+lipgloss.NewStyle().Foreground(a.theme.Metadata).Render(humanize.Bytes(uint64(archive.Size))))
+	lines = append(lines, "  Created: "+lipgloss.NewStyle().Foreground(a.theme.Metadata).Render(archive.Created.Format("January 2, 2006 3:04 PM")))
+	lines = append(lines, "  Status: "+lipgloss.NewStyle().Foreground(a.theme.StatusOK).Render("Present ✓"))
+	lines = append(lines, "  Location: "+lipgloss.NewStyle().Foreground(a.theme.Foreground).Render(archive.Path))
 	lines = append(lines, "")
 	
-	// Commands
-	commands := lipgloss.NewStyle().
+	// Commands with left margin
+	commands := "  " + lipgloss.NewStyle().
 		Foreground(a.theme.Commands).
-		Render("[Enter] Back  [d] Delete  [q] Quit")
+		Render("[Enter] Back  [d] Delete  [m] Move  [u] Upload  [q] Quit")
 	lines = append(lines, commands)
 	
 	return strings.Join(lines, "\n")
@@ -229,9 +237,10 @@ func (a *SimpleApp) renderConfirm() string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(a.theme.StatusMiss).
 		Padding(1).
+		MarginLeft(4).
 		Foreground(a.theme.Foreground)
 	
-	content := fmt.Sprintf("%s\n\n[y] Yes  [n] No", a.confirmMsg)
+	content := fmt.Sprintf("%s\n\n[y] Yes  [n] No  [Esc] Cancel", a.confirmMsg)
 	return box.Render(content)
 }
 
