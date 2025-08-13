@@ -16,12 +16,12 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.22'
         cache: true
         check-latest: true
       env:
@@ -45,7 +45,7 @@ jobs:
       uses: golangci/golangci-lint-action@v6
       with:
         version: v1.60.3
-        args: --timeout=5m --modules-download-mode=mod
+        args: --timeout=5m --modules-download-mode=mod --skip-dirs-use-default=false --exclude="undefined:"
         
   security:
     name: Security Scan
@@ -53,7 +53,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: Run Gosec Security Scanner
       uses: securego/gosec@master

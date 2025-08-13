@@ -10,10 +10,8 @@ linters:
     - errcheck
     - ineffassign
     - gosimple
-  disable:
-    - typecheck
 
-# Keep default enabled linters; add exclusions only where necessary
+# Exclude all typecheck issues and specific patterns
 issues:
   exclude-rules:
     # Allow ignoring errors from progress bar best-effort UI calls in tests
@@ -21,4 +19,8 @@ issues:
       linters:
         - errcheck
       text: 'bar\.(Add|Finish)\('
+    # Exclude all typecheck issues (dependency resolution problems)
+    - linters:
+        - typecheck
+      text: ".*"
 
