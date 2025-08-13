@@ -131,14 +131,14 @@ func CharmbraceletTheme() Theme {
 	}
 }
 
-// Dracula Classic Theme - Official Dracula colors
+// Dracula Classic Theme - Enhanced with vibrant selection
 func DraculaClassicTheme() Theme {
 	return Theme{
 		Name:       "Dracula",
 		Header:     lipgloss.Color("#BD93F9"),
 		Foreground: lipgloss.Color("#F8F8F2"),
-		Selection:  lipgloss.Color("#44475A"),
-		SelText:    lipgloss.Color("#BD93F9"),
+		Selection:  lipgloss.Color("#BD93F9"), // Vibrant purple background
+		SelText:    lipgloss.Color("#282A36"), // Dark background text for contrast
 		Metadata:   lipgloss.Color("#8BE9FD"),
 		StatusOK:   lipgloss.Color("#50FA7B"),
 		StatusMiss: lipgloss.Color("#F1FA8C"),
@@ -147,15 +147,15 @@ func DraculaClassicTheme() Theme {
 	}
 }
 
-// Dracula Warm Theme - Orange accents
+// Dracula Warm Theme - Orange accents with vibrant selection
 func DraculaWarmTheme() Theme {
 	return Theme{
 		Name:       "Dracula Warm",
 		Header:     lipgloss.Color("#BD93F9"),
 		Foreground: lipgloss.Color("#F8F8F2"),
-		Selection:  lipgloss.Color("#44475A"),
-		SelText:    lipgloss.Color("#FFB86C"),
-		Metadata:   lipgloss.Color("#FFB86C"),
+		Selection:  lipgloss.Color("#FFB86C"), // Vibrant orange background
+		SelText:    lipgloss.Color("#282A36"), // Dark text for contrast
+		Metadata:   lipgloss.Color("#8BE9FD"),
 		StatusOK:   lipgloss.Color("#50FA7B"),
 		StatusMiss: lipgloss.Color("#F1FA8C"),
 		StatusDel:  lipgloss.Color("#FF5555"),
@@ -163,34 +163,34 @@ func DraculaWarmTheme() Theme {
 	}
 }
 
-// Dracula Cool Theme - Pink/Purple focus
+// Dracula Cool Theme - Pink/Purple focus with vibrant selection
 func DraculaCoolTheme() Theme {
 	return Theme{
 		Name:       "Dracula Cool",
 		Header:     lipgloss.Color("#FF79C6"),
 		Foreground: lipgloss.Color("#F8F8F2"),
-		Selection:  lipgloss.Color("#44475A"),
-		SelText:    lipgloss.Color("#FF79C6"),
+		Selection:  lipgloss.Color("#FF79C6"), // Vibrant pink background  
+		SelText:    lipgloss.Color("#282A36"), // Dark text for contrast
 		Metadata:   lipgloss.Color("#BD93F9"),
 		StatusOK:   lipgloss.Color("#50FA7B"),
-		StatusMiss: lipgloss.Color("#FF5555"),
+		StatusMiss: lipgloss.Color("#F1FA8C"),
 		StatusDel:  lipgloss.Color("#FF5555"),
 		Commands:   lipgloss.Color("#BD93F9"),
 	}
 }
 
-// Dracula Minimal Theme - Reduced color palette
+// Dracula Minimal Theme - Enhanced selection with subtle vibrance
 func DraculaMinimalTheme() Theme {
 	return Theme{
 		Name:       "Dracula Minimal",
 		Header:     lipgloss.Color("#BD93F9"),
 		Foreground: lipgloss.Color("#F8F8F2"),
-		Selection:  lipgloss.Color("#44475A"),
-		SelText:    lipgloss.Color("#F8F8F2"),
+		Selection:  lipgloss.Color("#6272A4"), // Subtle blue-gray background (brighter than original)
+		SelText:    lipgloss.Color("#F8F8F2"), // Bright foreground for readability
 		Metadata:   lipgloss.Color("#6272A4"),
 		StatusOK:   lipgloss.Color("#50FA7B"),
 		StatusMiss: lipgloss.Color("#F1FA8C"),
 		StatusDel:  lipgloss.Color("#FF5555"),
-		Commands:   lipgloss.Color("#6272A4"),
+		Commands:   lipgloss.Color("#8BE9FD"), // Brighter cyan for commands
 	}
 }
