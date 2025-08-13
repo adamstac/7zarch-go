@@ -29,8 +29,8 @@ func TestCompleteTrashWorkflow(t *testing.T) {
 	managedPath := filepath.Join(tmpDir, "managed")
 	cfg := &config.Config{
 		Storage: config.StorageConfig{
-			ManagedPath:    managedPath,
-			RetentionDays:  7,
+			ManagedPath:   managedPath,
+			RetentionDays: 7,
 		},
 	}
 
@@ -46,7 +46,7 @@ func TestCompleteTrashWorkflow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to stat test file: %v", err)
 	}
-	
+
 	err = mgr.Add("test-archive.7z", testFile, stat.Size(), "balanced", "", "", true)
 	if err != nil {
 		t.Fatalf("Failed to add archive: %v", err)
@@ -211,7 +211,7 @@ func TestMachineReadableOutput(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to stat test file: %v", err)
 	}
-	
+
 	err = mgr.Add("test.7z", testFile, stat.Size(), "balanced", "", "", true)
 	if err != nil {
 		t.Fatalf("Failed to add archive: %v", err)
@@ -275,7 +275,7 @@ func TestTrashListOutput(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to stat test file: %v", err)
 	}
-	
+
 	err = mgr.Add("deleted.7z", testFile, stat.Size(), "balanced", "", "", true)
 	if err != nil {
 		t.Fatalf("Failed to add archive: %v", err)
