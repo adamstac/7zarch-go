@@ -114,9 +114,14 @@ type Display interface {
 
 ### Build & Test
 ```bash
+# Goreleaser build system (Level 2 reproducible) - CC just implemented!
+make dev            # Build and install to ~/bin
+make dist           # Build for current platform  
+make validate       # Validate Goreleaser config
+
+# Legacy build system (still available)
 make build          # Build binary
 make test           # Run tests
-go build -o 7zarch-go .  # Direct build
 ```
 
 ### Your Display Modes (Reference)

@@ -57,7 +57,8 @@
 ### Important Files
 - `go.mod` - Dependencies (check for conflicts)
 - `.github/workflows/` - CI/CD pipelines
-- `Makefile` - Build commands (`make build`, `make test`)
+- `Makefile` - Build commands (`make dev`, `make dist`, `make validate`) 
+- `.goreleaser.yml` - Professional build pipeline with Level 2 reproducibility
 
 ## 🚀 Quick Start Checklist
 
@@ -88,8 +89,8 @@ When starting a new session:
 
 4. **Test the build**
    ```bash
-   go build -o 7zarch-go .
-   ./7zarch-go list --dashboard  # Test our display modes
+   make dev            # Build with Goreleaser and install
+   ~/bin/7zarch-go list --dashboard  # Test display modes
    ```
 
 ## 🎯 Current Project State (as of 2025-08-13)
@@ -161,10 +162,16 @@ type Display interface {
 
 ### Build & Test
 ```bash
+# Goreleaser build system (Level 2 reproducible) - JUST IMPLEMENTED!
+make dev            # Build and install to ~/bin
+make dist           # Build for current platform  
+make validate       # Validate Goreleaser config
+make release        # Create release (CI only)
+
+# Legacy build system (still available)
 make build          # Build binary
 make test           # Run tests
 make lint           # Run linter
-go build -o 7zarch-go .  # Direct build
 ```
 
 ### Display Modes Testing
