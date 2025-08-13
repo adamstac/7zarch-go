@@ -47,6 +47,11 @@ Features:
 	// Trash Management (7EP-0001)
 	rootCmd.AddCommand(cmd.RestoreCmd())
 	rootCmd.AddCommand(cmd.TrashCmd())
+	// Interactive Browser (7EP-0010)
+	rootCmd.AddCommand(cmd.BrowseCmd())   // Primary interface
+	rootCmd.AddCommand(cmd.UICmd())       // Short alias
+	rootCmd.AddCommand(cmd.InteractiveCmd()) // Single letter alias
+	rootCmd.AddCommand(cmd.TuiCmd())      // Compatibility alias
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {
