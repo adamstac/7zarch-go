@@ -22,11 +22,12 @@
   - Current: Working on PR #9 (list filters), potentially 7EP-0010 TUI tonight
   - Communication: Via PR descriptions, commit messages, and `/docs/development/`
 
-- **Amp (Sourcegraph)** - Advanced architectural analysis ⭐⭐⭐⭐⭐
-  - Responsibilities: Strategic analysis, performance optimization, architectural insights
+- **Amp-s** - Senior Strategic Architect (Renamed 2025-08-13) ⭐⭐⭐⭐⭐
+  - Responsibilities: Product strategy, business impact, executive leadership, roadmap planning
+  - Focus: Strategic vision, user value, competitive positioning, resource allocation
+  - Activation: `Switching to Amp-s role for strategic planning.`
   - **PROVEN EXCELLENCE**: 7EP-0014 delivered exceptional foundation gap analysis
-  - **Confidence Level**: **VERY HIGH** - Demonstrated deep codebase understanding and strategic thinking
-  - **Impact**: Identified critical path that unblocks 7EP-0007, 7EP-0010, and production readiness
+  - **Confidence Level**: **VERY HIGH** - Demonstrated strategic thinking and product vision
 
 - **CR (CodeRabbit)** - Automated code reviewer
   - Triggers: On all PRs automatically
@@ -36,7 +37,7 @@
 - **Amp-p** - Senior Technical Architect (NEW 2025-08-13)
   - Role: Technical review, architecture oversight, code quality governance
   - Focus: High-level review, documentation standards, process leadership
-  - Activation: Use prompt structure in `/docs/development/amp-principal-activation-guide.md`
+  - Activation: `Switching to Amp-p role for technical review.`
   - Scope: PR reviews, architecture evaluation, technical standards
 
 ## 📍 Key Locations
@@ -45,8 +46,7 @@
 - `/docs/7eps/` - Enhancement proposals (our roadmap)
 - `/docs/development/pr-merge-roadmap.md` - Current PR status and priorities
 - `/docs/development/tomorrow-plan.md` - Daily planning
-- `/docs/development/amp-principal-role-definition.md` - Amp-Principal role specification
-- `/docs/development/amp-principal-activation-guide.md` - How to activate Amp-Principal for reviews
+- `/docs/development/AMP.md` - Unified Amp-s (strategic) and Amp-p (technical) role documentation
 - `/docs/reference/` - Command and system documentation
 - `/CLAUDE.md` - This file! Your context guide
 
@@ -265,11 +265,12 @@ gh pr view [number]
 
 ### Session-Specific Context
 <!-- Update this section with temporary context that might not persist -->
-- 2025-08-13: **AMP-P ROLE CREATED** 🎯 - Senior Technical Architect replicant for technical review
-- **NEW CAPABILITY**: High-level code review, architecture oversight, documentation standards
-- **ACTIVATION**: Use prompt structure in `/docs/development/amp-principal-activation-guide.md`
-- **PURPOSE**: Complement strategic Amp with senior technical leadership and quality governance
-- **READY FOR**: Technical review of 7EP-0007 Phase 2 or architecture evaluation
+- 2025-08-13: **DUAL AMP ROLES CREATED** 🎯 - Clear strategic vs technical separation
+- **AMP-S (Strategic)**: Product strategy, business impact, executive leadership, roadmap planning
+- **AMP-P (Principal/Technical)**: Code quality, architecture review, technical standards, implementation oversight
+- **ACTIVATION**: See `/docs/development/AMP.md` for complete role documentation and activation examples
+- **PURPOSE**: Clear role separation - strategic vision (Amp-s) + technical execution (Amp-p)
+- **READY FOR**: Strategic guidance (Amp-s) or technical review (Amp-p) as needed
 
 ---
 
