@@ -14,6 +14,7 @@ The `list` command displays all archives tracked in the MAS registry, organized 
 
 ## Flags
 
+### Filtering Options
 | Flag | Type | Description | Default |
 |------|------|-------------|---------|
 | `--directory` | string | List .7z files in specific directory instead of registry | - |
@@ -28,9 +29,123 @@ The `list` command displays all archives tracked in the MAS registry, organized 
 | `--profile` | string | Filter by compression profile | - |
 | `--larger-than` | string | Show archives larger than size (e.g., '100MB', '1GB') | - |
 
+### Display Mode Options
+| Flag | Description | Min Width | Best For |
+|------|-------------|-----------|----------|
+| `--table` | High-density bordered table | 80 cols | Power users, large collections |
+| `--compact` | Minimal terminal-friendly output | 60 cols | SSH, mobile, scripting |
+| `--card` | Rich information cards | 80 cols | Detailed exploration |
+| `--tree` | Hierarchical organization view | 70 cols | Understanding structure |
+| `--dashboard` | Management overview with statistics | 90 cols | Health monitoring |
+
+**Note**: Without a display flag, the system auto-detects the best mode based on terminal width, archive count, and context.
+
+## Display Mode Examples
+
+### Auto-Detection (Default)
+```bash
+7zarch-go list
+```
+Automatically selects the best display mode based on:
+- Terminal width (<80 cols → compact)  
+- Archive count (>50 → table)
+- Filter context (--missing → compact)
+- Piped output (→ compact)
+
+### Table Mode (`--table`)
+High-density scanning for large collections:
+```bash
+7zarch-go list --table
+```
+```
+📦 Archives (2 found)
+Active: 2 (Managed: 2, External: 0) | Missing: 0 | Deleted: 0
+
+ACTIVE - MANAGED
+┌──────────────┬───────────────────────────────┬──────────┬────────┐
+│ ID           │ Name                          │ Size     │ Status │
+├──────────────┼───────────────────────────────┼──────────┼────────┤
+│ 01K2E3BEJV6G │ test-pod-2.7z                 │ 34.3 KB  │ OK     │
+│ 01K2E33XW4HT │ test-pod.7z                   │ 34.3 KB  │ OK     │
+└──────────────┴───────────────────────────────┴──────────┴────────┘
+```
+
+### Compact Mode (`--compact`)
+Terminal-friendly minimal output:
+```bash
+7zarch-go list --compact
+```
+```
+2 archives (2 active)
+01K2E3BEJV6G  test-pod-2.7z               34.3 KB   1d  OK
+01K2E33XW4HT  test-pod.7z                 34.3 KB   1d  OK
+```
+
+### Card Mode (`--card`)
+Rich information display:
+```bash
+7zarch-go list --card
+```
+```
+Archive Collection (2 archives found)
+Active: 2 (Managed: 2, External: 0) | Missing: 0 | Deleted: 0
+
+MANAGED
+┌──────────────────────────────────────────────────────────────────────────┐
+│ test-pod-2.7z [01K2E3BEJV6G]                                            │
+├──────────────────────────────────────────────────────────────────────────┤
+│ Status: ✓ Present    Location: Managed Storage                          │
+│ Size: 34.3 KB       Profile: Media                                      │
+│ Created: 2025-08-11 21:57:03    Age: 1d ago                            │
+│ Path: /Users/user/.7zarch-go/archives/test-pod-2.7z                     │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### Tree Mode (`--tree`)
+Hierarchical organization view:
+```bash
+7zarch-go list --tree
+```
+```
+Archive Collection (2 archives found)
+Active: 2 (Managed: 2, External: 0) | Missing: 0 | Deleted: 0
+
+Directory Structure:
+└── Managed Storage (2 archives)
+    ├── 📦 test-pod-2.7z (34.3 KB, 1d, ✓)
+    └── 📦 test-pod.7z (34.3 KB, 1d, ✓)
+```
+
+### Dashboard Mode (`--dashboard`)
+Management overview and statistics:
+```bash
+7zarch-go list --dashboard
+```
+```
+╔════════════════════════════════════════════════════════════════════════════════╗
+                               7ZARCH DASHBOARD
+                         Generated: 2025-08-12 23:31:17
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─ OVERVIEW ─────────────────────────────────────────────────────────────────────┐
+│  Total Archives: 2           Storage Used: 68.7 KB          Health: 100.0%
+│  Active: 2             Missing: 0           Deleted: 0         
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STORAGE BREAKDOWN ────────────────────────────────────────────────────────────┐
+│  Managed Storage:    2 archives          68.7 KB  (100.0%)
+│  External Storage:   0 archives              0 B  (  0.0%)
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─ RECENT ACTIVITY ──────────────────────────────────────────────────────────────┐
+│  ✓ test-pod-2.7z                         34.3 KB  1d ago
+│  ✓ test-pod.7z                           34.3 KB  1d ago
+└────────────────────────────────────────────────────────────────────────────────┘
+```
+
 ## Output Format
 
-### Standard Output (Tabular)
+### Legacy Output (Pre-Display System)
 ```
 📦 Archives (15 found, 45.2 GB total)
 Active: 10 (Managed: 8, External: 2) | Missing: 2 | Deleted: 3

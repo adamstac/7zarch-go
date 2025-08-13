@@ -64,12 +64,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go-version: [1.21, 1.22]
+        go-version: [1.21, 1.22, 1.23]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
       - run: make test
-      - run: make integration-test
+      - run: make test-integration
 ```
 
 #### Quality Checks Workflow (`quality.yml`)
@@ -80,7 +80,7 @@ jobs:
   quality:
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
       - run: make lint
       - run: make vet
       - run: make fmt-check
@@ -97,7 +97,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4  
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
       - run: make build
       - run: make build-all
 ```

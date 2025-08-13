@@ -29,8 +29,8 @@ func TestRegistry(t *testing.T) *Registry {
 	}
 
 	t.Cleanup(func() {
-		reg.Close()
-		os.RemoveAll(tmpDir)
+		_ = reg.Close()          // best-effort close in test cleanup
+		_ = os.RemoveAll(tmpDir) // best-effort cleanup in tests
 	})
 
 	return reg
@@ -211,7 +211,7 @@ func AssertNotFound(t *testing.T, resolver *Resolver, input string) {
 // BenchmarkResolver helps benchmark resolution performance
 func BenchmarkResolver(b *testing.B, archiveCount int) {
 	// Create registry with many archives
-	reg := &Registry{} // Would use TestRegistry in real implementation
+	reg := TestRegistry(&testing.T{})
 	resolver := NewResolver(reg)
 
 	// Create test archives

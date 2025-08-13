@@ -101,13 +101,13 @@ func (r *Registry) ApplyPendingMigrations() error {
 		// Add columns if missing
 		if !columnExists(r.db, "archives", "deleted_at") {
 			if _, err := tx.Exec(`ALTER TABLE archives ADD COLUMN deleted_at TIMESTAMP`); err != nil {
-				tx.Rollback()
+				_ = tx.Rollback() // best-effort rollback
 				return err
 			}
 		}
 		if !columnExists(r.db, "archives", "original_path") {
 			if _, err := tx.Exec(`ALTER TABLE archives ADD COLUMN original_path TEXT`); err != nil {
-				tx.Rollback()
+				_ = tx.Rollback() // best-effort rollback
 				return err
 			}
 		}

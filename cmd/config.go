@@ -149,7 +149,8 @@ presets:
 `
 
 	// Write config file
-	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+	// Use restrictive permissions for config file
+	if err := os.WriteFile(configPath, []byte(configContent), 0600); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 

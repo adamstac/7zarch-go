@@ -4,12 +4,54 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/adamstac/7zarch-go/internal/config"
+	"github.com/adamstac/7zarch-go/internal/display"
+	"github.com/adamstac/7zarch-go/internal/display/modes"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
 )
+
+// parseHumanDuration supports 'd' (days) and 'w' (weeks) in addition to time.ParseDuration units
+// Kept local to this file to avoid changing behavior elsewhere
+func parseHumanDuration(s string) (time.Duration, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0, fmt.Errorf("empty duration")
+	}
+	if strings.HasSuffix(s, "d") {
+		n, err := strconv.ParseInt(strings.TrimSuffix(s, "d"), 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid days: %w", err)
+		}
+		return time.Duration(n) * 24 * time.Hour, nil
+	}
+	if strings.HasSuffix(s, "w") {
+		n, err := strconv.ParseInt(strings.TrimSuffix(s, "w"), 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid weeks: %w", err)
+		}
+		return time.Duration(n) * 7 * 24 * time.Hour, nil
+	}
+	return time.ParseDuration(s)
+}
+
+// listFilters collects flags for registry listing
+type listFilters struct {
+	details      bool
+	notUploaded  bool
+	pattern      string
+	olderThan    string
+	onlyManaged  bool
+	onlyExternal bool
+	onlyMissing  bool
+	status       string
+	profile      string
+	largerThan   int64
+}
 
 func ListCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -32,32 +74,71 @@ func ListCmd() *cobra.Command {
 	cmd.Flags().String("profile", "", "Filter by profile (media|documents|balanced)")
 	cmd.Flags().Int64("larger-than", 0, "Filter by size larger than bytes (e.g., 1048576)")
 
+	// Display mode flags
+	cmd.Flags().Bool("table", false, "Use table display mode (enhanced)")
+	cmd.Flags().Bool("compact", false, "Use compact display mode")
+	cmd.Flags().Bool("card", false, "Use card display mode")
+	cmd.Flags().Bool("tree", false, "Use tree display mode")
+	cmd.Flags().Bool("dashboard", false, "Use dashboard display mode")
+
 	return cmd
 }
 
 func runList(cmd *cobra.Command, args []string) error {
 	directory, _ := cmd.Flags().GetString("directory")
-	details, _ := cmd.Flags().GetBool("details")
-	notUploaded, _ := cmd.Flags().GetBool("not-uploaded")
-	pattern, _ := cmd.Flags().GetString("pattern")
-	olderThan, _ := cmd.Flags().GetString("older-than")
-	onlyManaged, _ := cmd.Flags().GetBool("managed")
-	onlyExternal, _ := cmd.Flags().GetBool("external")
-	onlyMissing, _ := cmd.Flags().GetBool("missing")
-	statusFilter, _ := cmd.Flags().GetString("status")
-	profileFilter, _ := cmd.Flags().GetString("profile")
-	largerThan, _ := cmd.Flags().GetInt64("larger-than")
+	opts := listFilters{
+		details:      getBool(cmd, "details"),
+		notUploaded:  getBool(cmd, "not-uploaded"),
+		pattern:      getString(cmd, "pattern"),
+		olderThan:    getString(cmd, "older-than"),
+		onlyManaged:  getBool(cmd, "managed"),
+		onlyExternal: getBool(cmd, "external"),
+		onlyMissing:  getBool(cmd, "missing"),
+		status:       getString(cmd, "status"),
+		profile:      getString(cmd, "profile"),
+		largerThan:   getInt64(cmd, "larger-than"),
+	}
+
+	// Determine display mode
+	displayMode := determineDisplayMode(cmd)
 
 	if directory != "" {
 		// List archives in a specific directory
-		return listDirectory(directory, details, pattern)
+		return listDirectory(directory, opts.details, opts.pattern)
 	}
 
 	// List registry-tracked archives
-	return listRegistryArchives(details, notUploaded, pattern, olderThan, onlyManaged, onlyExternal, onlyMissing, statusFilter, profileFilter, largerThan)
+	return listRegistryArchivesWithDisplay(opts, displayMode)
 }
 
-func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, onlyManaged, onlyExternal, onlyMissing bool, statusFilter, profileFilter string, largerThan int64) error {
+// flag helpers
+func getBool(cmd *cobra.Command, name string) bool     { v, _ := cmd.Flags().GetBool(name); return v }
+func getString(cmd *cobra.Command, name string) string { v, _ := cmd.Flags().GetString(name); return v }
+func getInt64(cmd *cobra.Command, name string) int64   { v, _ := cmd.Flags().GetInt64(name); return v }
+
+// determineDisplayMode selects the display mode based on flags
+func determineDisplayMode(cmd *cobra.Command) display.Mode {
+	if getBool(cmd, "table") {
+		return display.ModeTable
+	}
+	if getBool(cmd, "compact") {
+		return display.ModeCompact
+	}
+	if getBool(cmd, "card") {
+		return display.ModeCard
+	}
+	if getBool(cmd, "tree") {
+		return display.ModeTree
+	}
+	if getBool(cmd, "dashboard") {
+		return display.ModeDashboard
+	}
+	// Default to auto-detection
+	return display.ModeAuto
+}
+
+// listRegistryArchivesWithDisplay uses the new display system
+func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error {
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
@@ -72,10 +153,158 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 
 	// Get archives based on filters
 	var archives []*storage.Archive
-	if notUploaded {
+	if opts.notUploaded {
 		archives, err = storageManager.ListNotUploaded()
-	} else if olderThan != "" {
-		dur, parseErr := time.ParseDuration(olderThan)
+	} else if opts.olderThan != "" {
+		dur, parseErr := parseHumanDuration(opts.olderThan)
+		if parseErr != nil {
+			return fmt.Errorf("invalid duration format: %w", parseErr)
+		}
+		archives, err = storageManager.ListOlderThan(dur)
+	} else {
+		archives, err = storageManager.List()
+	}
+	if err != nil {
+		return fmt.Errorf("failed to list archives: %w", err)
+	}
+
+	// Apply filters
+	archives = applyAllFilters(archives, opts)
+
+	// Use enhanced display system for supported modes
+	if mode == display.ModeTable || mode == display.ModeCompact || mode == display.ModeCard || mode == display.ModeTree || mode == display.ModeDashboard {
+		// Initialize display manager
+		displayManager := display.NewManager()
+
+		// Register available display modes
+		tableDisplay := modes.NewTableDisplay()
+		compactDisplay := modes.NewCompactDisplay()
+		cardDisplay := modes.NewCardDisplay()
+		treeDisplay := modes.NewTreeDisplay()
+		dashboardDisplay := modes.NewDashboardDisplay()
+		displayManager.Register(display.ModeTable, tableDisplay)
+		displayManager.Register(display.ModeCompact, compactDisplay)
+		displayManager.Register(display.ModeCard, cardDisplay)
+		displayManager.Register(display.ModeTree, treeDisplay)
+		displayManager.Register(display.ModeDashboard, dashboardDisplay)
+
+		// Configure display options
+		displayOpts := display.Options{
+			Mode:        mode,
+			Details:     opts.details,
+			ShowHeaders: mode != display.ModeCompact, // No headers for compact by default
+		}
+
+		// Render using the display system
+		return displayManager.Render(archives, displayOpts)
+	}
+
+	// Fall back to original display for now (other modes not yet implemented)
+	return displayArchivesOriginal(archives, opts)
+}
+
+// applyAllFilters applies all configured filters to the archive list
+func applyAllFilters(archives []*storage.Archive, opts listFilters) []*storage.Archive {
+	// Apply pattern filter
+	if opts.pattern != "" {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if matched, _ := filepath.Match(opts.pattern, a.Name); matched {
+				filtered = append(filtered, a)
+			}
+		}
+		archives = filtered
+	}
+
+	// Apply managed/external filter
+	if opts.onlyManaged || opts.onlyExternal {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if opts.onlyManaged && a.Managed {
+				filtered = append(filtered, a)
+			}
+			if opts.onlyExternal && !a.Managed {
+				filtered = append(filtered, a)
+			}
+		}
+		archives = filtered
+	}
+
+	// Apply missing filter
+	if opts.onlyMissing {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if a.Status == "missing" {
+				filtered = append(filtered, a)
+			}
+		}
+		archives = filtered
+	}
+
+	// Apply status/profile/larger-than filters
+	archives = applyFilters(archives, struct {
+		status, profile string
+		largerThan      int64
+	}{opts.status, opts.profile, opts.largerThan})
+
+	return archives
+}
+
+// displayArchivesOriginal is the original display function (fallback)
+func displayArchivesOriginal(archives []*storage.Archive, opts listFilters) error {
+	if len(archives) == 0 {
+		fmt.Printf("No archives found.\n")
+		fmt.Printf("💡 Tip: Create archives with '7zarch-go create <path>' to see them here.\n")
+		return nil
+	}
+
+	// Group and summarize
+	var managedCount, externalCount, missingCount, deletedCount int
+	var activeManaged, activeExternal, deletedArchives []*storage.Archive
+
+	for _, a := range archives {
+		if a.Status == "deleted" {
+			deletedCount++
+			deletedArchives = append(deletedArchives, a)
+		} else if a.Managed {
+			managedCount++
+			activeManaged = append(activeManaged, a)
+		} else {
+			externalCount++
+			activeExternal = append(activeExternal, a)
+		}
+		if a.Status == "missing" {
+			missingCount++
+		}
+	}
+
+	fmt.Printf("📦 Archives (%d found)\n", len(archives))
+	fmt.Printf("Active: %d (Managed: %d, External: %d) | Missing: %d | Deleted: %d\n\n",
+		managedCount+externalCount, managedCount, externalCount, missingCount, deletedCount)
+
+	// Delegate to existing printer
+	return printGroupedArchives(archives, opts.details)
+}
+
+func listRegistryArchives(opts listFilters) error {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+	// Initialize storage manager
+	storageManager, err := storage.NewManager(cfg.Storage.ManagedPath)
+	if err != nil {
+		return fmt.Errorf("failed to initialize managed storage: %w", err)
+	}
+	defer storageManager.Close()
+
+	// Get archives based on filters
+	var archives []*storage.Archive
+	if opts.notUploaded {
+		archives, err = storageManager.ListNotUploaded()
+	} else if opts.olderThan != "" {
+		dur, parseErr := parseHumanDuration(opts.olderThan)
 		if parseErr != nil {
 			return fmt.Errorf("invalid duration format: %w", parseErr)
 		}
@@ -88,30 +317,30 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 	}
 
 	// Apply pattern filter
-	if pattern != "" {
+	if opts.pattern != "" {
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
-			if matched, _ := filepath.Match(pattern, a.Name); matched {
+			if matched, _ := filepath.Match(opts.pattern, a.Name); matched {
 				filtered = append(filtered, a)
 			}
 		}
 		archives = filtered
 	}
 	// Apply managed/external filter
-	if onlyManaged || onlyExternal {
+	if opts.onlyManaged || opts.onlyExternal {
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
-			if onlyManaged && a.Managed {
+			if opts.onlyManaged && a.Managed {
 				filtered = append(filtered, a)
 			}
-			if onlyExternal && !a.Managed {
+			if opts.onlyExternal && !a.Managed {
 				filtered = append(filtered, a)
 			}
 		}
 		archives = filtered
 	}
 	// Apply missing filter
-	if onlyMissing {
+	if opts.onlyMissing {
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
 			if a.Status == "missing" {
@@ -120,36 +349,12 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 		}
 		archives = filtered
 	}
-	// Apply status filter
-	if statusFilter != "" {
-		filtered := make([]*storage.Archive, 0)
-		for _, a := range archives {
-			if a.Status == statusFilter {
-				filtered = append(filtered, a)
-			}
-		}
-		archives = filtered
-	}
-	// Apply profile filter
-	if profileFilter != "" {
-		filtered := make([]*storage.Archive, 0)
-		for _, a := range archives {
-			if a.Profile == profileFilter {
-				filtered = append(filtered, a)
-			}
-		}
-		archives = filtered
-	}
-	// Apply larger-than filter
-	if largerThan > 0 {
-		filtered := make([]*storage.Archive, 0)
-		for _, a := range archives {
-			if a.Size > largerThan {
-				filtered = append(filtered, a)
-			}
-		}
-		archives = filtered
-	}
+
+	// Simple filter block (status/profile/larger-than)
+	archives = applyFilters(archives, struct {
+		status, profile string
+		largerThan      int64
+	}{opts.status, opts.profile, opts.largerThan})
 
 	if len(archives) == 0 {
 		fmt.Printf("No archives found.\n")
@@ -157,6 +362,72 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 		return nil
 	}
 
+	// Group and summarize
+	var managedCount, externalCount, missingCount, deletedCount int
+	var activeManaged, activeExternal, deletedArchives []*storage.Archive
+
+	for _, a := range archives {
+		if a.Status == "deleted" {
+			deletedCount++
+			deletedArchives = append(deletedArchives, a)
+		} else if a.Managed {
+			managedCount++
+			activeManaged = append(activeManaged, a)
+		} else {
+			externalCount++
+			activeExternal = append(activeExternal, a)
+		}
+		if a.Status == "missing" {
+			missingCount++
+		}
+	}
+
+	fmt.Printf("📦 Archives (%d found)\n", len(archives))
+	fmt.Printf("Active: %d (Managed: %d, External: %d) | Missing: %d | Deleted: %d\n\n",
+		managedCount+externalCount, managedCount, externalCount, missingCount, deletedCount)
+
+	// Delegate to existing printer to keep behavior identical
+	return printGroupedArchives(archives, opts.details)
+}
+
+// applyFilters applies status/profile/largerThan filters in sequence
+func applyFilters(archives []*storage.Archive, filters struct {
+	status, profile string
+	largerThan      int64
+}) []*storage.Archive {
+	result := archives
+	if filters.status != "" {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range result {
+			if a.Status == filters.status {
+				filtered = append(filtered, a)
+			}
+		}
+		result = filtered
+	}
+	if filters.profile != "" {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range result {
+			if a.Profile == filters.profile {
+				filtered = append(filtered, a)
+			}
+		}
+		result = filtered
+	}
+	if filters.largerThan > 0 {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range result {
+			if a.Size > filters.largerThan {
+				filtered = append(filtered, a)
+			}
+		}
+		result = filtered
+	}
+	return result
+}
+
+// printGroupedArchives prints groups and summary (same behavior as before)
+func printGroupedArchives(archives []*storage.Archive, details bool) error {
 	// Group and summarize
 	var managedCount, externalCount, missingCount, deletedCount int
 	var activeManaged, activeExternal, deletedArchives []*storage.Archive
@@ -205,20 +476,21 @@ func listRegistryArchives(details, notUploaded bool, pattern, olderThan string, 
 			displayDeletedArchive(a, details)
 		}
 	}
+
 	return nil
 }
 
 func printArchiveTable(archives []*storage.Archive, details bool) {
 	// Headers
 	if details {
-		fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", "ID", "Name", "Size", "Profile", "Created", "Status")
+		fmt.Printf("%-12s  %-30s  %8s  %-10s  %-19s  %-7s\n", "ID", "Name", "Size", "Profile", "Created", "Status")
 	} else {
-		fmt.Printf("%-8s  %-30s  %8s  %-7s\n", "ID", "Name", "Size", "Status")
+		fmt.Printf("%-12s  %-30s  %8s  %-7s\n", "ID", "Name", "Size", "Status")
 	}
 	for _, a := range archives {
 		id := a.UID
-		if len(id) > 8 {
-			id = id[:8]
+		if len(id) > 12 {
+			id = id[:12]
 		}
 		sizeMB := fmt.Sprintf("%.1f MB", float64(a.Size)/(1024*1024))
 		status := a.Status
@@ -233,13 +505,13 @@ func printArchiveTable(archives []*storage.Archive, details bool) {
 			if len(name) > 30 {
 				name = name[:29] + "…"
 			}
-			fmt.Printf("%-8s  %-30s  %8s  %-10s  %-19s  %-7s\n", id, name, sizeMB, a.Profile, created, status)
+			fmt.Printf("%-12s  %-30s  %8s  %-10s  %-19s  %-7s\n", id, name, sizeMB, a.Profile, created, status)
 		} else {
 			name := a.Name
 			if len(name) > 30 {
 				name = name[:29] + "…"
 			}
-			fmt.Printf("%-8s  %-30s  %8s  %-7s\n", id, name, sizeMB, status)
+			fmt.Printf("%-12s  %-30s  %8s  %-7s\n", id, name, sizeMB, status)
 		}
 	}
 	fmt.Println()
@@ -264,7 +536,7 @@ func listManagedArchives(details, notUploaded bool, pattern, olderThan string) e
 	if notUploaded {
 		archives, err = storageManager.ListNotUploaded()
 	} else if olderThan != "" {
-		duration, parseErr := time.ParseDuration(olderThan)
+		duration, parseErr := parseHumanDuration(olderThan)
 		if parseErr != nil {
 			return fmt.Errorf("invalid duration format: %w", parseErr)
 		}

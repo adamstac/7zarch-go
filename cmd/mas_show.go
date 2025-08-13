@@ -24,7 +24,7 @@ func MasShowCmd() *cobra.Command {
 			cfg, _ := config.Load()
 			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
 			if err != nil {
-				return fmt.Errorf("failed to init storage: %w", err)
+				return fmt.Errorf("failed to init storage (path=%q): %w", cfg.Storage.ManagedPath, err)
 			}
 			defer mgr.Close()
 
@@ -57,9 +57,10 @@ func MasShowCmd() *cobra.Command {
 
 func printArchive(a *storage.Archive, verify bool) {
 	status := a.Status
-	if status == "present" {
+	switch status {
+	case "present":
 		status += " ✓"
-	} else if status == "missing" {
+	case "missing":
 		status += " ⚠️"
 	}
 	fmt.Printf("UID:        %s\n", a.UID)
@@ -93,6 +94,7 @@ func printArchive(a *storage.Archive, verify bool) {
 }
 
 func computeSHA256(path string) (string, error) {
+	// #nosec G304: path originates from registry-managed archive object
 	f, err := os.Open(path)
 	if err != nil {
 		return "", err

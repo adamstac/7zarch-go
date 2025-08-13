@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+version: 2
+
+reviews:
+  profile: chill
+  auto_review:
+    enabled: true
+    drafts: false
+  # Provide stronger scrutiny guidance for important paths
+  path_instructions:
+    - path: "internal/storage/**"
+      instructions: "Use assertive scrutiny for storage internals (correctness, concurrency, durability)."
+    - path: "cmd/**"
+      instructions: "Normal scrutiny; ensure CLI UX and error handling."
+    - path: "**/*_test.go"
+      instructions: "Chill profile acceptable for tests/tooling."
+
+summaries:
+  enabled: true
+  placement: PR_BODY
+
+ignore:
+  files:
+    - "dist/**"
+    - "vendor/**"
+    - "**/*.sum"
+    - "**/*.min.*"
+    - ".claude/**"
+    - ".coderabbit.yaml"
+
