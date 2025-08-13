@@ -1,15 +1,66 @@
 # 7EP-0007: Enhanced MAS Operations
 
-**Status:** Draft  
+**Status:** 🎯 Ready for Implementation  
 **Author(s):** Claude Code (CC), Augment Code (AC)  
-**Assignment:** AC/CC Split (coordination needed)  
+**Assignment:** AC Lead (Query System, CLI Integration) + CC Support (Search Engine, Batch Core)  
 **Difficulty:** 3 (moderate - builds on 7EP-0004 foundation)  
 **Created:** 2025-08-12  
-**Updated:** 2025-08-12  
+**Updated:** 2025-08-13 (Amp architectural review + 7EP-0014 foundation integration)  
+**Foundation Status:** ✅ 7EP-0014 Complete - All dependencies satisfied  
 
 ## Executive Summary
 
-Extend the MAS (Managed Archive Storage) foundation with advanced operations including batch processing, full-text search, saved queries, shell completion, and enhanced workflow commands to provide a complete archive management experience.
+Extend the MAS (Managed Archive Storage) foundation with advanced operations including batch processing, full-text search, saved queries, and enhanced workflow commands to provide a complete archive management experience.
+
+## 🏛️ Amp (Sourcegraph) Architectural Review
+
+**Overall Assessment**: ✅ **EXCELLENT DESIGN** - Well-architected, ready for implementation with 7EP-0014 foundation complete.
+
+**Foundation Status**: 🎯 **PERFECT TIMING** - 7EP-0014 delivered all required foundation components:
+- ✅ Database migration system enables safe schema evolution
+- ✅ Machine-readable output (JSON/CSV) enables batch processing integration  
+- ✅ Shell completion foundation provides baseline UX
+- ✅ Complete trash lifecycle integrates with batch operations
+
+**Strategic Impact**: This 7EP transforms 7zarch-go from **basic archive manager** → **power user command center** with enterprise-grade capabilities.
+
+### 🎯 Implementation Priority Recommendations
+
+**AC Implementation Focus** (User-Facing Power Features):
+1. **Query System** - Highest ROI, enables all other features
+2. **Search Integration** - Massive discoverability improvement
+3. **Batch CLI Integration** - Workflow transformation
+4. **Advanced List Enhancements** - Query save/load workflow
+
+**CC Support Areas** (Infrastructure):
+1. **Search Engine Performance** - Indexing optimization critical for UX
+2. **Batch Processing Core** - Progress tracking and error handling
+3. **Performance Validation** - Ensure benchmarks met under load
+
+### 🚀 Key Architectural Strengths
+
+**1. Excellent Layered Design**
+- Query → Search → Batch → Integration layers well-separated
+- Clean interfaces enable independent development and testing
+- Builds perfectly on proven 7EP-0004 foundation patterns
+
+**2. Performance-First Approach**  
+- Realistic benchmarks (<100ms queries, <500ms search, <50ms completion)
+- In-memory + persistent cache strategy for search index
+- Progress tracking for batch operations ensures responsive UX
+
+**3. User Experience Excellence**
+- Saved queries address real power-user pain points
+- Batch operations with confirmation/rollback provide safety
+- Search across metadata fields enables content discovery
+
+### ⚡ Implementation Acceleration Opportunities
+
+**Leverage 7EP-0014 Foundation:**
+- **Query Storage**: Use new migration system for schema changes
+- **Machine Output**: Integrate with existing JSON/CSV for batch stdin
+- **Error Patterns**: Follow established error handling from foundation
+- **Testing**: Build on proven test patterns from migration system
 
 ## Evidence & Reasoning
 
@@ -140,17 +191,20 @@ func (bp *BatchProcessor) Delete(archives []*Archive, confirm bool) error
 func (bp *BatchProcessor) Upload(archives []*Archive, provider string) error
 ```
 
-#### 4. Shell Integration (`internal/completion/`)
+#### 4. Advanced Query Integration (`internal/query/`)
 ```go
-// Shell completion for bash/zsh/fish
-type CompletionProvider struct {
-    registry *storage.Registry
+// Advanced query operations building on 7EP-0014 foundation
+type AdvancedQueryManager struct {
+    basic    QueryManager      // From foundation
+    search   *SearchEngine     // For query + search combinations
+    batch    *BatchProcessor   // For query + batch operations
 }
 
-func (cp *CompletionProvider) CompleteUIDs(prefix string) []string
-func (cp *CompletionProvider) CompleteNames(prefix string) []string
-func (cp *CompletionProvider) CompleteCommands() []string
+func (aqm *AdvancedQueryManager) SaveWithSearch(name string, searchTerms []string, filters ListFilters) error
+func (aqm *AdvancedQueryManager) RunBatch(queryName string, operation BatchOperation) error
 ```
+
+**Note**: Basic shell completion now provided by 7EP-0014 foundation. This 7EP adds advanced completion for saved queries.
 
 ### API Changes
 
@@ -177,14 +231,15 @@ func (cp *CompletionProvider) CompleteCommands() []string
 
 #### Enhanced Existing Commands
 ```bash
-# List command extensions
+# List command extensions (builds on 7EP-0014 machine output)
 7zarch-go list --save-query=<name>    # Save current filters
 7zarch-go list --query=<name>         # Use saved query
-7zarch-go list --output=json|csv      # Machine-readable output
+# Note: --output=json|csv already provided by 7EP-0014
 
 # Show command extensions  
 7zarch-go show --related              # Show similar archives
 7zarch-go show --usage                # Show access history
+# Note: --output=json already provided by 7EP-0014
 ```
 
 ### Data Model Changes
@@ -247,17 +302,17 @@ CREATE TABLE search_index (
   - [ ] Stdin processing for piped operations
   - [ ] Confirmation prompts for destructive operations
 
-### Phase 4: Shell Integration (CC Lead)
-- [ ] **Completion Provider** (CC)
-  - [ ] ULID prefix completion
-  - [ ] Archive name completion  
-  - [ ] Command and flag completion
-  - [ ] Shell script generation (bash/zsh/fish)
+### Phase 4: Advanced Integration (AC Lead)
+- [ ] **Query + Search Integration** (AC)
+  - [ ] Combine saved queries with search terms
+  - [ ] Search result saving as queries
+  - [ ] Complex query composition workflows
+  - [ ] Advanced completion for saved query names (builds on 7EP-0014 foundation)
 
 ### Dependencies
-- **7EP-0004**: MAS Foundation (completed) - provides resolver, registry, and basic commands
-- **7EP-0001**: Trash Management (in progress) - batch delete should integrate with trash
-- **7EP-0005**: Test Dataset System (planned) - needed for comprehensive testing
+- **7EP-0004**: MAS Foundation ✅ (completed) - provides resolver, registry, and basic commands  
+- **7EP-0001**: Trash Management ✅ (completed via 7EP-0014) - batch delete integrates with trash
+- **7EP-0014**: Critical Foundation Gaps ✅ (completed) - provides machine output, database migrations, shell completion baseline
 
 ## Testing Strategy
 
@@ -363,9 +418,136 @@ All existing 7EP-0004 functionality preserved exactly.
 - **Web Interface**: Browser-based archive management dashboard
 - **API Server**: REST API for external integrations
 
+## 🎯 AC Implementation Guidance (Amp Strategic Direction)
+
+### **Phase 1: Query Foundation - START HERE** (Estimated: 3-4 days)
+
+**HIGHEST ROI** - Enables all subsequent features. Focus on user-facing query workflows first.
+
+#### Quick Wins (Day 1-2):
+```bash
+# Core query commands to implement
+7zarch-go query save "my-docs" --profile=documents --managed
+7zarch-go query list
+7zarch-go query run my-docs
+7zarch-go query delete my-docs
+
+# List integration 
+7zarch-go list --save-query=my-docs    # Save current filters as query
+7zarch-go list --query=my-docs         # Use saved query
+```
+
+**Implementation Strategy:**
+1. **Use 7EP-0014 migration system** for query table schema
+2. **Leverage existing ListFilters** - serialize to JSON for storage
+3. **Build on machine output** - queries can export JSON for automation
+4. **Follow resolver patterns** - query names resolve like archive IDs
+
+#### Technical Foundation:
+```go
+// Query storage building on 7EP-0014 migration foundation
+type QueryStorage struct {
+    db *sql.DB  // Use existing registry database
+}
+
+// Migration file: 0004_query_system.sql
+CREATE TABLE queries (
+    name TEXT PRIMARY KEY,
+    filters TEXT NOT NULL,  -- JSON-encoded ListFilters
+    created INTEGER NOT NULL,
+    last_used INTEGER,
+    use_count INTEGER DEFAULT 0
+);
+```
+
+### **Phase 2: Search Engine - HIGH IMPACT** (Estimated: 2-3 days)
+
+**MASSIVE DISCOVERABILITY** - Users can find archives by any metadata field.
+
+```bash
+# Search implementation priority
+7zarch-go search "project backup 2024"    # Cross-field search
+7zarch-go search --name "backup.*2024"     # Field-specific with regex
+7zarch-go reindex                          # Rebuild search index
+```
+
+**Performance Critical:**
+- **<500ms search target** for 10K archives requires optimized indexing
+- **In-memory index** with persistent cache for performance
+- **Incremental updates** when archives added/modified
+
+### **Phase 3: Batch Operations - WORKFLOW TRANSFORMATION** (Estimated: 3-4 days)
+
+**POWER USER ENABLEMENT** - Multi-archive operations with safety and progress.
+
+```bash
+# Batch implementation priority  
+7zarch-go batch --query=media-large move --to=/backup/media/
+7zarch-go batch --stdin delete --confirm   # Pipe from list output
+7zarch-go list --older-than=1y --output=json | jq -r '.[].uid' | 7zarch-go batch delete --confirm
+```
+
+**Safety Requirements:**
+- **Confirmation prompts** for destructive operations
+- **Progress tracking** every 1-2 seconds for large sets
+- **Rollback capability** on partial failures
+- **Integration with trash system** from 7EP-0014
+
+### **Phase 4: Advanced Integration - POLISH** (Estimated: 1-2 days)
+
+**PROFESSIONAL FINISH** - Query + search combinations, advanced workflows.
+
+```bash
+# Advanced combinations
+7zarch-go search "important" --save-query=important-files
+7zarch-go query run important-files --output=json | jq -r '.[].uid' | 7zarch-go batch upload --provider=s3
+```
+
+### 🛠️ AC Technical Implementation Notes
+
+**Database Integration:**
+- **Use 7EP-0014 migration system** - create migration files, don't modify schema directly
+- **Follow established patterns** - error handling, ULID resolution, registry operations
+- **Performance validation** - test with realistic datasets (1000+ archives)
+
+**CLI Design:**
+- **Consistent flag naming** - follow patterns from existing commands
+- **Machine output integration** - ensure all new commands support `--output json`
+- **Help text clarity** - comprehensive examples and error guidance
+
+**Testing Strategy:**
+- **Unit tests** for all query, search, and batch operations
+- **Integration tests** combining query + search + batch workflows
+- **Performance tests** validating benchmark targets
+- **CLI workflow tests** ensuring smooth user experience
+
+### 🚨 Critical Implementation Decisions for AC
+
+**1. Query Storage Schema** - Use JSON encoding of ListFilters for maximum compatibility
+**2. Search Index Strategy** - Start with in-memory, add persistence for performance
+**3. Batch Operation Safety** - Always require confirmation for destructive ops
+**4. CLI Verb Structure** - Keep `query`, `search`, `batch` as top-level commands
+
+### 📊 Success Metrics
+
+**User Experience:**
+- Query save/load workflow reduces repeated typing by 80%
+- Search enables finding archives without knowing exact names
+- Batch operations handle 100+ archives efficiently with progress feedback
+
+**Performance:**
+- Query execution <100ms for complex queries on 10K archives  
+- Search operations <500ms for full-text search on 10K archives
+- Batch operations with progress updates every 1-2 seconds
+
+**Adoption:**
+- Power users can accomplish multi-step workflows in single commands
+- External tools can integrate via machine-readable output
+- CLI feels professional and efficient compared to basic file managers
+
 ## References
 
-- **Builds on**: 7EP-0004 MAS Foundation Implementation
-- **Integrates with**: 7EP-0001 Trash Management System  
+- **Builds on**: 7EP-0004 MAS Foundation Implementation, 7EP-0014 Critical Foundation Gaps ✅
+- **Integrates with**: 7EP-0001 Trash Management System ✅ 
 - **Enables**: Advanced archive discovery and bulk management workflows
 - **Related**: CLI completion patterns from tools like `kubectl`, `docker`, `git`
