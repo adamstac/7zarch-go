@@ -1,11 +1,15 @@
 # 7EP-0010: Interactive TUI Application
 
-**Status:** Draft  
+**Status:** In Progress
 **Author(s):** Claude Code (CC), Adam Stacoviak  
 **Assignment:** CC Lead (TUI Architecture), AC Support (UX Workflows)  
 **Difficulty:** 4 (high - comprehensive UI redesign with complex interactions)  
 **Created:** 2025-08-12  
 **Updated:** 2025-08-13
+
+## Related PRs
+
+- PR #21: https://github.com/adamstac/7zarch-go/pull/21 (branch: feat/tui-actions-errors-overlay)
 
 ## Executive Summary
 
