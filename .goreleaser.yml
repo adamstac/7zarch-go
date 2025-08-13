@@ -1,0 +1,46 @@
+version: 2
+
+env:
+  # Level 2 Reproducibility: Use commit timestamp for all builds  
+  - SOURCE_DATE_EPOCH={{ if .IsSnapshot }}{{ .Now.Unix }}{{ else }}{{ .CommitTimestamp }}{{ end }}
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=1
+    goos: [linux, windows, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      # Industry standard ldflags pattern
+      - -s -w -X main.Version={{.Version}} -X main.GitCommit={{.Commit}} -X main.Date={{.Date}}
+    # Reproducible build flags
+    flags:
+      - -trimpath
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- if eq .Os "darwin" }}macOS{{ else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64{{ else if eq .Arch "386" }}i386{{ else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - README.md
+      - LICENSE
+    formats:
+      - zip
+      - tar.gz
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+release:
+  github:
+    owner: adamstac
+    name: 7zarch-go
+  draft: false
+  prerelease: auto
