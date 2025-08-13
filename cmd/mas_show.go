@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/adamstac/7zarch-go/internal/config"
+	"github.com/adamstac/7zarch-go/internal/cmdutil"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -27,12 +27,11 @@ func MasShowCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
-			cfg, _ := config.Load()
-			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
+			_, mgr, cleanup, err := cmdutil.InitStorageManager()
 			if err != nil {
-				return fmt.Errorf("failed to init storage (path=%q): %w", cfg.Storage.ManagedPath, err)
+				return err
 			}
-			defer mgr.Close()
+			defer cleanup()
 
 			resolver := storage.NewResolver(mgr.Registry())
 			arc, err := resolver.Resolve(id)
@@ -40,7 +39,7 @@ func MasShowCmd() *cobra.Command {
 				if amb, ok := err.(*storage.AmbiguousIDError); ok {
 					printAmbiguousOptions(amb)
 				}
-				return err
+				return cmdutil.HandleResolverError(err, id)
 			}
 
 			// File existence verification + last_seen/status update

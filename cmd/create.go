@@ -10,6 +10,7 @@ import (
 
 	"github.com/adamstac/7zarch-go/internal/archive"
 	"github.com/adamstac/7zarch-go/internal/config"
+	errs "github.com/adamstac/7zarch-go/internal/errors"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
@@ -33,8 +34,30 @@ var (
 func CreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create <path>",
-		Short: "Create a new archive",
-		Long:  `Create a new 7z archive from the specified path with optional compression settings.`,
+		Short: "Create a new 7z archive with smart compression",
+		Long: `Create a new 7z archive from the specified path with intelligent compression.
+
+The create command automatically optimizes compression based on file types:
+- Media files: Minimal compression for JPEGs, MP4s, etc.
+- Documents: Maximum compression for text, PDFs, Office files
+- Mixed content: Balanced approach for best size/speed ratio
+
+Archives are stored in managed storage by default for easy tracking.`,
+		Example: `  # Create archive with auto-detected compression
+  7zarch-go create ~/Documents/project
+
+  # Use specific compression profile
+  7zarch-go create --profile media ~/Photos/vacation
+  7zarch-go create --profile documents ~/Documents/reports
+
+  # Comprehensive mode (includes checksums and metadata)
+  7zarch-go create --comprehensive ~/important-backup
+
+  # Custom output location
+  7zarch-go create -o /backup/archive.7z ~/data
+
+  # Dry run to preview without creating
+  7zarch-go create --dry-run ~/test-folder`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  runCreate,
 	}
@@ -70,7 +93,15 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	if presetName != "" {
 		preset, exists := cfg.Presets[presetName]
 		if !exists {
-			return fmt.Errorf("unknown preset: %s", presetName)
+			availablePresets := make([]string, 0, len(cfg.Presets))
+			for name := range cfg.Presets {
+				availablePresets = append(availablePresets, name)
+			}
+			return &errs.ValidationError{
+				Field:   "preset",
+				Value:   presetName,
+				Message: fmt.Sprintf("unknown preset. Available: %s", strings.Join(availablePresets, ", ")),
+			}
 		}
 
 		// Apply preset values (CLI flags override presets)
@@ -119,7 +150,18 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	// Check if source exists
 	_, err = os.Stat(absPath)
 	if err != nil {
-		return fmt.Errorf("source path does not exist: %w", err)
+		if os.IsNotExist(err) {
+			return &errs.NotFoundError{
+				Resource:    "Path",
+				ID:          absPath,
+				Suggestions: []string{"check the path spelling", "use an absolute path"},
+			}
+		}
+		return &errs.FileSystemError{
+			Path:      absPath,
+			Operation: "access",
+			Err:       err,
+		}
 	}
 
 	// Initialize storage manager if using managed storage

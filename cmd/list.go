@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/adamstac/7zarch-go/internal/config"
+	"github.com/adamstac/7zarch-go/internal/debug"
 	"github.com/adamstac/7zarch-go/internal/display"
 	"github.com/adamstac/7zarch-go/internal/display/modes"
 	"github.com/adamstac/7zarch-go/internal/storage"
@@ -55,13 +56,38 @@ type listFilters struct {
 	status       string
 	profile      string
 	largerThan   int64
+	debug        bool
 }
 
 func ListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List archives (managed and external)",
-		Long:  `List registry-tracked archives with filters and grouping.`,
+		Short: "List archives in the registry with various display and filtering options",
+		Long: `List all archives tracked in the registry with rich display modes and filtering.
+
+The list command provides multiple ways to view and filter your archives:
+- Display modes: table, compact, card, tree, dashboard
+- Filters: by size, age, status, profile, location
+- Output formats: human-readable or machine-readable (JSON/CSV)
+
+Display mode is auto-detected based on terminal width if not specified.`,
+		Example: `  # List all archives with auto-detected display
+  7zarch-go list
+
+  # Use specific display modes
+  7zarch-go list --table            # High-density table view
+  7zarch-go list --dashboard        # Management overview
+  7zarch-go list --card             # Detailed cards for each archive
+
+  # Filter archives
+  7zarch-go list --missing          # Only missing archives
+  7zarch-go list --managed          # Only managed archives
+  7zarch-go list --older-than 30d   # Archives older than 30 days
+  7zarch-go list --larger-than 100M # Archives larger than 100MB
+  
+  # Machine-readable output
+  7zarch-go list --output json      # JSON format for scripting
+  7zarch-go list --output csv       # CSV format for spreadsheets`,
 		RunE:  runList,
 	}
 
@@ -86,6 +112,9 @@ func ListCmd() *cobra.Command {
 	cmd.Flags().Bool("card", false, "Use card display mode")
 	cmd.Flags().Bool("tree", false, "Use tree display mode")
 	cmd.Flags().Bool("dashboard", false, "Use dashboard display mode")
+	
+	// Debug flag
+	cmd.Flags().Bool("debug", false, "Show performance and debug information")
 
 	return cmd
 }
@@ -104,6 +133,13 @@ func runList(cmd *cobra.Command, args []string) error {
 		status:       getString(cmd, "status"),
 		profile:      getString(cmd, "profile"),
 		largerThan:   getInt64(cmd, "larger-than"),
+		debug:        getBool(cmd, "debug"),
+	}
+	
+	// Initialize metrics if debug mode
+	var metrics *debug.Metrics
+	if opts.debug {
+		metrics = debug.NewMetrics()
 	}
 
 	// Check for output format
@@ -121,7 +157,7 @@ func runList(cmd *cobra.Command, args []string) error {
 	}
 
 	// List registry-tracked archives
-	return listRegistryArchivesWithDisplay(opts, displayMode)
+	return listRegistryArchivesWithDisplay(opts, displayMode, metrics)
 }
 
 // flag helpers
@@ -151,7 +187,7 @@ func determineDisplayMode(cmd *cobra.Command) display.Mode {
 }
 
 // listRegistryArchivesWithDisplay uses the new display system
-func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error {
+func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode, metrics *debug.Metrics) error {
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
@@ -179,6 +215,17 @@ func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error 
 	}
 	if err != nil {
 		return fmt.Errorf("failed to list archives: %w", err)
+	}
+
+	// Record query completion if metrics enabled
+	if metrics != nil {
+		metrics.RecordQueryTime()
+		metrics.SetResultCount(len(archives))
+		
+		// Get database size if available
+		if dbInfo, statErr := os.Stat(filepath.Join(cfg.Storage.ManagedPath, "registry.db")); statErr == nil {
+			metrics.SetDatabaseSize(dbInfo.Size())
+		}
 	}
 
 	// Apply filters
@@ -209,11 +256,28 @@ func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error 
 		}
 
 		// Render using the display system
-		return displayManager.Render(archives, displayOpts)
+		err := displayManager.Render(archives, displayOpts)
+		
+		// Record render time and show debug output if enabled
+		if metrics != nil {
+			metrics.RecordRenderTime()
+			if opts.debug {
+				fmt.Printf("\n%s\n", metrics.String())
+			}
+		}
+		
+		return err
 	}
 
 	// Fall back to original display for now (other modes not yet implemented)
-	return displayArchivesOriginal(archives, opts)
+	err = displayArchivesOriginal(archives, opts)
+	
+	// Show debug output for fallback display too
+	if metrics != nil && opts.debug {
+		fmt.Printf("\n%s\n", metrics.String())
+	}
+	
+	return err
 }
 
 // applyAllFilters applies all configured filters to the archive list
