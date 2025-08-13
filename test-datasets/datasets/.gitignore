@@ -1,0 +1,6 @@
+# Ignore all generated test data
+*
+
+# But keep this file
+!.gitignore
+!README.md

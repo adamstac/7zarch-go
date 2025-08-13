@@ -24,13 +24,16 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.24'
         cache: true
+        check-latest: true
+      env:
+        GOTOOLCHAIN: local
         
     - name: Download dependencies
       run: make deps
@@ -66,19 +69,22 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.24'
         cache: true
+        check-latest: true
+      env:
+        GOTOOLCHAIN: local
         
     - name: Download dependencies
       run: make deps
       
-    - name: Build all platforms
-      run: make build-all
+    - name: Build current platform using Goreleaser
+      run: make dist
       
     - name: List built artifacts
       run: ls -la dist/

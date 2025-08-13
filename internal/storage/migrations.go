@@ -3,6 +3,9 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -12,7 +15,186 @@ const (
 
 	migrationIdentityID   = "0002_identity_and_status"
 	migrationIdentityName = "Add uid/managed/status/last_seen and indexes"
+
+	migrationTrashID   = "0003_trash_fields"
+	migrationTrashName = "Add deleted_at and original_path for trash support"
 )
+
+type MigrationRunner struct {
+	db         *sql.DB
+	backupPath string
+	timeout    time.Duration
+}
+
+func NewMigrationRunner(db *sql.DB, dbPath string) *MigrationRunner {
+	backupDir := filepath.Dir(dbPath)
+	return &MigrationRunner{
+		db:         db,
+		backupPath: backupDir,
+		timeout:    30 * time.Second,
+	}
+}
+
+type PendingMigration struct {
+	ID          string
+	Name        string
+	Description string
+}
+
+func (mr *MigrationRunner) GetPendingMigrations() ([]PendingMigration, error) {
+	registry := &Registry{db: mr.db}
+	if err := registry.EnsureMigrationsTable(); err != nil {
+		return nil, err
+	}
+
+	var pending []PendingMigration
+
+	applied, err := registry.IsMigrationApplied(migrationTrashID)
+	if err != nil {
+		return nil, err
+	}
+	if !applied {
+		pending = append(pending, PendingMigration{
+			ID:          migrationTrashID,
+			Name:        migrationTrashName,
+			Description: "Adds deleted_at and original_path columns for trash functionality",
+		})
+	}
+
+	return pending, nil
+}
+
+func (mr *MigrationRunner) CreateBackup(dbPath string) (string, error) {
+	if dbPath == "" {
+		return "", fmt.Errorf("database path is required for backup")
+	}
+
+	timestamp := time.Now().Format("20060102-150405")
+	backupName := fmt.Sprintf("registry-%s.bak", timestamp)
+	backupPath := filepath.Join(mr.backupPath, backupName)
+
+	src, err := os.Open(dbPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open source database: %w", err)
+	}
+	defer src.Close()
+
+	if err := os.MkdirAll(mr.backupPath, 0755); err != nil {
+		return "", fmt.Errorf("failed to create backup directory: %w", err)
+	}
+
+	dst, err := os.OpenFile(backupPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+	if err != nil {
+		return "", fmt.Errorf("failed to create backup file: %w", err)
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, src); err != nil {
+		return "", fmt.Errorf("failed to copy database: %w", err)
+	}
+
+	return backupPath, nil
+}
+
+func (mr *MigrationRunner) ApplyPending(dbPath string) error {
+	pending, err := mr.GetPendingMigrations()
+	if err != nil {
+		return fmt.Errorf("failed to get pending migrations: %w", err)
+	}
+
+	if len(pending) == 0 {
+		return nil
+	}
+
+	backupPath, err := mr.CreateBackup(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to create backup before migration: %w", err)
+	}
+
+	registry := &Registry{db: mr.db}
+
+	for _, migration := range pending {
+		if err := mr.applyMigration(registry, migration); err != nil {
+			return fmt.Errorf("migration %s failed: %w\nBackup preserved at: %s", migration.ID, err, backupPath)
+		}
+	}
+
+	return nil
+}
+
+func (mr *MigrationRunner) applyMigration(registry *Registry, migration PendingMigration) error {
+	tx, err := mr.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	switch migration.ID {
+	case migrationTrashID:
+		if !columnExists(mr.db, "archives", "deleted_at") {
+			if _, err := tx.Exec(`ALTER TABLE archives ADD COLUMN deleted_at TIMESTAMP`); err != nil {
+				_ = tx.Rollback()
+				return fmt.Errorf("failed to add deleted_at column: %w", err)
+			}
+		}
+		if !columnExists(mr.db, "archives", "original_path") {
+			if _, err := tx.Exec(`ALTER TABLE archives ADD COLUMN original_path TEXT`); err != nil {
+				_ = tx.Rollback()
+				return fmt.Errorf("failed to add original_path column: %w", err)
+			}
+		}
+	default:
+		_ = tx.Rollback()
+		return fmt.Errorf("unknown migration: %s", migration.ID)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit migration: %w", err)
+	}
+
+	if err := registry.MarkMigrationApplied(migration.ID, migration.Name); err != nil {
+		return fmt.Errorf("failed to mark migration as applied: %w", err)
+	}
+
+	return nil
+}
+
+type AppliedMigration struct {
+	ID        string
+	Name      string
+	AppliedAt time.Time
+}
+
+func (mr *MigrationRunner) GetAppliedMigrations() ([]AppliedMigration, error) {
+	registry := &Registry{db: mr.db}
+	if err := registry.EnsureMigrationsTable(); err != nil {
+		return nil, err
+	}
+
+	rows, err := mr.db.Query(`SELECT id, name, applied_at FROM schema_migrations ORDER BY applied_at`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query applied migrations: %w", err)
+	}
+	defer rows.Close()
+
+	var applied []AppliedMigration
+	for rows.Next() {
+		var migration AppliedMigration
+		if err := rows.Scan(&migration.ID, &migration.Name, &migration.AppliedAt); err != nil {
+			return nil, fmt.Errorf("failed to scan migration row: %w", err)
+		}
+		applied = append(applied, migration)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating migration rows: %w", err)
+	}
+
+	return applied, nil
+}
+
+func (m *Manager) NewMigrationRunner() *MigrationRunner {
+	return NewMigrationRunner(m.registry.db, m.registry.Path())
+}
 
 // EnsureMigrationsTable creates the schema_migrations table if missing
 func (r *Registry) EnsureMigrationsTable() error {
@@ -76,11 +258,6 @@ func (r *Registry) RecordCurrentSchemaAsApplied() error {
 	}
 	return nil
 }
-
-const (
-	migrationTrashID   = "0003_trash_fields"
-	migrationTrashName = "Add deleted_at and original_path for trash support"
-)
 
 // ApplyPendingMigrations runs known migrations that haven't been marked applied yet
 func (r *Registry) ApplyPendingMigrations() error {

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,10 +11,12 @@ import (
 	"time"
 
 	"github.com/adamstac/7zarch-go/internal/config"
+	"github.com/adamstac/7zarch-go/internal/debug"
 	"github.com/adamstac/7zarch-go/internal/display"
 	"github.com/adamstac/7zarch-go/internal/display/modes"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 // parseHumanDuration supports 'd' (days) and 'w' (weeks) in addition to time.ParseDuration units
@@ -48,16 +52,42 @@ type listFilters struct {
 	onlyManaged  bool
 	onlyExternal bool
 	onlyMissing  bool
+	onlyDeleted  bool
 	status       string
 	profile      string
 	largerThan   int64
+	debug        bool
 }
 
 func ListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List archives (managed and external)",
-		Long:  `List registry-tracked archives with filters and grouping.`,
+		Short: "List archives in the registry with various display and filtering options",
+		Long: `List all archives tracked in the registry with rich display modes and filtering.
+
+The list command provides multiple ways to view and filter your archives:
+- Display modes: table, compact, card, tree, dashboard
+- Filters: by size, age, status, profile, location
+- Output formats: human-readable or machine-readable (JSON/CSV)
+
+Display mode is auto-detected based on terminal width if not specified.`,
+		Example: `  # List all archives with auto-detected display
+  7zarch-go list
+
+  # Use specific display modes
+  7zarch-go list --table            # High-density table view
+  7zarch-go list --dashboard        # Management overview
+  7zarch-go list --card             # Detailed cards for each archive
+
+  # Filter archives
+  7zarch-go list --missing          # Only missing archives
+  7zarch-go list --managed          # Only managed archives
+  7zarch-go list --older-than 30d   # Archives older than 30 days
+  7zarch-go list --larger-than 100M # Archives larger than 100MB
+  
+  # Machine-readable output
+  7zarch-go list --output json      # JSON format for scripting
+  7zarch-go list --output csv       # CSV format for spreadsheets`,
 		RunE:  runList,
 	}
 
@@ -73,13 +103,18 @@ func ListCmd() *cobra.Command {
 	cmd.Flags().String("status", "", "Filter by status (present|missing|deleted)")
 	cmd.Flags().String("profile", "", "Filter by profile (media|documents|balanced)")
 	cmd.Flags().Int64("larger-than", 0, "Filter by size larger than bytes (e.g., 1048576)")
-	
+	cmd.Flags().Bool("deleted", false, "Show only deleted archives")
+	cmd.Flags().String("output", "", "Output format: table|json|csv|yaml (default: table)")
+
 	// Display mode flags
 	cmd.Flags().Bool("table", false, "Use table display mode (enhanced)")
 	cmd.Flags().Bool("compact", false, "Use compact display mode")
 	cmd.Flags().Bool("card", false, "Use card display mode")
 	cmd.Flags().Bool("tree", false, "Use tree display mode")
 	cmd.Flags().Bool("dashboard", false, "Use dashboard display mode")
+	
+	// Debug flag
+	cmd.Flags().Bool("debug", false, "Show performance and debug information")
 
 	return cmd
 }
@@ -94,9 +129,23 @@ func runList(cmd *cobra.Command, args []string) error {
 		onlyManaged:  getBool(cmd, "managed"),
 		onlyExternal: getBool(cmd, "external"),
 		onlyMissing:  getBool(cmd, "missing"),
+		onlyDeleted:  getBool(cmd, "deleted"),
 		status:       getString(cmd, "status"),
 		profile:      getString(cmd, "profile"),
 		largerThan:   getInt64(cmd, "larger-than"),
+		debug:        getBool(cmd, "debug"),
+	}
+	
+	// Initialize metrics if debug mode
+	var metrics *debug.Metrics
+	if opts.debug {
+		metrics = debug.NewMetrics()
+	}
+
+	// Check for output format
+	outputFormat := getString(cmd, "output")
+	if outputFormat != "" {
+		return listRegistryArchivesWithOutput(opts, outputFormat)
 	}
 
 	// Determine display mode
@@ -108,7 +157,7 @@ func runList(cmd *cobra.Command, args []string) error {
 	}
 
 	// List registry-tracked archives
-	return listRegistryArchivesWithDisplay(opts, displayMode)
+	return listRegistryArchivesWithDisplay(opts, displayMode, metrics)
 }
 
 // flag helpers
@@ -138,7 +187,7 @@ func determineDisplayMode(cmd *cobra.Command) display.Mode {
 }
 
 // listRegistryArchivesWithDisplay uses the new display system
-func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error {
+func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode, metrics *debug.Metrics) error {
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
@@ -168,6 +217,17 @@ func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error 
 		return fmt.Errorf("failed to list archives: %w", err)
 	}
 
+	// Record query completion if metrics enabled
+	if metrics != nil {
+		metrics.RecordQueryTime()
+		metrics.SetResultCount(len(archives))
+		
+		// Get database size if available
+		if dbInfo, statErr := os.Stat(filepath.Join(cfg.Storage.ManagedPath, "registry.db")); statErr == nil {
+			metrics.SetDatabaseSize(dbInfo.Size())
+		}
+	}
+
 	// Apply filters
 	archives = applyAllFilters(archives, opts)
 
@@ -175,7 +235,7 @@ func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error 
 	if mode == display.ModeTable || mode == display.ModeCompact || mode == display.ModeCard || mode == display.ModeTree || mode == display.ModeDashboard {
 		// Initialize display manager
 		displayManager := display.NewManager()
-		
+
 		// Register available display modes
 		tableDisplay := modes.NewTableDisplay()
 		compactDisplay := modes.NewCompactDisplay()
@@ -196,11 +256,28 @@ func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error 
 		}
 
 		// Render using the display system
-		return displayManager.Render(archives, displayOpts)
+		err := displayManager.Render(archives, displayOpts)
+		
+		// Record render time and show debug output if enabled
+		if metrics != nil {
+			metrics.RecordRenderTime()
+			if opts.debug {
+				fmt.Printf("\n%s\n", metrics.String())
+			}
+		}
+		
+		return err
 	}
 
 	// Fall back to original display for now (other modes not yet implemented)
-	return displayArchivesOriginal(archives, opts)
+	err = displayArchivesOriginal(archives, opts)
+	
+	// Show debug output for fallback display too
+	if metrics != nil && opts.debug {
+		fmt.Printf("\n%s\n", metrics.String())
+	}
+	
+	return err
 }
 
 // applyAllFilters applies all configured filters to the archive list
@@ -235,6 +312,17 @@ func applyAllFilters(archives []*storage.Archive, opts listFilters) []*storage.A
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
 			if a.Status == "missing" {
+				filtered = append(filtered, a)
+			}
+		}
+		archives = filtered
+	}
+
+	// Apply deleted filter
+	if opts.onlyDeleted {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if a.Status == "deleted" {
 				filtered = append(filtered, a)
 			}
 		}
@@ -707,4 +795,119 @@ func formatDuration(d time.Duration) string {
 		return fmt.Sprintf("%dh", int(d.Hours()))
 	}
 	return fmt.Sprintf("%dd", int(d.Hours()/24))
+}
+
+// listRegistryArchivesWithOutput handles machine-readable output formats
+func listRegistryArchivesWithOutput(opts listFilters, format string) error {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	// Initialize storage manager
+	storageManager, err := storage.NewManager(cfg.Storage.ManagedPath)
+	if err != nil {
+		return fmt.Errorf("failed to initialize managed storage: %w", err)
+	}
+	defer storageManager.Close()
+
+	// Get archives based on filters
+	var archives []*storage.Archive
+	if opts.notUploaded {
+		archives, err = storageManager.ListNotUploaded()
+	} else if opts.olderThan != "" {
+		dur, parseErr := parseHumanDuration(opts.olderThan)
+		if parseErr != nil {
+			return fmt.Errorf("invalid duration format: %w", parseErr)
+		}
+		archives, err = storageManager.ListOlderThan(dur)
+	} else {
+		archives, err = storageManager.List()
+	}
+	if err != nil {
+		return fmt.Errorf("failed to list archives: %w", err)
+	}
+
+	// Apply filters
+	archives = applyAllFilters(archives, opts)
+
+	// Output in requested format
+	switch format {
+	case "json":
+		return outputJSON(archives)
+	case "csv":
+		return outputCSV(archives)
+	case "yaml":
+		return outputYAML(archives)
+	case "table":
+		// Fall back to display system
+		return listRegistryArchivesWithDisplay(opts, display.ModeTable)
+	default:
+		return fmt.Errorf("unsupported output format: %s (supported: json, csv, yaml, table)", format)
+	}
+}
+
+func outputJSON(archives []*storage.Archive) error {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+	return enc.Encode(archives)
+}
+
+func outputCSV(archives []*storage.Archive) error {
+	writer := csv.NewWriter(os.Stdout)
+	defer writer.Flush()
+
+	// Write header
+	if err := writer.Write([]string{
+		"uid", "name", "path", "size", "created", "checksum", "profile",
+		"managed", "status", "last_seen", "deleted_at", "original_path",
+		"uploaded", "destination", "uploaded_at",
+	}); err != nil {
+		return fmt.Errorf("failed to write CSV header: %w", err)
+	}
+
+	// Write data rows
+	for _, a := range archives {
+		var lastSeen, deletedAt, uploadedAt string
+		if a.LastSeen != nil {
+			lastSeen = a.LastSeen.Format(time.RFC3339)
+		}
+		if a.DeletedAt != nil {
+			deletedAt = a.DeletedAt.Format(time.RFC3339)
+		}
+		if a.UploadedAt != nil {
+			uploadedAt = a.UploadedAt.Format(time.RFC3339)
+		}
+
+		row := []string{
+			a.UID,
+			a.Name,
+			a.Path,
+			fmt.Sprintf("%d", a.Size),
+			a.Created.Format(time.RFC3339),
+			a.Checksum,
+			a.Profile,
+			fmt.Sprintf("%t", a.Managed),
+			a.Status,
+			lastSeen,
+			deletedAt,
+			a.OriginalPath,
+			fmt.Sprintf("%t", a.Uploaded),
+			a.Destination,
+			uploadedAt,
+		}
+
+		if err := writer.Write(row); err != nil {
+			return fmt.Errorf("failed to write CSV row: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func outputYAML(archives []*storage.Archive) error {
+	enc := yaml.NewEncoder(os.Stdout)
+	defer enc.Close()
+	return enc.Encode(archives)
 }

@@ -256,7 +256,7 @@ func (td *TableDisplay) printRow(archive *storage.Archive, columns []Column) {
 // formatAge formats duration since creation
 func formatAge(created time.Time) string {
 	age := time.Since(created)
-	
+
 	if age < time.Hour {
 		return fmt.Sprintf("%dm", int(age.Minutes()))
 	}

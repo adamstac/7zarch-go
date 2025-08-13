@@ -70,9 +70,9 @@ func CreateTestArchive(t *testing.T, reg *Registry, name string, opts ...TestArc
 		Status:   cfg.status,
 	}
 
-	// Register archive
+	// Add archive
 	if err := reg.Add(archive); err != nil {
-		t.Fatalf("Failed to register test archive: %v", err)
+		t.Fatalf("Failed to add test archive: %v", err)
 	}
 
 	return archive

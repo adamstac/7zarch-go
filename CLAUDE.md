@@ -22,10 +22,23 @@
   - Current: Working on PR #9 (list filters), potentially 7EP-0010 TUI tonight
   - Communication: Via PR descriptions, commit messages, and `/docs/development/`
 
+- **Amp-s** - Senior Strategic Architect (Renamed 2025-08-13) ⭐⭐⭐⭐⭐
+  - Responsibilities: Product strategy, business impact, executive leadership, roadmap planning
+  - Focus: Strategic vision, user value, competitive positioning, resource allocation
+  - Activation: `Switching to Amp-s role for strategic planning.`
+  - **PROVEN EXCELLENCE**: 7EP-0014 delivered exceptional foundation gap analysis
+  - **Confidence Level**: **VERY HIGH** - Demonstrated strategic thinking and product vision
+
 - **CR (CodeRabbit)** - Automated code reviewer
   - Triggers: On all PRs automatically
   - Purpose: Catches issues, suggests improvements
   - Config: `.coderabbit.yaml`
+
+- **Amp-t** - Senior Technical Architect (NEW 2025-08-13)
+  - Role: Technical review, architecture oversight, code quality governance
+  - Focus: High-level review, documentation standards, process leadership
+  - Activation: `Switching to Amp-t role for technical review.`
+  - Scope: PR reviews, architecture evaluation, technical standards
 
 ## 📍 Key Locations
 
@@ -33,6 +46,7 @@
 - `/docs/7eps/` - Enhancement proposals (our roadmap)
 - `/docs/development/pr-merge-roadmap.md` - Current PR status and priorities
 - `/docs/development/tomorrow-plan.md` - Daily planning
+- `/docs/development/AMP.md` - Unified Amp-s (strategic) and Amp-p (technical) role documentation
 - `/docs/reference/` - Command and system documentation
 - `/CLAUDE.md` - This file! Your context guide
 
@@ -51,7 +65,8 @@
 ### Important Files
 - `go.mod` - Dependencies (check for conflicts)
 - `.github/workflows/` - CI/CD pipelines
-- `Makefile` - Build commands (`make build`, `make test`)
+- `Makefile` - Build commands (`make dev`, `make dist`, `make validate`) 
+- `.goreleaser.yml` - Professional build pipeline with Level 2 reproducibility
 
 ## 🚀 Quick Start Checklist
 
@@ -82,26 +97,41 @@ When starting a new session:
 
 4. **Test the build**
    ```bash
-   go build -o 7zarch-go .
-   ./7zarch-go list --dashboard  # Test our display modes
+   make dev            # Build with Goreleaser and install
+   ~/bin/7zarch-go list --dashboard  # Test display modes
    ```
 
 ## 🎯 Current Project State (as of 2025-08-13)
 
-### Recently Completed
+### Recently Completed  
+- ✅ **7EP-0015 Code Quality Foundation** - Comprehensive quality improvements (JUST COMPLETED!)
+- ✅ **7EP-0013 Build Pipeline** - Goreleaser + Level 2 reproducibility (PR #20 merged)
+- ✅ **7EP-0005 Test Dataset System** - Comprehensive test infrastructure merged (PR #12)
+- ✅ **7EP-0011 Lint Tightening** - Improved code quality standards merged (PR #19)
 - ✅ **7EP-0009 Enhanced Display System** - 5 display modes (table, compact, card, tree, dashboard)
 - ✅ **MAS Foundation** - Full ULID resolution, show, list, move commands
-- ✅ **12-character ULID display** - Fixed for show command compatibility
+- ✅ **CI/CD Infrastructure** - Fixed all workflow issues, updated dependencies
+- ✅ **Dependabot Cleanup** - 3 PRs merged, 1 incompatible PR properly closed
 
-### Active Work
-- 🔄 **PR #9** - List filters/refinements (AC working)
-- 🔄 **PR #10** - Trash management ready to merge
-- 🎯 **7EP-0010 TUI** - AC potentially implementing overnight
+### 🌟 LATEST ACHIEVEMENT: 7EP-0015 Code Quality Foundation
+**Status**: 🔍 **REVIEW** - [PR #25](https://github.com/adamstac/7zarch-go/pull/25) created for review
+- **Standardized Error Handling**: All MAS commands use consistent patterns with helpful suggestions
+- **Debug System**: `--debug` flag provides performance metrics (query time, memory, DB size)
+- **Code Quality**: Extracted common patterns into `internal/cmdutil` reducing duplication
+- **Test Coverage**: Added comprehensive test suites (50-100% coverage on core packages)
+- **User Experience**: Enhanced help text and troubleshooting documentation
 
-### Known Issues
-- 🔴 **PR #11** - CI integration has conflicts + failures
-- 🔴 **PR #12** - Test dataset has 15 compilation errors
-- ⚠️ Several dependabot PRs pending
+### Available for Next Work
+- 🔄 **7EP-0010 TUI** - Ready for implementation (AC potentially working overnight)
+- 🔄 **7EP-0007 Enhanced MAS Ops** - Ready to start (build infrastructure resolved)
+- 🎯 **New strategic work** - Foundation is solid, ready for advanced features
+
+### Current Status
+- ✨ **Professional build pipeline** - Goreleaser with reproducible builds
+- ✨ **Quality codebase** - Standardized errors, debug system, comprehensive tests
+- ✨ **Clean infrastructure** - All PRs resolved, CI functional, dependencies current
+- ✨ **Team coordination** - Amp completed 7EP-0014, AC available for 7EP-0010
+- ✨ **Ready for advanced features** - Solid foundation enables complex development
 
 ## 💡 Project Patterns & Preferences
 
@@ -129,7 +159,12 @@ type Display interface {
 
 ### Git Workflow
 - Feature branches: `feat/7ep-XXXX-description`
+- **Always create feature branches for new work** - Never work directly on main
+- **Branch from main** for all new features, not from other feature branches  
+- **Keep branches focused** - One branch per 7EP or major feature
+- **Clean working directory** before starting new feature work
 - Squash merge PRs with branch deletion
+- **GPG SIGNING REQUIRED**: All commits to the remote repo must be GPG signed. Any unsigned commits must be squashed with a GPG signed commit before pushing
 - **NO SIGNATURES**: Don't add "🤖 Generated with Claude Code" or "Co-Authored-By" to commits
 - No Claude mentions in commits (Adam will say "no claude mention" if needed)
 - Comprehensive commit messages with what and why
@@ -138,10 +173,16 @@ type Display interface {
 
 ### Build & Test
 ```bash
+# Goreleaser build system (Level 2 reproducible) - JUST IMPLEMENTED!
+make dev            # Build and install to ~/bin
+make dist           # Build for current platform  
+make validate       # Validate Goreleaser config
+make release        # Create release (CI only)
+
+# Legacy build system (still available)
 make build          # Build binary
 make test           # Run tests
 make lint           # Run linter
-go build -o 7zarch-go .  # Direct build
 ```
 
 ### Display Modes Testing
@@ -170,16 +211,20 @@ gh pr view [number]
 
 | 7EP | Title | Status | Owner | Notes |
 |-----|-------|--------|-------|-------|
-| 0001 | Trash Management | 🔄 Ready | AC | PR #10 |
-| 0002 | CI Integration | 🔴 Blocked | CC | PR #11 needs fixes |
+| 0001 | Trash Management | ✅ Complete | AC | Merged PR #10 |
+| 0002 | CI Integration | ✅ Complete | CC | Merged PR #11 |
 | 0003 | Database Migrations | 🟡 Draft | AC | Not started |
 | 0004 | MAS Foundation | ✅ Complete | AC | Merged |
-| 0005 | Test Dataset | 🔴 Broken | CC | PR #12 needs fixes |
+| 0005 | Test Dataset | ✅ Complete | CC | Merged PR #12 |
 | 0006 | Performance Testing | ✅ Complete | CC | Merged |
-| 0007 | Enhanced MAS Ops | 🟢 Planned | AC/CC | Ready to start |
+| 0007 | Enhanced MAS Ops | 🟢 Ready | AC/CC | Foundation complete, ready to start |
 | 0008 | Depot Actions | ✅ Complete | CC | Merged |
-| 0009 | Enhanced Display | ✅ Complete | CC | Just shipped! |
-| 0010 | Interactive TUI | 🟢 Planned | AC | Guide prepared |
+| 0009 | Enhanced Display | ✅ Complete | CC | Merged |
+| 0010 | Interactive TUI | 🟢 Ready | AC | Guide prepared, ready for implementation |
+| 0011 | Lint Tightening | ✅ Complete | CC | Merged PR #19 |
+| 0013 | Build Pipeline | ✅ Complete | CC | Merged PR #20 - Goreleaser + reproducible builds |
+| 0014 | Critical Foundation | ✅ Complete | Amp | Exceptional strategic analysis completed |
+| 0015 | Code Quality | 🔍 Review | CC | PR #25 - comprehensive quality improvements |
 
 ## 🔄 Session Handoff Protocol
 
@@ -220,8 +265,12 @@ gh pr view [number]
 
 ### Session-Specific Context
 <!-- Update this section with temporary context that might not persist -->
-- 2025-08-13: Just shipped 7EP-0009, AC potentially doing TUI overnight
-- Tomorrow options: Fix CI/test PRs or start 7EP-0007
+- 2025-08-13: **DUAL AMP ROLES CREATED** 🎯 - Clear strategic vs technical separation
+- **AMP-S (Strategic)**: Product strategy, business impact, executive leadership, roadmap planning
+- **AMP-P (Principal/Technical)**: Code quality, architecture review, technical standards, implementation oversight
+- **ACTIVATION**: See `/docs/development/AMP.md` for complete role documentation and activation examples
+- **PURPOSE**: Clear role separation - strategic vision (Amp-s) + technical execution (Amp-p)
+- **READY FOR**: Strategic guidance (Amp-s) or technical review (Amp-p) as needed
 
 ---
 

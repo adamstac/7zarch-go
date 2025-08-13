@@ -1,15 +1,62 @@
 # 7EP-0007: Enhanced MAS Operations
 
-**Status:** Draft  
+**Status:** 🎯 Ready for Implementation  
 **Author(s):** Claude Code (CC), Augment Code (AC)  
-**Assignment:** AC/CC Split (coordination needed)  
+**Assignment:** CC (Full Implementation)  
 **Difficulty:** 3 (moderate - builds on 7EP-0004 foundation)  
 **Created:** 2025-08-12  
-**Updated:** 2025-08-12  
+**Updated:** 2025-08-13 (Amp architectural review + 7EP-0014 foundation integration)  
+**Foundation Status:** ✅ 7EP-0014 Complete - All dependencies satisfied  
 
 ## Executive Summary
 
-Extend the MAS (Managed Archive Storage) foundation with advanced operations including batch processing, full-text search, saved queries, shell completion, and enhanced workflow commands to provide a complete archive management experience.
+Extend the MAS (Managed Archive Storage) foundation with advanced operations including batch processing, full-text search, saved queries, and enhanced workflow commands to provide a complete archive management experience.
+
+## 🏛️ Amp (Sourcegraph) Architectural Review
+
+**Overall Assessment**: ✅ **EXCELLENT DESIGN** - Well-architected, ready for implementation with 7EP-0014 foundation complete.
+
+**Foundation Status**: 🎯 **PERFECT TIMING** - 7EP-0014 delivered all required foundation components:
+- ✅ Database migration system enables safe schema evolution
+- ✅ Machine-readable output (JSON/CSV) enables batch processing integration  
+- ✅ Shell completion foundation provides baseline UX
+- ✅ Complete trash lifecycle integrates with batch operations
+
+**Strategic Impact**: This 7EP transforms 7zarch-go from **basic archive manager** → **power user command center** with enterprise-grade capabilities.
+
+### 🎯 Implementation Priority Recommendations
+
+**CC Implementation Areas** (Full Ownership):
+1. **Query System** - Highest ROI, enables all other features
+2. **Search Engine** - Full-text indexing and discovery capabilities  
+3. **Batch Processing** - Multi-archive operations with progress tracking
+4. **CLI Integration** - Command interfaces and workflow patterns
+5. **Performance Optimization** - Search indexing, batch operation efficiency
+
+### 🚀 Key Architectural Strengths
+
+**1. Excellent Layered Design**
+- Query → Search → Batch → Integration layers well-separated
+- Clean interfaces enable independent development and testing
+- Builds perfectly on proven 7EP-0004 foundation patterns
+
+**2. Performance-First Approach**  
+- Realistic benchmarks (<100ms queries, <500ms search, <50ms completion)
+- In-memory + persistent cache strategy for search index
+- Progress tracking for batch operations ensures responsive UX
+
+**3. User Experience Excellence**
+- Saved queries address real power-user pain points
+- Batch operations with confirmation/rollback provide safety
+- Search across metadata fields enables content discovery
+
+### ⚡ Implementation Acceleration Opportunities
+
+**Leverage 7EP-0014 Foundation:**
+- **Query Storage**: Use new migration system for schema changes
+- **Machine Output**: Integrate with existing JSON/CSV for batch stdin
+- **Error Patterns**: Follow established error handling from foundation
+- **Testing**: Build on proven test patterns from migration system
 
 ## Evidence & Reasoning
 
@@ -140,17 +187,20 @@ func (bp *BatchProcessor) Delete(archives []*Archive, confirm bool) error
 func (bp *BatchProcessor) Upload(archives []*Archive, provider string) error
 ```
 
-#### 4. Shell Integration (`internal/completion/`)
+#### 4. Advanced Query Integration (`internal/query/`)
 ```go
-// Shell completion for bash/zsh/fish
-type CompletionProvider struct {
-    registry *storage.Registry
+// Advanced query operations building on 7EP-0014 foundation
+type AdvancedQueryManager struct {
+    basic    QueryManager      // From foundation
+    search   *SearchEngine     // For query + search combinations
+    batch    *BatchProcessor   // For query + batch operations
 }
 
-func (cp *CompletionProvider) CompleteUIDs(prefix string) []string
-func (cp *CompletionProvider) CompleteNames(prefix string) []string
-func (cp *CompletionProvider) CompleteCommands() []string
+func (aqm *AdvancedQueryManager) SaveWithSearch(name string, searchTerms []string, filters ListFilters) error
+func (aqm *AdvancedQueryManager) RunBatch(queryName string, operation BatchOperation) error
 ```
+
+**Note**: Basic shell completion now provided by 7EP-0014 foundation. This 7EP adds advanced completion for saved queries.
 
 ### API Changes
 
@@ -177,14 +227,15 @@ func (cp *CompletionProvider) CompleteCommands() []string
 
 #### Enhanced Existing Commands
 ```bash
-# List command extensions
+# List command extensions (builds on 7EP-0014 machine output)
 7zarch-go list --save-query=<name>    # Save current filters
 7zarch-go list --query=<name>         # Use saved query
-7zarch-go list --output=json|csv      # Machine-readable output
+# Note: --output=json|csv already provided by 7EP-0014
 
 # Show command extensions  
 7zarch-go show --related              # Show similar archives
 7zarch-go show --usage                # Show access history
+# Note: --output=json already provided by 7EP-0014
 ```
 
 ### Data Model Changes
@@ -212,19 +263,19 @@ CREATE TABLE search_index (
 
 ## Implementation Plan
 
-### Phase 1: Query Foundation (AC Lead)
-- [ ] **Query Storage System** (AC)
-  - [ ] SQLite schema for saved queries
-  - [ ] Query CRUD operations
-  - [ ] Query execution against existing filters
+### Phase 1: Query Foundation (CC)
+- [ ] **Query Storage System** (CC)
+  - [ ] SQLite schema for saved queries using 7EP-0014 migration system
+  - [ ] Query CRUD operations with transaction safety
+  - [ ] Query execution against existing ListFilters
   - [ ] Query management commands (`query save/list/run/delete`)
 
-- [ ] **List Command Integration** (AC)  
+- [ ] **List Command Integration** (CC)  
   - [ ] `--save-query` flag for saving current filters
   - [ ] `--query` flag for using saved queries
-  - [ ] JSON/CSV output formats for scripting
+  - [ ] Integration with existing machine output from 7EP-0014
 
-### Phase 2: Search & Discovery (CC Lead)
+### Phase 2: Search & Discovery (CC)
 - [ ] **Full-Text Search Engine** (CC)
   - [ ] Search index building and maintenance
   - [ ] Search query parsing and execution
@@ -236,28 +287,28 @@ CREATE TABLE search_index (
   - [ ] Usage history tracking
   - [ ] Metadata expansion
 
-### Phase 3: Batch Operations (Shared)
+### Phase 3: Batch Operations (CC)
 - [ ] **Batch Processing Core** (CC)
   - [ ] Multi-archive operation framework
   - [ ] Progress tracking and reporting
   - [ ] Error handling and rollback
 
-- [ ] **Batch Command Integration** (AC)
+- [ ] **Batch Command Integration** (CC)
   - [ ] Batch command with query integration
-  - [ ] Stdin processing for piped operations
+  - [ ] Stdin processing for piped operations using 7EP-0014 machine output
   - [ ] Confirmation prompts for destructive operations
 
-### Phase 4: Shell Integration (CC Lead)
-- [ ] **Completion Provider** (CC)
-  - [ ] ULID prefix completion
-  - [ ] Archive name completion  
-  - [ ] Command and flag completion
-  - [ ] Shell script generation (bash/zsh/fish)
+### Phase 4: Advanced Integration (CC)
+- [ ] **Query + Search Integration** (CC)
+  - [ ] Combine saved queries with search terms
+  - [ ] Search result saving as queries
+  - [ ] Complex query composition workflows
+  - [ ] Advanced completion for saved query names (builds on 7EP-0014 foundation)
 
 ### Dependencies
-- **7EP-0004**: MAS Foundation (completed) - provides resolver, registry, and basic commands
-- **7EP-0001**: Trash Management (in progress) - batch delete should integrate with trash
-- **7EP-0005**: Test Dataset System (planned) - needed for comprehensive testing
+- **7EP-0004**: MAS Foundation ✅ (completed) - provides resolver, registry, and basic commands  
+- **7EP-0001**: Trash Management ✅ (completed via 7EP-0014) - batch delete integrates with trash
+- **7EP-0014**: Critical Foundation Gaps ✅ (completed) - provides machine output, database migrations, shell completion baseline
 
 ## Testing Strategy
 
@@ -321,39 +372,21 @@ All existing 7EP-0004 functionality preserved exactly.
 
 **Batch processing via shell pipes**: Considered Unix-style piping (`7zarch-go list | xargs 7zarch-go delete`) but decided native batch operations provide better error handling and progress tracking.
 
-## AC/CC Implementation Split
+## CC Implementation Strategy
 
-### AC (Augment Code) Responsibilities - User-Facing Features
-- **Query Management System**: Storage, CRUD operations, query execution
-- **List Command Enhancement**: Save/load queries, output formats  
-- **Batch Command Integration**: Query integration, confirmation flows
-- **User Experience**: Command interfaces, help text, error messages
-- **CLI Integration**: Flag design, command composition, workflow patterns
+### CC (Claude Code) Responsibilities - Full Implementation
+- **Query Management System**: Storage, CRUD operations, query execution, CLI commands
+- **Search Engine**: Full-text indexing, search execution, reindexing, performance optimization
+- **Batch Processing**: Multi-archive operations, progress tracking, safety confirmations
+- **CLI Integration**: Command interfaces, flag design, help text, error messages
+- **Performance Optimization**: Search indexing, batch operation efficiency, benchmark validation
+- **Testing**: Comprehensive test coverage, performance tests, integration validation
 
-### CC (Claude Code) Responsibilities - Infrastructure & Performance
-- **Search Engine**: Full-text indexing, search execution, reindexing
-- **Batch Processing Core**: Multi-archive operations, progress tracking
-- **Shell Completion**: Completion provider, shell script generation
-- **Performance Optimization**: Search indexing, batch operation efficiency
-- **Testing Infrastructure**: Benchmarks, performance tests, edge case coverage
-
-### Shared Responsibilities
-- **API Design**: Command interfaces and flag naming (AC leads, CC reviews)
-- **Integration Testing**: Cross-component workflow validation
-- **Error Handling**: Consistent error patterns across components
-- **Documentation**: User guides (AC), technical architecture (CC)
-
-### Coordination Points
-1. **Query Filter Integration**: How saved queries map to existing ListFilters (AC designs, CC implements backend)
-2. **Batch Operation Interface**: How batch processor integrates with existing commands (AC designs CLI, CC implements engine)
-3. **Search Index Schema**: What metadata fields to index and how (CC designs, AC provides user requirements)
-4. **Completion Data Source**: How completion provider accesses registry efficiently (CC implements, AC defines user experience)
-
-### Communication Protocol
-- **Weekly Planning**: AC and CC coordinate feature priorities and dependencies
-- **PR Cross-Review**: AC reviews CC infrastructure PRs, CC reviews AC user experience PRs
-- **Integration Points**: Dedicated coordination sessions when components need to integrate
-- **User Feedback Loop**: AC gathers and prioritizes user needs, CC ensures technical feasibility
+### Implementation Coordination with Amp
+- **Architectural Oversight**: Amp provides strategic guidance and design review
+- **Performance Validation**: Amp monitors benchmark achievement and optimization opportunities
+- **Quality Assurance**: Amp reviews implementation against 7EP specifications
+- **Integration Review**: Amp ensures proper foundation leverage and best practices
 
 ## Future Considerations
 
@@ -363,9 +396,306 @@ All existing 7EP-0004 functionality preserved exactly.
 - **Web Interface**: Browser-based archive management dashboard
 - **API Server**: REST API for external integrations
 
+## 🎯 CC Implementation Guidance (Amp Strategic Direction)
+
+### **Phase 1: Query Foundation - START HERE** (Estimated: 3-4 days)
+
+**HIGHEST ROI** - Enables all subsequent features. Focus on query system foundation first.
+
+#### Quick Wins (Day 1-2):
+```bash
+# Core query commands to implement
+7zarch-go query save "my-docs" --profile=documents --managed
+7zarch-go query list
+7zarch-go query run my-docs
+7zarch-go query delete my-docs
+
+# List integration 
+7zarch-go list --save-query=my-docs    # Save current filters as query
+7zarch-go list --query=my-docs         # Use saved query
+```
+
+**Implementation Strategy:**
+1. **Use 7EP-0014 migration system** for query table schema
+2. **Leverage existing ListFilters** - serialize to JSON for storage
+3. **Build on machine output** - queries can export JSON for automation
+4. **Follow resolver patterns** - query names resolve like archive IDs
+
+#### Technical Foundation:
+```go
+// Query storage building on 7EP-0014 migration foundation
+type QueryStorage struct {
+    db *sql.DB  // Use existing registry database
+}
+
+// Migration file: 0004_query_system.sql
+CREATE TABLE queries (
+    name TEXT PRIMARY KEY,
+    filters TEXT NOT NULL,  -- JSON-encoded ListFilters
+    created INTEGER NOT NULL,
+    last_used INTEGER,
+    use_count INTEGER DEFAULT 0
+);
+```
+
+### **Phase 2: Search Engine - HIGH IMPACT** (Estimated: 2-3 days)
+
+**MASSIVE DISCOVERABILITY** - Users can find archives by any metadata field.
+
+```bash
+# Search implementation priority
+7zarch-go search "project backup 2024"    # Cross-field search
+7zarch-go search --name "backup.*2024"     # Field-specific with regex
+7zarch-go reindex                          # Rebuild search index
+```
+
+**Performance Critical:**
+- **<500ms search target** for 10K archives requires optimized indexing
+- **In-memory index** with persistent cache for performance
+- **Incremental updates** when archives added/modified
+
+### **Phase 3: Batch Operations - WORKFLOW TRANSFORMATION** (Estimated: 3-4 days)
+
+**POWER USER ENABLEMENT** - Multi-archive operations with safety and progress.
+
+```bash
+# Batch implementation priority  
+7zarch-go batch --query=media-large move --to=/backup/media/
+7zarch-go batch --stdin delete --confirm   # Pipe from list output
+7zarch-go list --older-than=1y --output=json | jq -r '.[].uid' | 7zarch-go batch delete --confirm
+```
+
+**Safety Requirements:**
+- **Confirmation prompts** for destructive operations
+- **Progress tracking** every 1-2 seconds for large sets
+- **Rollback capability** on partial failures
+- **Integration with trash system** from 7EP-0014
+
+### **Phase 4: Advanced Integration - POLISH** (Estimated: 1-2 days)
+
+**PROFESSIONAL FINISH** - Query + search combinations, advanced workflows.
+
+```bash
+# Advanced combinations
+7zarch-go search "important" --save-query=important-files
+7zarch-go query run important-files --output=json | jq -r '.[].uid' | 7zarch-go batch upload --provider=s3
+```
+
+### 🛠️ CC Technical Implementation Notes
+
+**Database Integration:**
+- **Use 7EP-0014 migration system** - create migration files, don't modify schema directly
+- **Follow established patterns** - error handling, ULID resolution, registry operations
+- **Performance validation** - test with realistic datasets (1000+ archives)
+
+**CLI Design:**
+- **Consistent flag naming** - follow patterns from existing commands
+- **Machine output integration** - ensure all new commands support `--output json`
+- **Help text clarity** - comprehensive examples and error guidance
+
+**Testing Strategy:**
+- **Unit tests** for all query, search, and batch operations
+- **Integration tests** combining query + search + batch workflows
+- **Performance tests** validating benchmark targets
+- **CLI workflow tests** ensuring smooth user experience
+
+## 🔧 CC Technical Implementation Guidance
+
+### **CC Phase 2: Search Engine Implementation**
+
+#### Search Architecture Requirements
+```go
+// Search engine core - optimized for <500ms target
+type SearchEngine struct {
+    index    *InvertedIndex      // Term -> archive UIDs mapping
+    metadata *MetadataCache      // Fast metadata access
+    registry *storage.Registry   // Source of truth
+}
+
+// Performance-critical indexing strategy
+type InvertedIndex struct {
+    terms    map[string][]string  // term -> archive UIDs
+    fields   map[string][]string  // field -> terms for that field
+    cache    *lru.Cache          // LRU cache for frequent terms
+}
+```
+
+#### CC Indexing Strategy
+1. **Field-Based Indexing**: Index name, path, tags separately for field-specific searches
+2. **Incremental Updates**: Update index only when archives change, not full rebuild
+3. **Memory Management**: LRU cache for frequent search terms, disk persistence for full index
+4. **Performance Target**: <500ms for 10K archives requires optimized data structures
+
+#### Search Implementation Priority
+```go
+// Phase 2.1: Basic text search (Day 1-2)
+func (se *SearchEngine) Search(query string) ([]*storage.Archive, error)
+
+// Phase 2.2: Field-specific search (Day 2-3) 
+func (se *SearchEngine) SearchField(field, query string) ([]*storage.Archive, error)
+
+// Phase 2.3: Regex support and advanced patterns (Day 3+)
+func (se *SearchEngine) SearchRegex(field, pattern string) ([]*storage.Archive, error)
+```
+
+### **CC Phase 3: Batch Processing Core**
+
+#### Batch Architecture Requirements
+```go
+// High-performance batch processing with progress tracking
+type BatchProcessor struct {
+    manager    *storage.Manager
+    progress   *ProgressTracker
+    concurrent int                    // Configurable concurrency
+}
+
+// Progress tracking for responsive UX
+type ProgressTracker struct {
+    total     int
+    completed int
+    errors    []error
+    startTime time.Time
+    callback  func(ProgressUpdate)   // Real-time updates every 1-2 seconds
+}
+```
+
+#### CC Batch Implementation Strategy
+1. **Concurrent Operations**: Use goroutine pool for parallel processing
+2. **Error Handling**: Continue processing on individual failures, collect all errors
+3. **Progress Updates**: Emit updates every 1-2 seconds, not per-operation
+4. **Safety Mechanisms**: Confirmation prompts before destructive operations
+
+#### Batch Performance Requirements
+- **Throughput**: Handle 100+ archives efficiently with progress feedback
+- **Memory Usage**: Stream operations, don't load all archives into memory
+- **Error Recovery**: Partial failure handling with rollback capability
+- **Integration**: Work with existing MAS commands (move, delete, upload)
+
+### **CC Performance Validation Framework**
+
+#### Benchmark Implementation
+```go
+// Performance validation for CC components
+func BenchmarkSearchEngine(b *testing.B) {
+    // Test 1K, 5K, 10K archive datasets
+    // Validate <500ms target across all sizes
+}
+
+func BenchmarkBatchOperations(b *testing.B) {
+    // Test batch sizes: 10, 50, 100, 500 archives
+    // Validate progress update frequency
+}
+```
+
+#### CC Testing Strategy
+1. **Performance Tests**: Automated benchmarks for search and batch operations
+2. **Memory Tests**: Validate no memory leaks during large operations
+3. **Concurrent Tests**: Verify thread safety of search index updates
+4. **Integration Tests**: End-to-end workflows with AC query system
+
+### **CC/AC Coordination Points**
+
+#### Data Flow Integration
+1. **Query → Search**: AC queries provide filters, CC search provides results
+2. **Search → Batch**: CC search results feed into CC batch processor  
+3. **Batch → Progress**: CC batch operations report progress to AC CLI interface
+4. **Error Handling**: Consistent error patterns between AC CLI and CC backend
+
+#### Interface Contracts
+```go
+// AC provides this interface for CC to implement
+type SearchProvider interface {
+    Search(query string) ([]*storage.Archive, error)
+    SearchField(field, query string) ([]*storage.Archive, error)
+    Reindex() error
+}
+
+// AC provides this interface for CC to implement  
+type BatchProvider interface {
+    Process(operation string, archives []*storage.Archive, options BatchOptions) error
+    Progress() <-chan ProgressUpdate
+}
+```
+
+#### Coordination Protocol
+1. **Sprint Planning**: Weekly coordination on interface definitions
+2. **Integration Points**: Joint testing sessions when AC queries + CC search integrate
+3. **Performance Validation**: CC validates benchmarks, AC validates user experience
+4. **Error Handling**: Shared error patterns and messaging consistency
+
+### 🚨 Critical Implementation Decisions for CC
+
+**1. Query Storage Schema** - Use JSON encoding of ListFilters for maximum compatibility
+**2. Search Index Strategy** - Start with in-memory, add persistence for performance
+**3. Batch Operation Safety** - Always require confirmation for destructive ops
+**4. CLI Verb Structure** - Keep `query`, `search`, `batch` as top-level commands
+
+### 📊 Success Metrics
+
+**User Experience:**
+- Query save/load workflow reduces repeated typing by 80%
+- Search enables finding archives without knowing exact names
+- Batch operations handle 100+ archives efficiently with progress feedback
+
+**Performance:**
+- Query execution <100ms for complex queries on 10K archives  
+- Search operations <500ms for full-text search on 10K archives
+- Batch operations with progress updates every 1-2 seconds
+
+**Adoption:**
+- Power users can accomplish multi-step workflows in single commands
+- External tools can integrate via machine-readable output
+- CLI feels professional and efficient compared to basic file managers
+
+### 🎯 CC Sprint 1 Readiness Checklist
+
+#### Infrastructure Foundation (✅ Complete)
+- [x] **7EP-0014 Database Migrations** - Schema evolution system ready for query/search tables
+- [x] **7EP-0015 Debug System** - Performance metrics for search/batch optimization
+- [x] **Machine Output** - JSON/CSV enables batch stdin integration
+- [x] **Error Handling Patterns** - Standardized error patterns for consistent UX
+
+#### CC Implementation Dependencies
+- [x] **Storage Registry** - Archive metadata access for search indexing
+- [x] **ULID Resolution** - Archive lookup system for batch operations  
+- [x] **MAS Commands** - move, delete, upload for batch integration
+- [x] **Test Infrastructure** - Benchmark framework for performance validation
+
+#### CC-Specific Technical Readiness
+- [x] **Go 1.21+** - Modern Go features for concurrent search/batch processing
+- [x] **SQLite Support** - Persistent search index and query storage
+- [x] **Goroutine Patterns** - Concurrent batch operations with progress tracking
+- [x] **LRU Cache** - Memory-efficient search index with performance optimization
+
+### 🚀 CC Implementation Kickoff Protocol
+
+#### Day 1: Search Engine Foundation
+1. **Create search package** - `internal/search/` with indexing core
+2. **Implement basic search** - Cross-field text search with <500ms target
+3. **Add search command** - CLI integration with existing filters
+4. **Basic performance tests** - Validate search speed on 1K+ archives
+
+#### Day 2-3: Search Optimization  
+1. **Field-specific search** - Name, path, tag searching with regex support
+2. **Index persistence** - SQLite storage for search index with incremental updates
+3. **Memory optimization** - LRU cache for frequent terms, memory usage validation
+4. **Integration testing** - Search + existing list filters combination workflows
+
+#### Day 4-5: Batch Processing Core
+1. **Batch processor** - Multi-archive operations with goroutine pool
+2. **Progress tracking** - Real-time updates every 1-2 seconds with error collection
+3. **Safety mechanisms** - Confirmation prompts, partial failure handling
+4. **Performance validation** - 100+ archive batch operations with progress feedback
+
+#### CC/AC Integration Points
+- **Shared interfaces** - SearchProvider and BatchProvider contracts
+- **Error consistency** - Use established error patterns from 7EP-0015
+- **Performance coordination** - CC validates backend, AC validates UX
+- **Testing collaboration** - Integration tests for query + search + batch workflows
+
 ## References
 
-- **Builds on**: 7EP-0004 MAS Foundation Implementation
-- **Integrates with**: 7EP-0001 Trash Management System  
+- **Builds on**: 7EP-0004 MAS Foundation Implementation, 7EP-0014 Critical Foundation Gaps ✅
+- **Integrates with**: 7EP-0001 Trash Management System ✅ 
 - **Enables**: Advanced archive discovery and bulk management workflows
 - **Related**: CLI completion patterns from tools like `kubectl`, `docker`, `git`

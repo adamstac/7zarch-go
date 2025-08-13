@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// Error types defined in errors.go
+
 // Resolver resolves user input into a single registry archive
 // Resolution order: numeric ID -> exact UID -> UID prefix -> checksum prefix -> exact name
 // Default minimum prefix length is 4 to avoid accidental broad matches.

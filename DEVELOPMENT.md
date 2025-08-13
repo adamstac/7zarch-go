@@ -261,9 +261,28 @@ Provide unified view with source attribution, then update appropriate locations 
 make build          # Build main binary
 make test           # Run unit tests
 make integration    # Integration tests
-make lint           # Code linting and formatting
+make lint           # Code linting (go vet + revive) and formatting
 make build-all      # Multi-platform builds
 ```
+
+### Code Quality & Linting
+
+**Current Linter: revive** (replaced golangci-lint due to CI module resolution issues)
+
+```bash
+# Local linting (same as CI)
+make lint                           # Run go vet + gofmt check
+go install github.com/mgechev/revive@latest
+~/go/bin/revive -config revive.toml -formatter friendly ./...
+```
+
+**Why revive instead of golangci-lint:**
+- **Module Resolution**: golangci-lint has persistent module resolution issues in CI environments with `yaml` and `progressbar` imports
+- **Reliability**: revive works consistently in both local and CI environments  
+- **Performance**: Faster than golangci-lint with comparable code quality feedback
+- **Maintainability**: Simpler configuration, fewer CI environment issues
+
+**Configuration:** `revive.toml` provides reasonable defaults with warnings-only output (non-blocking)
 
 ### User Installation Pattern
 ```bash
