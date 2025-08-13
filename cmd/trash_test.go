@@ -130,7 +130,7 @@ func TestTrashListFiltersAndJSON(t *testing.T) {
 
 	// JSON mode must include DaysLeft and PurgeDate
 	listCmd3 := trashListCmd()
-	out3, err := runEWithFlags(t, listCmd3, func(f *pflag.FlagSet) { _ = f.Set("json", "true") })
+	out3, err := runEWithFlags(t, listCmd3, func(f *pflag.FlagSet) { _ = f.Set("output", "json") })
 	if err != nil {
 		t.Fatalf("list json error: %v", err)
 	}
