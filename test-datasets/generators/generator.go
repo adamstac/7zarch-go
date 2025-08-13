@@ -89,7 +89,9 @@ type Generator struct {
 func NewGenerator(seed int64) *Generator {
 	return &Generator{
 		seed: seed,
-		rng:  rand.New(rand.NewSource(seed)),
+		// Deterministic RNG for test data generation only (not security-sensitive).
+		// #nosec G404 — needs determinism in tests
+		rng: rand.New(rand.NewSource(seed)),
 	}
 }
 
