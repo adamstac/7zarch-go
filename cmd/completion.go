@@ -84,7 +84,7 @@ func completeArchiveIDsWithFilter(cmd *cobra.Command, args []string, toComplete 
 	defer mgr.Close()
 
 	completions := make([]string, 0, 50)
-	
+
 	// Use channel to collect results and handle timeout
 	resultCh := make(chan []string, 3)
 	errorCh := make(chan error, 3)
@@ -201,8 +201,8 @@ func getChecksumPrefixCompletions(mgr *storage.Manager, toComplete string, filte
 	completions := make([]string, 0, len(matches))
 	for _, archive := range matches {
 		if archive.Checksum != "" && (filter == nil || filter(archive)) {
-			desc := fmt.Sprintf("%s\t%s (%s)", 
-				safePrefix(archive.Checksum, 12), 
+			desc := fmt.Sprintf("%s\t%s (%s)",
+				safePrefix(archive.Checksum, 12),
 				archive.Name,
 				safePrefix(archive.UID, 8))
 			completions = append(completions, desc)
@@ -215,14 +215,12 @@ func getChecksumPrefixCompletions(mgr *storage.Manager, toComplete string, filte
 // completeCommands provides completion for subcommands
 func completeCommands(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var completions []string
-	
+
 	for _, subCmd := range cmd.Root().Commands() {
 		if strings.HasPrefix(subCmd.Name(), toComplete) {
 			completions = append(completions, subCmd.Name()+"\t"+subCmd.Short)
 		}
 	}
-	
+
 	return completions, cobra.ShellCompDirectiveNoFileComp
 }
-
-
