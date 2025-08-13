@@ -22,10 +22,10 @@ git log --oneline -5
 - ✅ **MAS Foundation Complete** - Full archive management working
 - ✅ **Documentation Strategy** - [CLAUDE.md](./CLAUDE.md) and [7EPs](./docs/7eps/) driving development
 
-### 🔥 Active Right Now
-- **AC** working on [PR #9 - List filters](../../pull/9) (ready for your review)
-- **AC** potentially tackling [7EP-0010 TUI](./docs/7eps/7ep-0010-interactive-tui-application.md) overnight
-- **CC** available for next priorities
+### 🔥 Active Right Now  
+- **CC** implementing [7EP-0013 Build Pipeline](./docs/7eps/7ep-0013-robust-build-pipeline.md) - **CRITICAL** ([PR #20](../../pull/20))
+- **Build Infrastructure Blocker**: CC/AC cannot reliably build, blocking all development
+- **Solution in Progress**: Goreleaser + Level 2 reproducible builds (industry standard)
 
 ## 📊 Strategic Dashboard
 
@@ -47,13 +47,13 @@ Phase 3 (CI/Testing):     ██                                    20% 🔴
 
 ## 🤔 Decisions Waiting for You
 
-### 🎯 HIGHEST PRIORITY - Strategic Opportunity
-1. **7EP-0007 Implementation Decision** - [Enhanced MAS Operations](./docs/7eps/7ep-0007-enhanced-mas-operations.md) 
-   - **Status**: ✅ **ALL DEPENDENCIES COMPLETE** - Ready for immediate start
-   - **Impact**: Transforms 7zarch-go into power user command center
-   - **Timing**: Perfect - builds on fresh MAS Foundation + Display System
-   - **User Value**: Saved queries, search, batch ops, shell completion
-   - **Coordination**: Clear AC/CC split enables parallel development
+### 🎯 HIGHEST PRIORITY - Critical Infrastructure
+1. **7EP-0013 Build Pipeline** - [Build Infrastructure](./docs/7eps/7ep-0013-robust-build-pipeline.md) **ACTIVE**
+   - **Status**: 🔄 **IN PROGRESS** - CC implementing Goreleaser solution ([PR #20](../../pull/20))
+   - **Impact**: Unblocks all development workflow, enables professional releases
+   - **Solution**: Industry-standard Goreleaser + Level 2 reproducible builds  
+   - **Timeline**: 4-6 hours total implementation (90%+ faster than custom solution)
+   - **Blocks**: All future 7EP development until resolved
 
 ### High Priority  
 2. **[PR #9 Review](../../pull/9)** - AC's list filters ready for your feedback

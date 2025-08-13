@@ -20,7 +20,8 @@
 
 - **CC (Claude Code)** - Sibling AI, handles infrastructure work
   - Responsibilities: Infrastructure, deep technical work, testing systems
-  - Current: Taking over PR #19 (linting/CI) from AC handoff
+  - Current: Implementing 7EP-0013 Build Pipeline (Goreleaser + Level 2 reproducibility)
+  - Status: Active development on [PR #20](https://github.com/adamstac/7zarch-go/pull/20)
   - Communication: Via PR descriptions, commit messages, and `/docs/development/`
 
 - **CR (CodeRabbit)** - Automated code reviewer
@@ -70,6 +71,7 @@
 - CC now owns PR #19 completion
 
 ### Other Active Work
+- **7EP-0013 Build Pipeline** - CC implementing Goreleaser (blocks all development)
 - **PR #9** - List filters/refinements (your work, may need review)
 - **PR #10** - Trash management ready to merge (your work)
 

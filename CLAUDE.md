@@ -97,16 +97,17 @@ When starting a new session:
 - ✅ **Dependabot Cleanup** - 3 PRs merged, 1 incompatible PR properly closed
 
 ### Active Work
-- 🎯 **7EP-0010 TUI** - AC actively implementing (overnight work)
+- 🎯 **7EP-0013 Build Pipeline** - CC actively implementing (Goreleaser + Level 2 reproducibility)
+- 🔄 **7EP-0010 TUI** - AC available for implementation
+- 🔄 **7EP-0007 Enhanced MAS Ops** - Blocked by build infrastructure issues
 
-### 🚀 NEXT PRIORITY: 7EP-0007 Enhanced MAS Operations
-**Status**: ✅ **READY FOR IMMEDIATE IMPLEMENTATION**
-- **Foundation Complete**: All dependencies (7EP-0004, display system) shipped
-- **Test Infrastructure Ready**: 7EP-0005 provides comprehensive testing framework
-- **Perfect Timing**: Builds directly on proven MAS patterns
-- **High User Value**: Saved queries, search, batch ops, shell completion
-- **Clear AC/CC Split**: Parallel development possible
-- **Strategic Impact**: Transforms 7zarch-go into power user command center
+### 🚀 CURRENT PRIORITY: 7EP-0013 Build Pipeline Infrastructure
+**Status**: 🔄 **ACTIVE IMPLEMENTATION** - [PR #20](https://github.com/adamstac/7zarch-go/pull/20)
+- **Critical Blocker**: CC/AC cannot reliably build, blocking all development
+- **Solution**: Goreleaser + Level 2 reproducible builds (industry standard)
+- **Timeline**: 4-6 hours implementation vs 6+ months custom solution
+- **Benefits**: Professional release pipeline matching kubectl/helm/terraform
+- **Impact**: Unblocks development workflow, establishes professional standards
 
 ### Clean Slate Status
 - ✨ **All PRs resolved** - No pending or blocked PRs
@@ -187,7 +188,8 @@ gh pr view [number]
 | 0004 | MAS Foundation | ✅ Complete | AC | Merged |
 | 0005 | Test Dataset | ✅ Complete | CC | Merged PR #12 |
 | 0006 | Performance Testing | ✅ Complete | CC | Merged |
-| 0007 | Enhanced MAS Ops | 🎯 **NEXT PRIORITY** | AC/CC | **✅ READY - All deps complete** |
+| 0007 | Enhanced MAS Ops | 🔄 Blocked | AC/CC | Waiting for build infrastructure |
+| 0013 | Build Pipeline | 🎯 **ACTIVE** | CC | **PR #20 - Goreleaser implementation** |
 | 0008 | Depot Actions | ✅ Complete | CC | Merged |
 | 0009 | Enhanced Display | ✅ Complete | CC | Merged |
 | 0010 | Interactive TUI | 🔄 Active | AC | Currently implementing |
