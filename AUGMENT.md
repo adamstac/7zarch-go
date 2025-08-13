@@ -101,6 +101,11 @@ type Display interface {
 
 ### Git Workflow
 - Feature branches: `feat/7ep-XXXX-description`
+- **Always create feature branches for new work** - Never work directly on main
+- **Branch from main** for all new features, not from other feature branches
+- **Keep branches focused** - One branch per 7EP or major feature  
+- **Clean working directory** before starting new feature work
+- **GPG SIGNING REQUIRED**: All commits to the remote repo must be GPG signed. Any unsigned commits must be squashed with a GPG signed commit before pushing
 - **NO SIGNATURES**: Don't add "🤖 Generated" or "Co-Authored-By" to commits
 - Comprehensive commit messages with what and why
 - Squash merge PRs with branch deletion

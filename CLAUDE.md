@@ -147,7 +147,12 @@ type Display interface {
 
 ### Git Workflow
 - Feature branches: `feat/7ep-XXXX-description`
+- **Always create feature branches for new work** - Never work directly on main
+- **Branch from main** for all new features, not from other feature branches  
+- **Keep branches focused** - One branch per 7EP or major feature
+- **Clean working directory** before starting new feature work
 - Squash merge PRs with branch deletion
+- **GPG SIGNING REQUIRED**: All commits to the remote repo must be GPG signed. Any unsigned commits must be squashed with a GPG signed commit before pushing
 - **NO SIGNATURES**: Don't add "🤖 Generated with Claude Code" or "Co-Authored-By" to commits
 - No Claude mentions in commits (Adam will say "no claude mention" if needed)
 - Comprehensive commit messages with what and why

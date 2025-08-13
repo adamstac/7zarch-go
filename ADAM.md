@@ -22,11 +22,10 @@ git log --oneline -5
 - ✅ **MAS Foundation Complete** - Full archive management working
 - ✅ **Documentation Strategy** - [CLAUDE.md](./CLAUDE.md) and [7EPs](./docs/7eps/) driving development
 
-### 🔥 Active Right Now  
-- **7EP-0013 Build Pipeline COMPLETE** - Goreleaser + Level 2 reproducibility shipped! ✅
-- **🔥 Amp DELIVERED EXCELLENCE** - 7EP-0014 Critical Foundation Gaps ⭐⭐⭐⭐⭐
-- **NEW STRATEGIC PRIORITY**: 7EP-0014 implementation (4-6 days) unlocks production readiness
-- **Amp Confidence Level**: **VERY HIGH** - Demonstrated exceptional architectural analysis
+### 🔥 Active Right Now
+- **CC** drafting [7EP-0013 Build Pipeline](./docs/7eps/7ep-0013-robust-build-pipeline.md) - **CRITICAL BLOCKER**
+- **AC** potentially tackling [7EP-0010 TUI](./docs/7eps/7ep-0010-interactive-tui-application.md) overnight  
+- Build infrastructure blocking AI assistant development workflow
 
 ## 📊 Strategic Dashboard
 
@@ -48,17 +47,24 @@ Phase 3 (CI/Testing):     ██                                    20% 🔴
 
 ## 🤔 Decisions Waiting for You
 
-### 🎯 NEW HIGHEST PRIORITY - Critical Foundation (Amp's Analysis)
-1. **7EP-0014 Critical Foundation Gaps** - [Foundation Blockers](./docs/7eps/7ep-0014-critical-foundation-gaps.md) **READY**
-   - **Status**: ✅ **ANALYZED BY AMP** - Exceptional strategic analysis delivered ⭐⭐⭐⭐⭐
-   - **Impact**: Unlocks production readiness, 7EP-0007, 7EP-0010, and all advanced features
-   - **Critical Gaps**: Database safety, CI reliability, complete workflows, automation, discoverability  
-   - **Timeline**: 4-6 days coordinated AC/CC implementation
-   - **Confidence**: **VERY HIGH** - Amp demonstrated deep architectural understanding
+### 🎯 HIGHEST PRIORITY - Critical Blocker
+1. **7EP-0013 Build Pipeline** - [Robust Build Pipeline](./docs/7eps/7ep-0013-robust-build-pipeline.md) **NEW DRAFT**
+   - **Status**: 🔴 **CRITICAL BLOCKER** - AI assistants cannot reliably build
+   - **Impact**: Unblocks CC/AC development workflow, enables all future work
+   - **Timing**: Must be resolved before continuing 7EP-0007 or other development
+   - **Technical**: Level 1 reproducible builds, robust error handling, systematic scripts
+   - **Priority**: Fix build system first, then resume feature development
+
+### Strategic Opportunity  
+2. **7EP-0007 Enhanced MAS Operations** - [Enhanced MAS Operations](./docs/7eps/7ep-0007-enhanced-mas-operations.md)
+   - **Status**: ✅ Ready but **blocked by build infrastructure issues**
+   - **Impact**: Transforms 7zarch-go into power user command center
+   - **User Value**: Saved queries, search, batch ops, shell completion
+   - **Dependency**: Requires reliable build system (7EP-0013) first
 
 ### High Priority  
-2. **[PR #9 Review](../../pull/9)** - AC's list filters ready for your feedback
-3. **TUI Go/No-Go** - AC prepared to build [7EP-0010](./docs/7eps/7ep-0010-interactive-tui-application.md) overnight (8 hours)
+3. **[PR #9 Review](../../pull/9)** - AC's list filters ready for your feedback
+4. **TUI Go/No-Go** - AC prepared to build [7EP-0010](./docs/7eps/7ep-0010-interactive-tui-application.md) overnight (8 hours)
 4. **Dependency Updates** - Several dependabot PRs pending
 
 ### Medium Priority
@@ -173,9 +179,9 @@ COLUMNS=120 ./7zarch-go list
 
 Based on current state and fresh analysis, your highest-impact actions:
 
-1. **🚀 DECISION: Start 7EP-0007** - Enhanced MAS Operations is THE strategic next move
-   - All dependencies complete, perfect timing, clear AC/CC coordination
-   - Transforms project from good to exceptional for power users
+1. **🚀 DECISION: Approve 7EP-0013** - Build Pipeline is THE critical blocker to resolve
+   - CC/AC cannot reliably build, blocking all development workflow
+   - Must fix build infrastructure before resuming feature development
 2. **Review [PR #9](../../pull/9)** - AC waiting for feedback  
 3. **Decide on TUI** - Could have interactive demo by tomorrow
 
