@@ -34,5 +34,5 @@ jobs:
       if: github.event_name == 'push'
       uses: codecov/codecov-action@v5
       with:
-        file: ./coverage.out
+        files: ./coverage.out
         fail_ci_if_error: false
