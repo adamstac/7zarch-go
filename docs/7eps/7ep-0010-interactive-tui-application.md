@@ -5,7 +5,7 @@
 **Assignment:** CC Lead (TUI Architecture), AC Support (UX Workflows)  
 **Difficulty:** 4 (high - comprehensive UI redesign with complex interactions)  
 **Created:** 2025-08-12  
-**Updated:** 2025-08-12  
+**Updated:** 2025-08-13
 
 ## Executive Summary
 
@@ -652,6 +652,20 @@ func main() {
 7zarch list --interactive     # Interactive selection in CLI context
 7zarch create --interactive   # Interactive creation with path browser
 ```
+
+## Current Progress (2025-08-13)
+
+- Implemented initial TUI list view in internal/tui/app.go using Bubble Tea table and Lipgloss
+- Added multi-select visualization (leading ✓ column)
+- Sorting and filtering: s to cycle sort field; o to toggle order; f to cycle status filter
+- Details pane: enter toggles a detail card for the focused row
+- Actions overlay (a): navigable with j/k or arrows; confirmation modal for destructive ops
+- Confirmed soft-delete and restore flows wired to MAS via storage manager and registry
+  - delete: move managed file to trash, mark status=deleted, set DeletedAt, preserve OriginalPath
+  - restore: move back from trash (OriginalPath or managed), mark status=present, clear DeletedAt
+- Error handling: per-item error collection with error overlay (e) and status hint errors=N (e)
+- Help footer updated with key hints; status line shows filter, sort, selected count, errors
+- Safe, non-interactive build guidance documented; avoiding terminal auto-close issues
 
 ## Implementation Plan
 
