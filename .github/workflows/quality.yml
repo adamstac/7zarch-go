@@ -41,10 +41,11 @@ jobs:
           exit 1
         fi
         
-    - name: Install and run revive linter
-      run: |
-        go install github.com/mgechev/revive@latest
-        ~/go/bin/revive -config revive.toml -formatter friendly ./...
+    - name: Install golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: v1.60.3
+        args: --timeout=5m
         
   security:
     name: Security Scan
