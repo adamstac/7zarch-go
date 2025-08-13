@@ -23,61 +23,57 @@ type archivesMsg struct {
 }
 
 type App struct {
-	tbl        table.Model
-	archives   []*storage.Archive
-	width      int
-	height     int
-	statusLine string
-	showHelp   bool
-	showDetail bool
-
-	// Sorting & filtering
-	sortBy       string
-	sortAsc      bool
-	statusFilter string
-
-	// Selection
-	selected map[string]bool
-
-	// Actions overlay
-	showActions   bool
-	actionIndex   int
-	showConfirm   bool
-	confirmAction string
-
-	// Errors overlay
-	showErrors bool
-	lastErrors []string
+	// Core components
+	archives []*storage.Archive
+	cursor   int
+	width    int
+	height   int
+	
+	// Views
+	currentView ViewType
+	
+	// Simple state
+	selected    map[string]bool
+	showConfirm bool
+	confirmMsg  string
+	confirmAction func() tea.Cmd
+	
+	// Theme
+	theme Theme
+	
+	// Storage
+	manager  *storage.Manager
+	resolver *storage.Resolver
 }
 
+type ViewType int
+
+const (
+	ListView ViewType = iota
+	DetailView
+)
+
 func NewApp() *App {
-	columns := []table.Column{
-		{Title: "", Width: 2},
-		{Title: "ID", Width: 12},
-		{Title: "Name", Width: 30},
-		{Title: "Size", Width: 10},
-		{Title: "Status", Width: 8},
-		{Title: "Created", Width: 19},
+	// Initialize storage
+	cfg, _ := config.Load()
+	manager, err := storage.NewManager(cfg.Storage.ManagedPath)
+	if err != nil {
+		// Handle gracefully, will show error in TUI
+		manager = nil
+	}
+	
+	var resolver *storage.Resolver
+	if manager != nil {
+		resolver = storage.NewResolver(manager.Registry())
 	}
 
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithFocused(true),
-	)
-
-	// Styles
-	header := lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("63")).Foreground(lipgloss.Color("230"))
-	selected := lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
-
-	t.SetStyles(table.Styles{
-		Header:   header,
-		Cell:     lipgloss.NewStyle(),
-		Selected: selected,
-	})
-	// Wrap the table with a base box when rendering by adjusting width/height, but Styles.Base
-	// is not available in the current table version; we'll use lipgloss around View instead.
-
-	return &App{tbl: t, sortBy: "created", sortAsc: false, statusFilter: "all", selected: map[string]bool{}}
+	return &App{
+		currentView: ListView,
+		selected:    make(map[string]bool),
+		theme:       DraculaClassicTheme(), // Default theme
+		manager:     manager,
+		resolver:    resolver,
+	}
 }
 
 func (a *App) Init() tea.Cmd { return a.loadArchivesCmd() }
@@ -85,17 +81,18 @@ func (a *App) Init() tea.Cmd { return a.loadArchivesCmd() }
 func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m := msg.(type) {
 	case tea.KeyMsg:
-		// When confirm dialog is open
+		// Handle confirmation dialog
 		if a.showConfirm {
 			switch m.String() {
 			case "enter", "y":
-				// execute selected action
-				a.executeAction()
 				a.showConfirm = false
-				a.showActions = false
-				return a, a.loadArchivesCmd()
+				if a.confirmAction != nil {
+					return a, a.confirmAction()
+				}
+				return a, nil
 			case "esc", "n":
 				a.showConfirm = false
+				a.confirmAction = nil
 				return a, nil
 			}
 			return a, nil
