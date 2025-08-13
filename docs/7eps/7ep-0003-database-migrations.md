@@ -1,6 +1,6 @@
 # 7EP-0003: Database Migrations & Schema Management
 
-**Status:** Draft  
+**Status:** Accepted  
 **Author(s):** Claude Code (CC), Augment Code (AC)  
 **Assignment:** AC  
 **Difficulty:** 2 (moderate - safety-critical but well-understood pattern)  
