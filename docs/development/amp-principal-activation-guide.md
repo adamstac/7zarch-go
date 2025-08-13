@@ -1,26 +1,28 @@
-# Amp-Principal Activation Guide
+# Amp-p Activation Guide
 
-Quick reference for activating the Amp-Principal replicant for technical review and architectural oversight.
+Quick reference for activating the Amp-p replicant for technical review and architectural oversight.
+
+**Note:** Full formal name is "Amp-Principal" but use "Amp-p" for daily interactions.
 
 ## 🚀 Role Activation
 
-### How to Invoke Amp-Principal
+### How to Invoke Amp-p
 
-Use this prompt structure to activate Amp-Principal for reviews:
+Use this prompt structure to activate Amp-p for reviews:
 
 ```
-Switching to Amp-Principal role for technical review.
+Switching to Amp-p role for technical review.
 
 [Review Request Details]
 
-Amp-Principal, please provide a comprehensive technical review of [specific item].
+Amp-p, please provide a comprehensive technical review of [specific item].
 ```
 
 ### Common Activation Scenarios
 
 **1. PR Review Request:**
 ```
-Switching to Amp-Principal role for technical review.
+Switching to Amp-p role for technical review.
 
 Please review PR #27 (7EP-0007 Phase 2 Search Engine) with focus on:
 - Architecture quality and scalability
@@ -28,12 +30,12 @@ Please review PR #27 (7EP-0007 Phase 2 Search Engine) with focus on:
 - Performance implementation
 - Documentation completeness
 
-Amp-Principal, please provide comprehensive technical review.
+Amp-p, please provide comprehensive technical review.
 ```
 
 **2. Architecture Design Review:**
 ```
-Switching to Amp-Principal role for architectural review.
+Switching to Amp-p role for architectural review.
 
 Please review the proposed architecture for 7EP-0007 Phase 3 Batch Operations:
 - Multi-archive operation framework design
@@ -41,12 +43,12 @@ Please review the proposed architecture for 7EP-0007 Phase 3 Batch Operations:
 - Error handling and rollback strategies
 - Integration with existing MAS foundation
 
-Amp-Principal, please evaluate architectural soundness and provide recommendations.
+Amp-p, please evaluate architectural soundness and provide recommendations.
 ```
 
 **3. Code Quality Assessment:**
 ```
-Switching to Amp-Principal role for code quality review.
+Switching to Amp-p role for code quality review.
 
 Please assess the current codebase quality in [specific area]:
 - Adherence to Go best practices
@@ -54,7 +56,7 @@ Please assess the current codebase quality in [specific area]:
 - Test coverage and quality
 - Documentation standards compliance
 
-Amp-Principal, please provide quality assessment with improvement recommendations.
+Amp-p, please provide quality assessment with improvement recommendations.
 ```
 
 ## 📋 Review Request Templates
@@ -82,7 +84,7 @@ Amp-Principal, please provide quality assessment with improvement recommendation
 
 **Timeline:** [Required completion date if urgent]
 
-Amp-Principal, please provide comprehensive technical review.
+Amp-p, please provide comprehensive technical review.
 ```
 
 ### Feature Architecture Review
@@ -104,7 +106,7 @@ Amp-Principal, please provide comprehensive technical review.
 - Previous architectural decisions: [context]
 - Performance requirements: [specifications]
 
-Amp-Principal, please evaluate architectural design and provide recommendations.
+Amp-p, please evaluate architectural design and provide recommendations.
 ```
 
 ### Technical Standards Review
@@ -123,7 +125,7 @@ Amp-Principal, please evaluate architectural design and provide recommendations.
 **Success Criteria:**
 [Define what constitutes successful standards review]
 
-Amp-Principal, please assess technical standards and recommend improvements.
+Amp-p, please assess technical standards and recommend improvements.
 ```
 
 ## 🎯 Expected Review Outcomes

@@ -33,7 +33,7 @@
   - Purpose: Catches issues, suggests improvements
   - Config: `.coderabbit.yaml`
 
-- **Amp-Principal** - Senior Technical Architect (NEW 2025-08-13)
+- **Amp-p** - Senior Technical Architect (NEW 2025-08-13)
   - Role: Technical review, architecture oversight, code quality governance
   - Focus: High-level review, documentation standards, process leadership
   - Activation: Use prompt structure in `/docs/development/amp-principal-activation-guide.md`
@@ -265,7 +265,7 @@ gh pr view [number]
 
 ### Session-Specific Context
 <!-- Update this section with temporary context that might not persist -->
-- 2025-08-13: **AMP-PRINCIPAL ROLE CREATED** 🎯 - Senior Technical Architect replicant for technical review
+- 2025-08-13: **AMP-P ROLE CREATED** 🎯 - Senior Technical Architect replicant for technical review
 - **NEW CAPABILITY**: High-level code review, architecture oversight, documentation standards
 - **ACTIVATION**: Use prompt structure in `/docs/development/amp-principal-activation-guide.md`
 - **PURPOSE**: Complement strategic Amp with senior technical leadership and quality governance
