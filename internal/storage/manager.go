@@ -27,13 +27,15 @@ func NewManager(basePath string) (*Manager, error) {
 
 	// Create the managed storage directory
 	archivesPath := filepath.Join(basePath, "archives")
-	if err := os.MkdirAll(archivesPath, 0755); err != nil {
+	// #nosec G301: restrict permissions on managed storage directory
+	if err := os.MkdirAll(archivesPath, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create managed storage directory: %w", err)
 	}
 
 	// Also ensure trash directory exists
 	trashPath := filepath.Join(basePath, "trash")
-	if err := os.MkdirAll(trashPath, 0755); err != nil {
+	// #nosec G301: restrict permissions on managed trash directory
+	if err := os.MkdirAll(trashPath, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create managed trash directory: %w", err)
 	}
 

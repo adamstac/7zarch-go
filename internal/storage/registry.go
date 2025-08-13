@@ -20,7 +20,8 @@ type Registry struct {
 func NewRegistry(dbPath string) (*Registry, error) {
 	// Ensure the directory exists
 	dir := filepath.Dir(dbPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	// #nosec G301: create registry directory with restricted permissions
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create registry directory: %w", err)
 	}
 
@@ -32,7 +33,7 @@ func NewRegistry(dbPath string) (*Registry, error) {
 
 	// Set file permissions
 	if err := os.Chmod(dbPath, 0600); err != nil && !os.IsNotExist(err) {
-		db.Close()
+		_ = db.Close() // best-effort close on error
 		return nil, fmt.Errorf("failed to set database permissions: %w", err)
 	}
 
@@ -40,7 +41,7 @@ func NewRegistry(dbPath string) (*Registry, error) {
 
 	// Initialize the schema
 	if err := r.initSchema(); err != nil {
-		db.Close()
+		_ = db.Close() // best-effort close on error
 		return nil, fmt.Errorf("failed to initialize schema: %w", err)
 	}
 

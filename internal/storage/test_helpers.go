@@ -29,8 +29,8 @@ func TestRegistry(t *testing.T) *Registry {
 	}
 
 	t.Cleanup(func() {
-		reg.Close()
-		os.RemoveAll(tmpDir)
+		_ = reg.Close()          // best-effort close in test cleanup
+		_ = os.RemoveAll(tmpDir) // best-effort cleanup in tests
 	})
 
 	return reg

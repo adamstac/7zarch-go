@@ -102,12 +102,15 @@ func createDbBackup(mgr *storage.Manager) error {
 	stamp := time.Now().Format("20060102-150405")
 	backupPath := filepath.Join(backupDir, fmt.Sprintf("registry.%s.bak", stamp))
 
+	// #nosec G304: path comes from validated config; used for local backup
 	src, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer src.Close()
-	dst, err := os.Create(backupPath)
+	// Use restrictive permissions for backup file
+	// #nosec G304: backupPath is created under the same directory as the DB
+	dst, err := os.OpenFile(backupPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}

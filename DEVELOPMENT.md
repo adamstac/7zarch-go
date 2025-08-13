@@ -411,3 +411,11 @@ This section summarizes the current development state, active PRs, and near-term
   - Finalize mas_move.go reconciliation and push to PR #5.
   - Patch PR #8 to align resolver/test helpers, re-run CI, and confirm green.
   - Proceed with PR #9 review; minimal risk since no behavior changes were introduced.
+
+### Active PR Status & Action Items for AC
+
+See section 302-426 above for current PR status and action items.
+
+---
+
+**Note**: This file serves as shared context for all AI agents. For private development notes and half-formed ideas, use PRIVATE.md (git-ignored).
