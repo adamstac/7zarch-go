@@ -51,7 +51,8 @@ func MasDeleteCmd() *cobra.Command {
 			if arc.Managed {
 				// Move to managed trash directory
 				trashDir := mgr.GetTrashPath()
-				if err := os.MkdirAll(trashDir, 0755); err != nil {
+				// #nosec G301: restrict permissions on created trash directory
+				if err := os.MkdirAll(trashDir, 0750); err != nil {
 					return fmt.Errorf("failed to create trash: %w", err)
 				}
 				trashPath := filepath.Join(trashDir, filepath.Base(arc.Path))

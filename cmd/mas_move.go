@@ -83,7 +83,8 @@ func MasMoveCmd() *cobra.Command {
 				dest = filepath.Join(dest, name)
 			}
 
-			if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
+			// #nosec G301: restrict permissions on created directory
+			if err := os.MkdirAll(filepath.Dir(dest), 0750); err != nil {
 				return err
 			}
 

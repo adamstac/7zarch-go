@@ -57,7 +57,8 @@ func RestoreCmd() *cobra.Command {
 			}
 
 			// Ensure parent dir exists
-			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+			// #nosec G301: restrict permissions on restored directory
+			if err := os.MkdirAll(filepath.Dir(target), 0750); err != nil {
 				return fmt.Errorf("failed to prepare destination: %w", err)
 			}
 

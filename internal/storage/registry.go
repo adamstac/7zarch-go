@@ -20,7 +20,8 @@ type Registry struct {
 func NewRegistry(dbPath string) (*Registry, error) {
 	// Ensure the directory exists
 	dir := filepath.Dir(dbPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	// #nosec G301: create registry directory with restricted permissions
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create registry directory: %w", err)
 	}
 
