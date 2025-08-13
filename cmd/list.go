@@ -144,7 +144,7 @@ func runList(cmd *cobra.Command, args []string) error {
 	}
 
 	// List registry-tracked archives
-	return listRegistryArchivesWithDisplay(opts, displayMode)
+	return listRegistryArchivesWithDisplay(opts, displayMode, metrics)
 }
 
 // flag helpers
@@ -174,7 +174,7 @@ func determineDisplayMode(cmd *cobra.Command) display.Mode {
 }
 
 // listRegistryArchivesWithDisplay uses the new display system
-func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error {
+func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode, metrics *debug.Metrics) error {
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
@@ -202,6 +202,17 @@ func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error 
 	}
 	if err != nil {
 		return fmt.Errorf("failed to list archives: %w", err)
+	}
+
+	// Record query completion if metrics enabled
+	if metrics != nil {
+		metrics.RecordQueryTime()
+		metrics.SetResultCount(len(archives))
+		
+		// Get database size if available
+		if dbInfo, statErr := os.Stat(filepath.Join(cfg.Storage.ManagedPath, "registry.db")); statErr == nil {
+			metrics.SetDatabaseSize(dbInfo.Size())
+		}
 	}
 
 	// Apply filters
@@ -232,11 +243,28 @@ func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error 
 		}
 
 		// Render using the display system
-		return displayManager.Render(archives, displayOpts)
+		err := displayManager.Render(archives, displayOpts)
+		
+		// Record render time and show debug output if enabled
+		if metrics != nil {
+			metrics.RecordRenderTime()
+			if opts.debug {
+				fmt.Printf("\n%s\n", metrics.String())
+			}
+		}
+		
+		return err
 	}
 
 	// Fall back to original display for now (other modes not yet implemented)
-	return displayArchivesOriginal(archives, opts)
+	err = displayArchivesOriginal(archives, opts)
+	
+	// Show debug output for fallback display too
+	if metrics != nil && opts.debug {
+		fmt.Printf("\n%s\n", metrics.String())
+	}
+	
+	return err
 }
 
 // applyAllFilters applies all configured filters to the archive list

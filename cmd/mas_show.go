@@ -8,8 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/adamstac/7zarch-go/internal/config"
-	errs "github.com/adamstac/7zarch-go/internal/errors"
+	"github.com/adamstac/7zarch-go/internal/cmdutil"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
 )
@@ -22,29 +21,19 @@ func MasShowCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
-			cfg, _ := config.Load()
-			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
+			_, mgr, cleanup, err := cmdutil.InitStorageManager()
 			if err != nil {
-				return fmt.Errorf("failed to init storage (path=%q): %w", cfg.Storage.ManagedPath, err)
+				return err
 			}
-			defer mgr.Close()
+			defer cleanup()
 
 			resolver := storage.NewResolver(mgr.Registry())
 			arc, err := resolver.Resolve(id)
 			if err != nil {
 				if amb, ok := err.(*storage.AmbiguousIDError); ok {
 					printAmbiguousOptions(amb)
-					return &errs.ValidationError{
-						Field:   "archive ID",
-						Value:   id,
-						Message: "matches multiple archives. Use a longer prefix or full UID",
-					}
 				}
-				// Check if it's a not found error
-				if _, ok := err.(*storage.ArchiveNotFoundError); ok {
-					return errs.NewArchiveNotFound(id)
-				}
-				return err
+				return cmdutil.HandleResolverError(err, id)
 			}
 
 			// File existence verification + last_seen/status update

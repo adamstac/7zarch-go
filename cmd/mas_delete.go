@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/adamstac/7zarch-go/internal/config"
+	"github.com/adamstac/7zarch-go/internal/cmdutil"
 	errs "github.com/adamstac/7zarch-go/internal/errors"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
@@ -21,27 +21,16 @@ func MasDeleteCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
-			cfg, _ := config.Load()
-			mgr, err := storage.NewManager(cfg.Storage.ManagedPath)
+			_, mgr, cleanup, err := cmdutil.InitStorageManager()
 			if err != nil {
-				return fmt.Errorf("failed to init storage: %w", err)
+				return err
 			}
-			defer mgr.Close()
+			defer cleanup()
 
 			resolver := storage.NewResolver(mgr.Registry())
 			arc, err := resolver.Resolve(id)
 			if err != nil {
-				if _, ok := err.(*storage.AmbiguousIDError); ok {
-					return &errs.ValidationError{
-						Field:   "archive ID",
-						Value:   id,
-						Message: "matches multiple archives. Use a longer prefix or full UID",
-					}
-				}
-				if _, ok := err.(*storage.ArchiveNotFoundError); ok {
-					return errs.NewArchiveNotFound(id)
-				}
-				return err
+				return cmdutil.HandleResolverError(err, id)
 			}
 			
 			// Check if already deleted
