@@ -33,12 +33,20 @@
   - Purpose: Catches issues, suggests improvements
   - Config: `.coderabbit.yaml`
 
+- **Amp-Principal** - Senior Technical Architect (NEW 2025-08-13)
+  - Role: Technical review, architecture oversight, code quality governance
+  - Focus: High-level review, documentation standards, process leadership
+  - Activation: Use prompt structure in `/docs/development/amp-principal-activation-guide.md`
+  - Scope: PR reviews, architecture evaluation, technical standards
+
 ## 📍 Key Locations
 
 ### Documentation
 - `/docs/7eps/` - Enhancement proposals (our roadmap)
 - `/docs/development/pr-merge-roadmap.md` - Current PR status and priorities
 - `/docs/development/tomorrow-plan.md` - Daily planning
+- `/docs/development/amp-principal-role-definition.md` - Amp-Principal role specification
+- `/docs/development/amp-principal-activation-guide.md` - How to activate Amp-Principal for reviews
 - `/docs/reference/` - Command and system documentation
 - `/CLAUDE.md` - This file! Your context guide
 
@@ -257,11 +265,11 @@ gh pr view [number]
 
 ### Session-Specific Context
 <!-- Update this section with temporary context that might not persist -->
-- 2025-08-13: **7EP-0015 IMPLEMENTATION COMPLETE** - Comprehensive code quality improvements delivered
-- **PR CREATED**: [PR #25](https://github.com/adamstac/7zarch-go/pull/25) ready for team review
-- **Quality Foundation**: Standardized errors, debug system, reduced duplication, 50-100% test coverage
-- **NEXT OPTIONS**: 7EP-0007 Enhanced MAS Ops or 7EP-0010 TUI (both unblocked and ready)
-- **STRATEGIC STATUS**: Project positioned for high-value power user features
+- 2025-08-13: **AMP-PRINCIPAL ROLE CREATED** 🎯 - Senior Technical Architect replicant for technical review
+- **NEW CAPABILITY**: High-level code review, architecture oversight, documentation standards
+- **ACTIVATION**: Use prompt structure in `/docs/development/amp-principal-activation-guide.md`
+- **PURPOSE**: Complement strategic Amp with senior technical leadership and quality governance
+- **READY FOR**: Technical review of 7EP-0007 Phase 2 or architecture evaluation
 
 ---
 
