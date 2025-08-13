@@ -24,11 +24,17 @@
   - Status: Implementation complete, awaiting PR review | Ready for next assignment
   - Communication: Via PR descriptions, commit messages, and `/docs/development/`
 
-- **Amp (Sourcegraph)** - Advanced architectural analysis ⭐⭐⭐⭐⭐
-  - Responsibilities: Strategic analysis, performance optimization, architectural insights  
+- **Amp-s** - Senior Strategic Architect (Renamed 2025-08-13)
+  - Responsibilities: Strategic analysis, business impact, roadmap planning
+  - Focus: Product strategy, competitive positioning, user value optimization
   - **JUST DELIVERED**: 7EP-0014 Critical Foundation Gaps - exceptional strategic analysis
   - **AC Impact**: Defines your next priority work (restore/purge + JSON output in Phase 2)
-  - **Confidence Level**: **VERY HIGH** - Proven deep codebase understanding and strategic thinking
+  - **Confidence Level**: **VERY HIGH** - Proven strategic thinking and product vision
+
+- **Amp-t** - Senior Technical Architect (NEW 2025-08-13)
+  - Responsibilities: Technical review, architecture oversight, code quality governance
+  - Focus: High-level review, documentation standards, process leadership
+  - Activation: See `/AMP.md` for role coordination and activation examples
 
 - **CR (CodeRabbit)** - Automated code reviewer
   - Triggers: On all PRs automatically
