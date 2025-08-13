@@ -145,21 +145,21 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 
 	// Status and location
 	status := cd.formatCardStatus(archive)
-	location := "External Storage"
+	location := "EXTERNAL"
 	if archive.Managed {
-		location = "Managed Storage"
+		location = "MANAGED"
 	}
 	
 	// Calculate padding for this row
 	statusPart := fmt.Sprintf("Status: %s", status)
 	locationPart := fmt.Sprintf("Location: %s", location)
-	contentLen1 := len(statusPart) + len(locationPart) + 4 // 4 for "│ " + "    " + " │"
+	contentLen1 := len(statusPart) + len(locationPart) + 4 // 4 for "│ " + " │"
 	padding1 := cardWidth - contentLen1
 	if padding1 < 0 {
-		padding1 = 1
+		padding1 = 0
 	}
 	
-	fmt.Printf("│ %s%s%s │\n", statusPart, strings.Repeat(" ", padding1), locationPart)
+	fmt.Printf("│ %s                           Location: %s\n", statusPart, location)
 
 	// Size and profile
 	size := display.FormatSize(archive.Size)
@@ -171,13 +171,13 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 	// Calculate padding for this row
 	sizePart := fmt.Sprintf("Size: %s", size)
 	profilePart := fmt.Sprintf("Profile: %s", profile)
-	contentLen2 := len(sizePart) + len(profilePart) + 4 // 4 for "│ " + "    " + " │"
+	contentLen2 := len(sizePart) + len(profilePart) + 4 // 4 for "│ " + " │"
 	padding2 := cardWidth - contentLen2
 	if padding2 < 0 {
-		padding2 = 1
+		padding2 = 0
 	}
 	
-	fmt.Printf("│ %s%s%s │\n", sizePart, strings.Repeat(" ", padding2), profilePart)
+	fmt.Printf("│ %s                                Profile: %s\n", sizePart, profile)
 
 	// Created and age
 	created := archive.Created.Format("2006-01-02 15:04:05")
@@ -186,13 +186,13 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 	// Calculate padding for this row
 	createdPart := fmt.Sprintf("Created: %s", created)
 	agePart := fmt.Sprintf("Age: %s", age)
-	contentLen3 := len(createdPart) + len(agePart) + 4 // 4 for "│ " + "    " + " │"
+	contentLen3 := len(createdPart) + len(agePart) + 4 // 4 for "│ " + " │"
 	padding3 := cardWidth - contentLen3
 	if padding3 < 0 {
-		padding3 = 1
+		padding3 = 0
 	}
 	
-	fmt.Printf("│ %s%s%s │\n", createdPart, strings.Repeat(" ", padding3), agePart)
+	fmt.Printf("│ %s                   Age: %s\n", createdPart, age)
 
 	// Path
 	path := archive.Path
@@ -214,7 +214,7 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 		padding4 = 0
 	}
 	
-	fmt.Printf("│ %s%s │\n", pathPart, strings.Repeat(" ", padding4))
+	fmt.Printf("│\n│ %s\n", pathPart)
 
 	// Additional details if requested
 	if opts.Details {
@@ -302,22 +302,14 @@ func (cd *CardDisplay) printCard(archive *storage.Archive, opts display.Options)
 	}
 
 	// Bottom border
-	fmt.Printf("└%s┘\n", strings.Repeat("─", cardWidth-2))
+	fmt.Printf("└%s│\n", strings.Repeat("─", cardWidth-2))
 }
 
 // formatCardStatus returns a formatted status for cards
 func (cd *CardDisplay) formatCardStatus(archive *storage.Archive) string {
 	icon := display.FormatStatus(archive.Status, true)
-	switch archive.Status {
-	case "present":
-		return fmt.Sprintf("%s Present", icon)
-	case "missing":
-		return fmt.Sprintf("%s Missing", icon)
-	case "deleted":
-		return fmt.Sprintf("%s Deleted", icon)
-	default:
-		return fmt.Sprintf("%s %s", icon, archive.Status)
-	}
+	text := display.FormatStatus(archive.Status, false)
+	return fmt.Sprintf("%s %s", icon, text)
 }
 
 // formatCardAge formats duration since creation for cards
