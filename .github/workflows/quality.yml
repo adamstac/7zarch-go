@@ -45,7 +45,7 @@ jobs:
       uses: golangci/golangci-lint-action@v6
       with:
         version: v1.60.3
-        args: --timeout=5m --modules-download-mode=mod --skip-dirs-use-default=false --exclude="undefined:"
+        args: --timeout=5m
         
   security:
     name: Security Scan
