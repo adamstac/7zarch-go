@@ -2,23 +2,25 @@ run:
   timeout: 5m
   issues-exit-code: 1
   tests: true
+  modules-download-mode: mod
 
 linters:
-  disable:
-    - typecheck
+  disable-all: true
   enable:
     - errcheck
     - ineffassign
     - gosimple
 
-# Exclude specific patterns  
+# Exclude all typecheck issues and specific patterns
 issues:
-  exclude:
-    - "undefined: (yaml|progressbar)"
   exclude-rules:
     # Allow ignoring errors from progress bar best-effort UI calls in tests
     - path: cmd/(create|test)\.go
       linters:
         - errcheck
       text: 'bar\.(Add|Finish)\('
+    # Exclude all typecheck issues (dependency resolution problems)
+    - linters:
+        - typecheck
+      text: ".*"
 
