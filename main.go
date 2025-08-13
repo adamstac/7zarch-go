@@ -47,6 +47,8 @@ Features:
 	// Trash Management (7EP-0001)
 	rootCmd.AddCommand(cmd.RestoreCmd())
 	rootCmd.AddCommand(cmd.TrashCmd())
+	// Query Management (7EP-0007)
+	rootCmd.AddCommand(cmd.QueryCmd())
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {

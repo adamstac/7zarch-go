@@ -551,6 +551,9 @@ func (r *Registry) Delete(name string) error {
 // Path returns the underlying database file path (for backups)
 func (r *Registry) Path() string { return r.dbPath }
 
+// DB returns the underlying database connection for use by other components
+func (r *Registry) DB() *sql.DB { return r.db }
+
 // Close closes the database connection
 func (r *Registry) Close() error {
 	return r.db.Close()

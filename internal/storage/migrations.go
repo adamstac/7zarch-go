@@ -18,6 +18,9 @@ const (
 
 	migrationTrashID   = "0003_trash_fields"
 	migrationTrashName = "Add deleted_at and original_path for trash support"
+
+	migrationQueryID   = "0004_query_system"
+	migrationQueryName = "Add queries table for saved query support"
 )
 
 type MigrationRunner struct {
@@ -58,6 +61,18 @@ func (mr *MigrationRunner) GetPendingMigrations() ([]PendingMigration, error) {
 			ID:          migrationTrashID,
 			Name:        migrationTrashName,
 			Description: "Adds deleted_at and original_path columns for trash functionality",
+		})
+	}
+
+	applied, err = registry.IsMigrationApplied(migrationQueryID)
+	if err != nil {
+		return nil, err
+	}
+	if !applied {
+		pending = append(pending, PendingMigration{
+			ID:          migrationQueryID,
+			Name:        migrationQueryName,
+			Description: "Adds queries table for saved query functionality",
 		})
 	}
 
@@ -140,6 +155,21 @@ func (mr *MigrationRunner) applyMigration(registry *Registry, migration PendingM
 			if _, err := tx.Exec(`ALTER TABLE archives ADD COLUMN original_path TEXT`); err != nil {
 				_ = tx.Rollback()
 				return fmt.Errorf("failed to add original_path column: %w", err)
+			}
+		}
+	case migrationQueryID:
+		if !tableExists(mr.db, "queries") {
+			if _, err := tx.Exec(`
+				CREATE TABLE queries (
+					name TEXT PRIMARY KEY,
+					filters TEXT NOT NULL,
+					created INTEGER NOT NULL,
+					last_used INTEGER,
+					use_count INTEGER DEFAULT 0
+				)
+			`); err != nil {
+				_ = tx.Rollback()
+				return fmt.Errorf("failed to create queries table: %w", err)
 			}
 		}
 	default:
@@ -292,6 +322,31 @@ func (r *Registry) ApplyPendingMigrations() error {
 			return err
 		}
 		if err := r.MarkMigrationApplied(migrationTrashID, migrationTrashName); err != nil {
+			return err
+		}
+	}
+	
+	// 0004: query system support
+	applied, err = r.IsMigrationApplied(migrationQueryID)
+	if err != nil {
+		return err
+	}
+	if !applied {
+		// Create queries table if missing
+		if !tableExists(r.db, "queries") {
+			if _, err := r.db.Exec(`
+				CREATE TABLE queries (
+					name TEXT PRIMARY KEY,
+					filters TEXT NOT NULL,
+					created INTEGER NOT NULL,
+					last_used INTEGER,
+					use_count INTEGER DEFAULT 0
+				)
+			`); err != nil {
+				return err
+			}
+		}
+		if err := r.MarkMigrationApplied(migrationQueryID, migrationQueryName); err != nil {
 			return err
 		}
 	}
