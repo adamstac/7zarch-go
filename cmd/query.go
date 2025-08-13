@@ -74,6 +74,12 @@ This allows you to save complex filter combinations for reuse.`,
 	cmd.Flags().String("profile", "", "Filter by profile (media|documents|balanced)")
 	cmd.Flags().Int64("larger-than", 0, "Filter by size larger than bytes")
 	cmd.Flags().Bool("deleted", false, "Filter for deleted archives only")
+	
+	// Search integration flags
+	cmd.Flags().String("search", "", "Include search terms in the saved query")
+	cmd.Flags().String("search-field", "", "Search specific field (name|path|metadata)")
+	cmd.Flags().Bool("search-regex", false, "Use regex pattern matching for search")
+	cmd.Flags().Bool("search-case-sensitive", false, "Case-sensitive search")
 
 	return cmd
 }
@@ -205,6 +211,20 @@ func runQuerySave(cmd *cobra.Command, args []string) error {
 	}
 	if getBool(cmd, "deleted") {
 		filters["deleted"] = "true"
+	}
+	
+	// Add search terms if provided
+	if search := getString(cmd, "search"); search != "" {
+		filters["search"] = search
+	}
+	if searchField := getString(cmd, "search-field"); searchField != "" {
+		filters["search-field"] = searchField
+	}
+	if getBool(cmd, "search-regex") {
+		filters["search-regex"] = "true"
+	}
+	if getBool(cmd, "search-case-sensitive") {
+		filters["search-case-sensitive"] = "true"
 	}
 
 	if len(filters) == 0 {

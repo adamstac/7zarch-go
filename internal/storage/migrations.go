@@ -21,6 +21,9 @@ const (
 
 	migrationQueryID   = "0004_query_system"
 	migrationQueryName = "Add queries table for saved query support"
+
+	migrationSearchID   = "0005_search_index"
+	migrationSearchName = "Add search_index table for full-text search support"
 )
 
 type MigrationRunner struct {
@@ -73,6 +76,18 @@ func (mr *MigrationRunner) GetPendingMigrations() ([]PendingMigration, error) {
 			ID:          migrationQueryID,
 			Name:        migrationQueryName,
 			Description: "Adds queries table for saved query functionality",
+		})
+	}
+
+	applied, err = registry.IsMigrationApplied(migrationSearchID)
+	if err != nil {
+		return nil, err
+	}
+	if !applied {
+		pending = append(pending, PendingMigration{
+			ID:          migrationSearchID,
+			Name:        migrationSearchName,
+			Description: "Adds search_index table for full-text search functionality",
 		})
 	}
 
@@ -170,6 +185,27 @@ func (mr *MigrationRunner) applyMigration(registry *Registry, migration PendingM
 			`); err != nil {
 				_ = tx.Rollback()
 				return fmt.Errorf("failed to create queries table: %w", err)
+			}
+		}
+	case migrationSearchID:
+		if !tableExists(mr.db, "search_index") {
+			if _, err := tx.Exec(`
+				CREATE TABLE search_index (
+					term TEXT,
+					archive_uid TEXT,
+					field TEXT,
+					PRIMARY KEY (term, archive_uid, field)
+				)
+			`); err != nil {
+				_ = tx.Rollback()
+				return fmt.Errorf("failed to create search_index table: %w", err)
+			}
+			// Create performance index
+			if _, err := tx.Exec(`
+				CREATE INDEX idx_search_term ON search_index(term)
+			`); err != nil {
+				_ = tx.Rollback()
+				return fmt.Errorf("failed to create search index: %w", err)
 			}
 		}
 	default:
@@ -347,6 +383,36 @@ func (r *Registry) ApplyPendingMigrations() error {
 			}
 		}
 		if err := r.MarkMigrationApplied(migrationQueryID, migrationQueryName); err != nil {
+			return err
+		}
+	}
+	
+	// 0005: search index support
+	applied, err = r.IsMigrationApplied(migrationSearchID)
+	if err != nil {
+		return err
+	}
+	if !applied {
+		// Create search_index table if missing
+		if !tableExists(r.db, "search_index") {
+			if _, err := r.db.Exec(`
+				CREATE TABLE search_index (
+					term TEXT,
+					archive_uid TEXT,
+					field TEXT,
+					PRIMARY KEY (term, archive_uid, field)
+				)
+			`); err != nil {
+				return err
+			}
+			// Create performance index
+			if _, err := r.db.Exec(`
+				CREATE INDEX idx_search_term ON search_index(term)
+			`); err != nil {
+				return err
+			}
+		}
+		if err := r.MarkMigrationApplied(migrationSearchID, migrationSearchName); err != nil {
 			return err
 		}
 	}

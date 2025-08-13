@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/adamstac/7zarch-go/internal/search"
 	"github.com/adamstac/7zarch-go/internal/storage"
 )
 
@@ -25,15 +27,18 @@ type Query struct {
 
 // QueryManager handles saved query operations
 type QueryManager struct {
-	db       *sql.DB
-	resolver *storage.Resolver
+	db           *sql.DB
+	resolver     *storage.Resolver
+	searchEngine *search.SearchEngine
 }
 
 // NewQueryManager creates a new query manager instance
 func NewQueryManager(db *sql.DB, resolver *storage.Resolver) *QueryManager {
+	searchEngine := search.NewSearchEngine(resolver.Registry())
 	return &QueryManager{
-		db:       db,
-		resolver: resolver,
+		db:           db,
+		resolver:     resolver,
+		searchEngine: searchEngine,
 	}
 }
 
@@ -215,26 +220,50 @@ func (qm *QueryManager) Get(name string) (*Query, error) {
 	return &query, nil
 }
 
-// executeFilters converts filter map to archive list using the resolver
+// executeFilters converts filter map to archive list using the resolver and search engine
 func (qm *QueryManager) executeFilters(filters map[string]string) ([]*storage.Archive, error) {
-	// This will use the existing storage.Manager methods to filter archives
-	// For now, this is a simplified implementation that gets all archives and filters them
-	// In Phase 2, this will integrate with the search engine for more complex queries
-	
-	// Get the registry from the resolver to access archive listing
-	registry := qm.resolver.Registry()
-	if registry == nil {
-		return nil, fmt.Errorf("registry not available")
+	var archives []*storage.Archive
+	var err error
+
+	// Check if this query includes search terms
+	if searchTerm, hasSearch := filters["search"]; hasSearch {
+		// Use search engine for the base archive set
+		searchOpts := search.SearchOptions{}
+		
+		// Apply search options from filters
+		if field, ok := filters["search-field"]; ok {
+			searchOpts.Field = field
+		}
+		if _, ok := filters["search-regex"]; ok {
+			searchOpts.UseRegex = true
+		}
+		if _, ok := filters["search-case-sensitive"]; ok {
+			searchOpts.CaseSensitive = true
+		}
+
+		// Ensure search table exists
+		if err := qm.searchEngine.EnsureSearchTable(); err != nil {
+			return nil, fmt.Errorf("failed to initialize search: %w", err)
+		}
+
+		archives, err = qm.searchEngine.SearchWithOptions(searchTerm, searchOpts)
+		if err != nil {
+			return nil, fmt.Errorf("search failed: %w", err)
+		}
+	} else {
+		// No search terms, get all archives from registry
+		registry := qm.resolver.Registry()
+		if registry == nil {
+			return nil, fmt.Errorf("registry not available")
+		}
+
+		archives, err = registry.List()
+		if err != nil {
+			return nil, fmt.Errorf("failed to list archives: %w", err)
+		}
 	}
 
-	// Get all archives first
-	archives, err := registry.List()
-	if err != nil {
-		return nil, fmt.Errorf("failed to list archives: %w", err)
-	}
-
-	// Apply filters manually for now
-	// This will be enhanced in Phase 2 with search integration
+	// Apply additional filters (non-search filters)
 	filtered := make([]*storage.Archive, 0)
 	for _, archive := range archives {
 		if qm.matchesFilters(archive, filters) {
@@ -279,8 +308,22 @@ func (qm *QueryManager) matchesFilters(archive *storage.Archive, filters map[str
 			if value == "true" && archive.Status != "deleted" {
 				return false
 			}
-		// Note: More complex filters like pattern, larger-than, older-than
-		// will be implemented when we integrate with the list command filters
+		case "larger-than":
+			// Parse the size value
+			if threshold, err := strconv.ParseInt(value, 10, 64); err == nil {
+				if archive.Size <= threshold {
+					return false
+				}
+			}
+		case "not-uploaded":
+			if value == "true" && archive.Uploaded {
+				return false
+			}
+		// Skip search-specific filters - they're handled separately
+		case "search", "search-field", "search-regex", "search-case-sensitive":
+			continue
+		// Note: More complex filters like pattern, older-than
+		// can be implemented as needed
 		}
 	}
 	return true

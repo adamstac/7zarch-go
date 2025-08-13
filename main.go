@@ -54,6 +54,8 @@ Features:
 	rootCmd.AddCommand(cmd.TuiCmd())      // Compatibility alias
 	// Query Management (7EP-0007)
 	rootCmd.AddCommand(cmd.QueryCmd())
+	// Search Engine (7EP-0007)
+	rootCmd.AddCommand(cmd.SearchCmd())
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {
