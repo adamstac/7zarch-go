@@ -48,10 +48,11 @@ func NewSimpleApp(themeName string) *SimpleApp {
 		resolver = storage.NewResolver(manager.Registry())
 	}
 
-	// Initialize viewport with margins
+	// Initialize viewport with custom margins
 	vp := viewport.New(80, 24) // Default size, will be updated on window resize
 	vp.Style = lipgloss.NewStyle().
-		Margin(1, 2). // 1 line top/bottom, 2 chars left/right
+		MarginTop(5).    // 5 lines from top
+		MarginLeft(3).   // 3 chars from left
 		Border(lipgloss.HiddenBorder())
 
 	return &SimpleApp{
@@ -103,9 +104,9 @@ func (a *SimpleApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		
 	case tea.WindowSizeMsg:
 		a.width, a.height = m.Width, m.Height
-		// Update viewport size with proper margins
-		a.viewport.Width = m.Width - 4  // 2 chars margin on each side
-		a.viewport.Height = m.Height - 2 // 1 line margin top/bottom
+		// Update viewport size with custom margins
+		a.viewport.Width = m.Width - 6   // 3 chars left margin + some right space
+		a.viewport.Height = m.Height - 10 // 5 lines top margin + some bottom space
 		
 	case archivesLoadedMsg:
 		if m.err == nil {
