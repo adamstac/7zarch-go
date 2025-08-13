@@ -6,6 +6,7 @@ import (
 
 	"github.com/adamstac/7zarch-go/internal/config"
 	"github.com/adamstac/7zarch-go/internal/storage"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
@@ -25,6 +26,9 @@ type SimpleApp struct {
 	theme         Theme
 	manager       *storage.Manager
 	resolver      *storage.Resolver
+	
+	// Viewport for proper content management
+	viewport      viewport.Model
 }
 
 type ViewType int
@@ -44,12 +48,19 @@ func NewSimpleApp(themeName string) *SimpleApp {
 		resolver = storage.NewResolver(manager.Registry())
 	}
 
+	// Initialize viewport with margins
+	vp := viewport.New(80, 24) // Default size, will be updated on window resize
+	vp.Style = lipgloss.NewStyle().
+		Margin(1, 2). // 1 line top/bottom, 2 chars left/right
+		Border(lipgloss.HiddenBorder())
+
 	return &SimpleApp{
 		currentView: ListView,
 		selected:    make(map[string]bool),
 		theme:       GetTheme(themeName),
 		manager:     manager,
 		resolver:    resolver,
+		viewport:    vp,
 	}
 }
 
@@ -92,6 +103,9 @@ func (a *SimpleApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		
 	case tea.WindowSizeMsg:
 		a.width, a.height = m.Width, m.Height
+		// Update viewport size with proper margins
+		a.viewport.Width = m.Width - 4  // 2 chars margin on each side
+		a.viewport.Height = m.Height - 2 // 1 line margin top/bottom
 		
 	case archivesLoadedMsg:
 		if m.err == nil {
@@ -104,53 +118,58 @@ func (a *SimpleApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the interface
 func (a *SimpleApp) View() string {
-	base := ""
+	// Generate content based on current view
+	var content string
 	switch a.currentView {
 	case ListView:
-		base = a.renderList()
+		content = a.renderListContent()
 	case DetailView:
-		base = a.renderDetail()
+		content = a.renderDetailContent()
 	}
 	
+	// Set viewport content
+	a.viewport.SetContent(content)
+	
+	// Render viewport (handles margins properly)
+	base := a.viewport.View()
+	
+	// Overlay confirmation dialog if needed
 	if a.showConfirm {
-		return base + "\n\n" + a.renderConfirm()
+		return base + "\n" + a.renderConfirm()
 	}
 	
 	return base
 }
 
-// List view renderer
-func (a *SimpleApp) renderList() string {
+// renderListContent generates content for viewport (no manual margins)
+func (a *SimpleApp) renderListContent() string {
 	var lines []string
 	
-	// Top margin
-	lines = append(lines, "")
-	
-	// Header with left margin
-	header := "  " + lipgloss.NewStyle().
+	// Header (viewport handles margins)
+	header := lipgloss.NewStyle().
 		Foreground(a.theme.Header).
 		Bold(true).
 		Render("7zarch-go")
 	lines = append(lines, header)
 	lines = append(lines, "")
 	
-	// Summary with left margin
-	summary := "  " + lipgloss.NewStyle().
+	// Summary
+	summary := lipgloss.NewStyle().
 		Foreground(a.theme.Foreground).
 		Render(fmt.Sprintf("Archives: %d", len(a.archives)))
 	lines = append(lines, summary)
 	lines = append(lines, "")
 	
-	// Archives with left margin
+	// Archives (viewport handles margins)
 	for i, archive := range a.archives {
-		line := "  " + a.renderArchive(archive, i == a.cursor)
+		line := a.renderArchive(archive, i == a.cursor)
 		lines = append(lines, line)
 	}
 	
 	lines = append(lines, "")
 	
-	// Commands with left margin
-	commands := "  " + lipgloss.NewStyle().
+	// Commands
+	commands := lipgloss.NewStyle().
 		Foreground(a.theme.Commands).
 		Render("[Enter] Details  [Space] Select  [d] Delete  [m] Move  [u] Upload  [q] Quit")
 	lines = append(lines, commands)
@@ -195,35 +214,45 @@ func (a *SimpleApp) renderArchive(archive *storage.Archive, isSelected bool) str
 		Render(content)
 }
 
-// Detail view renderer
-func (a *SimpleApp) renderDetail() string {
+// renderDetailContent generates detail content for viewport
+func (a *SimpleApp) renderDetailContent() string {
 	if len(a.archives) == 0 || a.cursor >= len(a.archives) {
-		return "  No archive selected"
+		return "No archive selected"
 	}
 	
 	archive := a.archives[a.cursor]
 	var lines []string
 	
-	// Top margin
-	lines = append(lines, "")
-	
-	// Header with left margin
-	header := "  " + lipgloss.NewStyle().
+	// Header (viewport handles margins)
+	header := lipgloss.NewStyle().
 		Foreground(a.theme.Header).
 		Bold(true).
 		Render(archive.Name)
 	lines = append(lines, header)
 	lines = append(lines, "")
 	
-	// Details with left margin
-	lines = append(lines, "  Size: "+lipgloss.NewStyle().Foreground(a.theme.Metadata).Render(humanize.Bytes(uint64(archive.Size))))
-	lines = append(lines, "  Created: "+lipgloss.NewStyle().Foreground(a.theme.Metadata).Render(archive.Created.Format("January 2, 2006 3:04 PM")))
-	lines = append(lines, "  Status: "+lipgloss.NewStyle().Foreground(a.theme.StatusOK).Render("Present ✓"))
-	lines = append(lines, "  Location: "+lipgloss.NewStyle().Foreground(a.theme.Foreground).Render(archive.Path))
+	// Details with proper formatting
+	sizeText := "Size: " + lipgloss.NewStyle().Foreground(a.theme.Metadata).Render(humanize.Bytes(uint64(archive.Size)))
+	lines = append(lines, sizeText)
+	
+	createdText := "Created: " + lipgloss.NewStyle().Foreground(a.theme.Metadata).Render(archive.Created.Format("January 2, 2006 3:04 PM"))
+	lines = append(lines, createdText)
+	
+	statusText := "Status: " + a.getStatusDisplay(archive.Status)
+	lines = append(lines, statusText)
+	
+	locationText := "Location: " + lipgloss.NewStyle().Foreground(a.theme.Foreground).Render(archive.Path)
+	lines = append(lines, locationText)
+	
+	if archive.Checksum != "" {
+		checksumText := "Checksum: " + lipgloss.NewStyle().Foreground(a.theme.Metadata).Render(archive.Checksum[:16]+"...")
+		lines = append(lines, checksumText)
+	}
+	
 	lines = append(lines, "")
 	
-	// Commands with left margin
-	commands := "  " + lipgloss.NewStyle().
+	// Commands
+	commands := lipgloss.NewStyle().
 		Foreground(a.theme.Commands).
 		Render("[Enter] Back  [d] Delete  [m] Move  [u] Upload  [q] Quit")
 	lines = append(lines, commands)
@@ -231,17 +260,32 @@ func (a *SimpleApp) renderDetail() string {
 	return strings.Join(lines, "\n")
 }
 
-// Confirmation dialog
+// Confirmation dialog (rendered as overlay)
 func (a *SimpleApp) renderConfirm() string {
 	box := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(a.theme.StatusMiss).
 		Padding(1).
-		MarginLeft(4).
-		Foreground(a.theme.Foreground)
+		Margin(2, 4). // Center with margins
+		Foreground(a.theme.Foreground).
+		Background(lipgloss.Color("#000000")) // Dark background for contrast
 	
 	content := fmt.Sprintf("%s\n\n[y] Yes  [n] No  [Esc] Cancel", a.confirmMsg)
 	return box.Render(content)
+}
+
+// getStatusDisplay returns styled status text
+func (a *SimpleApp) getStatusDisplay(status string) string {
+	switch status {
+	case "present":
+		return lipgloss.NewStyle().Foreground(a.theme.StatusOK).Render("Present ✓")
+	case "missing":
+		return lipgloss.NewStyle().Foreground(a.theme.StatusMiss).Render("Missing ?")
+	case "deleted":
+		return lipgloss.NewStyle().Foreground(a.theme.StatusDel).Render("Deleted X")
+	default:
+		return lipgloss.NewStyle().Foreground(a.theme.Foreground).Render(status)
+	}
 }
 
 // Key handlers
