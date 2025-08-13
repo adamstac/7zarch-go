@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/adamstac/7zarch-go/internal/config"
+	"github.com/adamstac/7zarch-go/internal/display"
+	"github.com/adamstac/7zarch-go/internal/display/modes"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
 )
@@ -71,6 +73,13 @@ func ListCmd() *cobra.Command {
 	cmd.Flags().String("status", "", "Filter by status (present|missing|deleted)")
 	cmd.Flags().String("profile", "", "Filter by profile (media|documents|balanced)")
 	cmd.Flags().Int64("larger-than", 0, "Filter by size larger than bytes (e.g., 1048576)")
+	
+	// Display mode flags
+	cmd.Flags().Bool("table", false, "Use table display mode (enhanced)")
+	cmd.Flags().Bool("compact", false, "Use compact display mode")
+	cmd.Flags().Bool("card", false, "Use card display mode")
+	cmd.Flags().Bool("tree", false, "Use tree display mode")
+	cmd.Flags().Bool("dashboard", false, "Use dashboard display mode")
 
 	return cmd
 }
@@ -90,19 +99,192 @@ func runList(cmd *cobra.Command, args []string) error {
 		largerThan:   getInt64(cmd, "larger-than"),
 	}
 
+	// Determine display mode
+	displayMode := determineDisplayMode(cmd)
+
 	if directory != "" {
 		// List archives in a specific directory
 		return listDirectory(directory, opts.details, opts.pattern)
 	}
 
 	// List registry-tracked archives
-	return listRegistryArchives(opts)
+	return listRegistryArchivesWithDisplay(opts, displayMode)
 }
 
 // flag helpers
 func getBool(cmd *cobra.Command, name string) bool     { v, _ := cmd.Flags().GetBool(name); return v }
 func getString(cmd *cobra.Command, name string) string { v, _ := cmd.Flags().GetString(name); return v }
 func getInt64(cmd *cobra.Command, name string) int64   { v, _ := cmd.Flags().GetInt64(name); return v }
+
+// determineDisplayMode selects the display mode based on flags
+func determineDisplayMode(cmd *cobra.Command) display.Mode {
+	if getBool(cmd, "table") {
+		return display.ModeTable
+	}
+	if getBool(cmd, "compact") {
+		return display.ModeCompact
+	}
+	if getBool(cmd, "card") {
+		return display.ModeCard
+	}
+	if getBool(cmd, "tree") {
+		return display.ModeTree
+	}
+	if getBool(cmd, "dashboard") {
+		return display.ModeDashboard
+	}
+	// Default to auto-detection
+	return display.ModeAuto
+}
+
+// listRegistryArchivesWithDisplay uses the new display system
+func listRegistryArchivesWithDisplay(opts listFilters, mode display.Mode) error {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+	// Initialize storage manager
+	storageManager, err := storage.NewManager(cfg.Storage.ManagedPath)
+	if err != nil {
+		return fmt.Errorf("failed to initialize managed storage: %w", err)
+	}
+	defer storageManager.Close()
+
+	// Get archives based on filters
+	var archives []*storage.Archive
+	if opts.notUploaded {
+		archives, err = storageManager.ListNotUploaded()
+	} else if opts.olderThan != "" {
+		dur, parseErr := parseHumanDuration(opts.olderThan)
+		if parseErr != nil {
+			return fmt.Errorf("invalid duration format: %w", parseErr)
+		}
+		archives, err = storageManager.ListOlderThan(dur)
+	} else {
+		archives, err = storageManager.List()
+	}
+	if err != nil {
+		return fmt.Errorf("failed to list archives: %w", err)
+	}
+
+	// Apply filters
+	archives = applyAllFilters(archives, opts)
+
+	// Use enhanced display system for supported modes
+	if mode == display.ModeTable || mode == display.ModeCompact || mode == display.ModeCard || mode == display.ModeTree || mode == display.ModeDashboard {
+		// Initialize display manager
+		displayManager := display.NewManager()
+		
+		// Register available display modes
+		tableDisplay := modes.NewTableDisplay()
+		compactDisplay := modes.NewCompactDisplay()
+		cardDisplay := modes.NewCardDisplay()
+		treeDisplay := modes.NewTreeDisplay()
+		dashboardDisplay := modes.NewDashboardDisplay()
+		displayManager.Register(display.ModeTable, tableDisplay)
+		displayManager.Register(display.ModeCompact, compactDisplay)
+		displayManager.Register(display.ModeCard, cardDisplay)
+		displayManager.Register(display.ModeTree, treeDisplay)
+		displayManager.Register(display.ModeDashboard, dashboardDisplay)
+
+		// Configure display options
+		displayOpts := display.Options{
+			Mode:        mode,
+			Details:     opts.details,
+			ShowHeaders: mode != display.ModeCompact, // No headers for compact by default
+		}
+
+		// Render using the display system
+		return displayManager.Render(archives, displayOpts)
+	}
+
+	// Fall back to original display for now (other modes not yet implemented)
+	return displayArchivesOriginal(archives, opts)
+}
+
+// applyAllFilters applies all configured filters to the archive list
+func applyAllFilters(archives []*storage.Archive, opts listFilters) []*storage.Archive {
+	// Apply pattern filter
+	if opts.pattern != "" {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if matched, _ := filepath.Match(opts.pattern, a.Name); matched {
+				filtered = append(filtered, a)
+			}
+		}
+		archives = filtered
+	}
+
+	// Apply managed/external filter
+	if opts.onlyManaged || opts.onlyExternal {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if opts.onlyManaged && a.Managed {
+				filtered = append(filtered, a)
+			}
+			if opts.onlyExternal && !a.Managed {
+				filtered = append(filtered, a)
+			}
+		}
+		archives = filtered
+	}
+
+	// Apply missing filter
+	if opts.onlyMissing {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if a.Status == "missing" {
+				filtered = append(filtered, a)
+			}
+		}
+		archives = filtered
+	}
+
+	// Apply status/profile/larger-than filters
+	archives = applyFilters(archives, struct {
+		status, profile string
+		largerThan      int64
+	}{opts.status, opts.profile, opts.largerThan})
+
+	return archives
+}
+
+// displayArchivesOriginal is the original display function (fallback)
+func displayArchivesOriginal(archives []*storage.Archive, opts listFilters) error {
+	if len(archives) == 0 {
+		fmt.Printf("No archives found.\n")
+		fmt.Printf("💡 Tip: Create archives with '7zarch-go create <path>' to see them here.\n")
+		return nil
+	}
+
+	// Group and summarize
+	var managedCount, externalCount, missingCount, deletedCount int
+	var activeManaged, activeExternal, deletedArchives []*storage.Archive
+
+	for _, a := range archives {
+		if a.Status == "deleted" {
+			deletedCount++
+			deletedArchives = append(deletedArchives, a)
+		} else if a.Managed {
+			managedCount++
+			activeManaged = append(activeManaged, a)
+		} else {
+			externalCount++
+			activeExternal = append(activeExternal, a)
+		}
+		if a.Status == "missing" {
+			missingCount++
+		}
+	}
+
+	fmt.Printf("📦 Archives (%d found)\n", len(archives))
+	fmt.Printf("Active: %d (Managed: %d, External: %d) | Missing: %d | Deleted: %d\n\n",
+		managedCount+externalCount, managedCount, externalCount, missingCount, deletedCount)
+
+	// Delegate to existing printer
+	return printGroupedArchives(archives, opts.details)
+}
 
 func listRegistryArchives(opts listFilters) error {
 	// Load configuration
