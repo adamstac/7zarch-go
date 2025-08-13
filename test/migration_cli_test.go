@@ -37,7 +37,7 @@ func TestMigrationCLI_Commands(t *testing.T) {
 		}
 
 		outputStr := string(output)
-		
+
 		// Should show database path
 		if !strings.Contains(outputStr, "Database:") {
 			t.Error("Expected database path in output")
@@ -66,7 +66,7 @@ func TestMigrationCLI_Commands(t *testing.T) {
 		}
 
 		outputStr := string(output)
-		
+
 		// Should show backup created message
 		if !strings.Contains(outputStr, "Backup created:") {
 			t.Error("Expected backup created message in output")
@@ -86,10 +86,10 @@ func TestMigrationCLI_Commands(t *testing.T) {
 		}
 
 		outputStr := string(output)
-		
+
 		// Should show either dry run results or no pending migrations
-		if !strings.Contains(outputStr, "No pending migrations") && 
-		   !strings.Contains(outputStr, "Dry run:") {
+		if !strings.Contains(outputStr, "No pending migrations") &&
+			!strings.Contains(outputStr, "Dry run:") {
 			t.Error("Expected dry run or no pending migrations message")
 		}
 	})
@@ -102,10 +102,10 @@ func TestMigrationCLI_Commands(t *testing.T) {
 		}
 
 		outputStr := string(output)
-		
+
 		// Should show either successful migration or no pending migrations
-		if !strings.Contains(outputStr, "No pending migrations") && 
-		   !strings.Contains(outputStr, "completed successfully") {
+		if !strings.Contains(outputStr, "No pending migrations") &&
+			!strings.Contains(outputStr, "completed successfully") {
 			t.Error("Expected migration success or no pending migrations message")
 		}
 	})
@@ -118,7 +118,7 @@ func TestMigrationCLI_Commands(t *testing.T) {
 		}
 
 		outputStr := string(output)
-		
+
 		// Should show backup created message
 		if !strings.Contains(outputStr, "Backup created:") {
 			t.Error("Expected backup created message in output")

@@ -42,7 +42,7 @@ func masDbStatusCmd() *cobra.Command {
 			}
 
 			fmt.Printf("Database: %s\n", mgr.Registry().Path())
-			
+
 			if len(applied) > 0 {
 				latestMigration := applied[len(applied)-1]
 				fmt.Printf("Schema Version: %s\n", latestMigration.ID)
@@ -52,9 +52,9 @@ func masDbStatusCmd() *cobra.Command {
 
 			fmt.Printf("Applied Migrations: %d\n", len(applied))
 			for _, migration := range applied {
-				fmt.Printf("  ✓ %s: %s (applied %s)\n", 
-					migration.ID, 
-					migration.Name, 
+				fmt.Printf("  ✓ %s: %s (applied %s)\n",
+					migration.ID,
+					migration.Name,
 					migration.AppliedAt.Format("2006-01-02 15:04:05"))
 			}
 
