@@ -46,6 +46,8 @@ Features:
 	// Trash Management (7EP-0001)
 	rootCmd.AddCommand(cmd.RestoreCmd())
 	rootCmd.AddCommand(cmd.TrashCmd())
+	// TUI (7EP-0010)
+	rootCmd.AddCommand(cmd.TuiCmd())
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {
