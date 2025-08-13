@@ -39,7 +39,7 @@ jobs:
         fi
         
     - name: Install golangci-lint
-      uses: golangci/golangci-lint-action@v6
+      uses: golangci/golangci-lint-action@v8
       with:
         args: --timeout=5m --modules-download-mode=mod
         version: v1.60.3
