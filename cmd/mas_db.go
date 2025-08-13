@@ -2,10 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/adamstac/7zarch-go/internal/config"
 	"github.com/adamstac/7zarch-go/internal/storage"
@@ -32,15 +29,49 @@ func masDbStatusCmd() *cobra.Command {
 			}
 			defer mgr.Close()
 
-			if err := mgr.Registry().EnsureMigrationsTable(); err != nil {
-				return err
+			runner := mgr.NewMigrationRunner()
+
+			applied, err := runner.GetAppliedMigrations()
+			if err != nil {
+				return fmt.Errorf("failed to get applied migrations: %w", err)
 			}
-			// For now, we show whether baseline/identity are marked
-			baseApplied, _ := mgr.Registry().IsMigrationApplied("0001_baseline")
-			idApplied, _ := mgr.Registry().IsMigrationApplied("0002_identity_and_status")
-			fmt.Printf("DB Path: %s\n", mgr.Registry().Path())
-			fmt.Printf("Baseline: %v\n", baseApplied)
-			fmt.Printf("Identity/Status: %v\n", idApplied)
+
+			pending, err := runner.GetPendingMigrations()
+			if err != nil {
+				return fmt.Errorf("failed to get pending migrations: %w", err)
+			}
+
+			fmt.Printf("Database: %s\n", mgr.Registry().Path())
+
+			if len(applied) > 0 {
+				latestMigration := applied[len(applied)-1]
+				fmt.Printf("Schema Version: %s\n", latestMigration.ID)
+			} else {
+				fmt.Printf("Schema Version: (none applied)\n")
+			}
+
+			fmt.Printf("Applied Migrations: %d\n", len(applied))
+			for _, migration := range applied {
+				fmt.Printf("  ✓ %s: %s (applied %s)\n",
+					migration.ID,
+					migration.Name,
+					migration.AppliedAt.Format("2006-01-02 15:04:05"))
+			}
+
+			if len(pending) > 0 {
+				fmt.Printf("Pending Migrations: %d\n", len(pending))
+				for _, migration := range pending {
+					fmt.Printf("  - %s: %s\n", migration.ID, migration.Description)
+				}
+			} else {
+				fmt.Printf("Pending Migrations: 0\n")
+			}
+
+			// Get database size
+			if stat, err := os.Stat(mgr.Registry().Path()); err == nil {
+				fmt.Printf("Database Size: %.1f KB\n", float64(stat.Size())/1024)
+			}
+
 			return nil
 		},
 	}
@@ -60,15 +91,42 @@ func masDbMigrateCmd() *cobra.Command {
 			}
 			defer mgr.Close()
 
+			runner := mgr.NewMigrationRunner()
+
 			if backupOnly {
-				return createDbBackup(mgr)
-			}
-			if dryRun {
-				fmt.Println("Dry run: no migrations applied")
+				backupPath, err := runner.CreateBackup(mgr.Registry().Path())
+				if err != nil {
+					return fmt.Errorf("backup failed: %w", err)
+				}
+				fmt.Printf("Backup created: %s\n", backupPath)
 				return nil
 			}
-			// For now, schema is current; future pending migrations will be run here
-			fmt.Println("No pending migrations")
+
+			pending, err := runner.GetPendingMigrations()
+			if err != nil {
+				return fmt.Errorf("failed to get pending migrations: %w", err)
+			}
+
+			if len(pending) == 0 {
+				fmt.Println("No pending migrations")
+				return nil
+			}
+
+			if dryRun {
+				fmt.Printf("Dry run: would apply %d migration(s)\n", len(pending))
+				for _, migration := range pending {
+					fmt.Printf("  - %s: %s\n", migration.ID, migration.Description)
+				}
+				return nil
+			}
+
+			fmt.Printf("Applying %d pending migration(s)...\n", len(pending))
+
+			if err := runner.ApplyPending(mgr.Registry().Path()); err != nil {
+				return fmt.Errorf("migration failed: %w", err)
+			}
+
+			fmt.Println("✓ Migrations completed successfully")
 			return nil
 		},
 	}
@@ -88,36 +146,14 @@ func masDbBackupCmd() *cobra.Command {
 				return err
 			}
 			defer mgr.Close()
-			return createDbBackup(mgr)
+
+			runner := mgr.NewMigrationRunner()
+			backupPath, err := runner.CreateBackup(mgr.Registry().Path())
+			if err != nil {
+				return fmt.Errorf("backup failed: %w", err)
+			}
+			fmt.Printf("Backup created: %s\n", backupPath)
+			return nil
 		},
 	}
-}
-
-func createDbBackup(mgr *storage.Manager) error {
-	path := mgr.Registry().Path()
-	if path == "" {
-		return fmt.Errorf("registry path unknown")
-	}
-	backupDir := filepath.Dir(path)
-	stamp := time.Now().Format("20060102-150405")
-	backupPath := filepath.Join(backupDir, fmt.Sprintf("registry.%s.bak", stamp))
-
-	// #nosec G304: path comes from validated config; used for local backup
-	src, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer src.Close()
-	// Use restrictive permissions for backup file
-	// #nosec G304: backupPath is created under the same directory as the DB
-	dst, err := os.OpenFile(backupPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
-	if err != nil {
-		return err
-	}
-	defer dst.Close()
-	if _, err := io.Copy(dst, src); err != nil {
-		return err
-	}
-	fmt.Printf("Backup created: %s\n", backupPath)
-	return nil
 }
