@@ -10,6 +10,7 @@ linters:
     - errcheck
     - ineffassign
     - gosimple
+    - typecheck
 
 # Keep additional linter settings available for future tightening
 linters-settings:
