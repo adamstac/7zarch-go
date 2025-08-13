@@ -52,6 +52,8 @@ Features:
 	rootCmd.AddCommand(cmd.UICmd())       // Short alias
 	rootCmd.AddCommand(cmd.InteractiveCmd()) // Single letter alias
 	rootCmd.AddCommand(cmd.TuiCmd())      // Compatibility alias
+	// Query Management (7EP-0007)
+	rootCmd.AddCommand(cmd.QueryCmd())
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {
