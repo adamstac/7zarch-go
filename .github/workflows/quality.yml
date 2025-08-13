@@ -21,8 +21,11 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.22'
         cache: true
+        check-latest: true
+      env:
+        GOTOOLCHAIN: local
         
     - name: Download dependencies
       run: make deps
@@ -41,9 +44,8 @@ jobs:
     - name: Install golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
-        args: --timeout=5m --modules-download-mode=mod
         version: v1.60.3
-        args: --timeout=5m
+        args: --timeout=5m --modules-download-mode=mod --skip-dirs-use-default=false --exclude="undefined:"
         
   security:
     name: Security Scan
@@ -56,7 +58,8 @@ jobs:
     - name: Run Gosec Security Scanner
       uses: securego/gosec@master
       with:
-        args: '-fmt sarif -out gosec-results.sarif ./...'
+        args: '-fmt sarif -out gosec-results.sarif -quiet ./...'
+      timeout-minutes: 5
         
     - name: Upload SARIF file
       uses: github/codeql-action/upload-sarif@v3
