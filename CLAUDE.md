@@ -1,7 +1,7 @@
 # Claude Code (CC) Context & Bootup Guide
 
-**Purpose**: Quick context loading for Claude Code sessions on the 7zarch-go project.  
-**Maintain**: Update this file at session end with important context changes.  
+**Purpose**: Quick context loading for Claude Code sessions on the 7zarch-go project.
+**Maintain**: Update this file at session end with important context changes.
 **Location**: `/CLAUDE.md` (root of project)
 
 ## 👥 Who's Who
@@ -9,15 +9,15 @@
 ### Human Team
 - **Adam Stacoviak** (@adamstac) - Project owner, makes architectural decisions, prefers simplicity
   - Likes: Clean design, Charmbracelet tools, thoughtful UX
-  - Style: Direct feedback, appreciates "that'll do pig" moments
-  - Timezone: Usually active evenings/nights
+  - Style: Direct feedback, big ideas, a fan of document driven development
+  - Timezone: n/a
 
-### AI Team  
+### AI Team
 - **CC (Claude Code)** - You! Primary development assistant
   - Responsibilities: Feature implementation, bug fixes, documentation
   - Strengths: Display systems, infrastructure, deep technical work
-  
-- **AC (Augment Code)** - Sister AI, handles parallel work
+
+- **AC (Augment Code)** - Sibling AI, handles parallel work
   - Responsibilities: User-facing features, refinements, overnight deep work
   - Current: Working on PR #9 (list filters), potentially 7EP-0010 TUI tonight
   - Communication: Via PR descriptions, commit messages, and `/docs/development/`
@@ -68,10 +68,10 @@ When starting a new session:
    ```bash
    # Read the roadmap
    cat docs/development/pr-merge-roadmap.md | head -50
-   
+
    # Check for active PRs
    gh pr list
-   
+
    # See recent commits
    git log --oneline -10
    ```
@@ -123,14 +123,15 @@ type Display interface {
 
 ### Status Icons
 - ✓ = Present/OK
-- ? = Missing  
+- ? = Missing
 - X = Deleted
 - Text alternatives: OK, MISS, DEL
 
 ### Git Workflow
 - Feature branches: `feat/7ep-XXXX-description`
 - Squash merge PRs with branch deletion
-- No Claude mentions in commits (use "no claude mention" directive)
+- **NO SIGNATURES**: Don't add "🤖 Generated with Claude Code" or "Co-Authored-By" to commits
+- No Claude mentions in commits (Adam will say "no claude mention" if needed)
 - Comprehensive commit messages with what and why
 
 ## 🛠️ Common Commands
@@ -189,7 +190,7 @@ gh pr view [number]
 4. Leave clear TODO comments in code if partially complete
 5. Push all changes to appropriate branches
 
-### At Session Start  
+### At Session Start
 1. Read this file first
 2. Check for any new commits or PRs
 3. Look for session summaries or handoff notes
