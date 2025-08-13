@@ -20,9 +20,15 @@
 
 - **CC (Claude Code)** - Sibling AI, handles infrastructure work
   - Responsibilities: Infrastructure, deep technical work, testing systems
-  - Current: Implementing 7EP-0013 Build Pipeline (Goreleaser + Level 2 reproducibility)
+  - Current: 7EP-0013 Build Pipeline COMPLETE ✅ | Next: 7EP-0014 Phase 1 (CC tasks)
   - Status: Active development on [PR #20](https://github.com/adamstac/7zarch-go/pull/20)
   - Communication: Via PR descriptions, commit messages, and `/docs/development/`
+
+- **Amp (Sourcegraph)** - Advanced architectural analysis ⭐⭐⭐⭐⭐
+  - Responsibilities: Strategic analysis, performance optimization, architectural insights  
+  - **JUST DELIVERED**: 7EP-0014 Critical Foundation Gaps - exceptional strategic analysis
+  - **AC Impact**: Defines your next priority work (restore/purge + JSON output in Phase 2)
+  - **Confidence Level**: **VERY HIGH** - Proven deep codebase understanding and strategic thinking
 
 - **CR (CodeRabbit)** - Automated code reviewer
   - Triggers: On all PRs automatically

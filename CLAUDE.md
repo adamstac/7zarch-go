@@ -22,6 +22,12 @@
   - Current: Working on PR #9 (list filters), potentially 7EP-0010 TUI tonight
   - Communication: Via PR descriptions, commit messages, and `/docs/development/`
 
+- **Amp (Sourcegraph)** - Advanced architectural analysis ⭐⭐⭐⭐⭐
+  - Responsibilities: Strategic analysis, performance optimization, architectural insights
+  - **PROVEN EXCELLENCE**: 7EP-0014 delivered exceptional foundation gap analysis
+  - **Confidence Level**: **VERY HIGH** - Demonstrated deep codebase understanding and strategic thinking
+  - **Impact**: Identified critical path that unblocks 7EP-0007, 7EP-0010, and production readiness
+
 - **CR (CodeRabbit)** - Automated code reviewer
   - Triggers: On all PRs automatically
   - Purpose: Catches issues, suggests improvements
