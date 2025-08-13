@@ -1,15 +1,31 @@
 # 7EP-0010: Interactive TUI Application
 
-**Status:** Draft  
-**Author(s):** Claude Code (CC), Adam Stacoviak  
-**Assignment:** CC Lead (TUI Architecture), AC Support (UX Workflows)  
-**Difficulty:** 4 (high - comprehensive UI redesign with complex interactions)  
+**Status:** 🎯 Ready for Implementation  
+**Author(s):** Claude Code (CC), Adam Stacoviak, Amp (Sourcegraph)  
+**Assignment:** CC (Full Implementation) + Amp (UX Design & Oversight)  
+**Difficulty:** 3 (moderate - builds on existing PR21 foundation with theme system)  
 **Created:** 2025-08-12  
-**Updated:** 2025-08-12  
+**Updated:** 2025-08-13 (Amp UX design collaboration + foundation strategy)  
 
 ## Executive Summary
 
-Transform 7zarch-go into a comprehensive Terminal User Interface (TUI) application that provides an intuitive, visual, and interactive archive management experience. Create a dashboard-first interface that presents a complete view of the user's "archive world" upon entry, with seamless navigation to archive creation, management, search, and organization functions. Maintain full CLI compatibility while offering a rich TUI alternative for complex archive workflows.
+Create a simple, elegant Terminal User Interface (TUI) focused on **podcast archival workflows** with clean list/details navigation and beautiful themes. Build on existing PR21 foundation while simplifying the interface to prioritize ease of viewing, creating, and managing large media archives for TrueNAS storage with future Tailscale integration.
+
+## 🎯 Amp (Sourcegraph) UX Design Vision
+
+**Core Philosophy:** Simple lists with selection and action - optimized for podcast production archival workflow.
+
+### **Primary Use Case: Podcast Archive Management**
+**User:** Podcast producer managing large episode archives  
+**Workflow:** Create → Stage → Upload to TrueNAS → Browse remote → Download when needed  
+**Focus:** Large media files, long-term storage, simple navigation, bulletproof safety
+
+### **UX Principles:**
+- **List-first interface** - Simple archive lists with arrow key navigation
+- **Immediate actions** - Single key commands for common operations  
+- **Theme system** - Multiple color schemes including Dracula
+- **Safety-first** - Soft deletes with clear confirmation patterns
+- **Remote integration** - TrueNAS feels local via Tailscale (future)
 
 ## Evidence & Reasoning
 
@@ -37,46 +53,60 @@ Transform 7zarch-go into a comprehensive Terminal User Interface (TUI) applicati
 
 ## Use Cases
 
-### Primary Use Case: Dashboard-First Archive Management
+### Primary Use Case: Simple List Navigation for Podcast Archives
 ```bash
-# Launch TUI application
-7zarch tui
+# Launch TUI application  
+7zarch-go tui
 
-# Entry experience: Dashboard overview showing archive world
-# Navigate to specific functions via keyboard shortcuts
-# Maintain context and state across operations
+# Simple list interface:
+# - Arrow keys navigate archives
+# - Enter for details view
+# - Single letters for actions (d=delete, m=move, u=upload)
+# - Multi-select with Space bar
+# - Theme selection for personal preference
 ```
 
-**Dashboard Entry Experience:**
+**Core Interface Pattern:**
 ```
-7zarch-go Archive Management                                    [v2.1.0] [?] Help
-┌─ Storage Overview ──────────────────────────┬─ Recent Activity ─────────────────────┐
-│ 📦 Total: 127 archives (8.4 TB)            │ 🕐 Last 24 Hours                      │
-│ ✅ Active: 119 (7.8 TB)                    │ ┌─ Created ──────────────────────────┐ │
-│ ⚠️ Missing: 6 (445 MB)                     │ │ project-backup-2024-08-12.7z       │ │
-│ 🗑️ Deleted: 2 (156 MB - auto-purge 3d)    │ │ documents-sync-daily.7z             │ │
-│                                             │ │ media-vacation-photos.7z            │ │
-│ 📊 By Profile:                             │ └────────────────────────────────────────┘ │
-│ • 📱 Media: 45 archives (4.2 TB)          │ 🔄 Operations                         │
-│ • 📄 Documents: 38 archives (2.1 TB)      │ ┌─ In Progress ──────────────────────┐ │
-│ • ⚖️ Balanced: 44 archives (2.1 TB)       │ │ No active operations               │ │
-│                                             │ └────────────────────────────────────────┘ │
-│ 📈 Growth (30d): +12 archives (+1.2 TB)   │ ⚠️ Attention Needed                   │
-│ 🎯 Health Score: 94% (6 missing archives) │ ┌─ Issues ───────────────────────────┐ │
-└─────────────────────────────────────────────┴─ Missing Archives (6) ─────────────── │
-                                             │ • backup-external-drive.7z         │ │
-┌─ Quick Actions ─────────────────────────────│ • old-project-archive.7z           │ │
-│ c  Create new archive                       │ • photos-backup-2023.7z            │ │
-│ l  Browse all archives                      │ (Press 'm' to view missing details) │ │
-│ s  Search archives                          │ └────────────────────────────────────────┘ │
-│ m  View missing archives                    └────────────────────────────────────────────┘
-│ t  Trash management                         
-│ u  Upload pending archives                  ┌─ Storage Breakdown ─────────────────────────┐
-│ r  Recent archives                          │ Managed:   ████████████░░░░░░░░░ 68% (5.7TB) │
-│ p  Performance monitor                      │ External:  ██████░░░░░░░░░░░░░░░░ 32% (2.7TB) │
-│ ?  Help and shortcuts                       │ Available: ████████████████████░ 89% (2.1TB) │
-└─────────────────────────────────────────────┴─────────────────────────────────────────────┘
-Press any key to start, 'q' to quit, arrow keys to explore sections
+7zarch-go                                    # Theme-colored header
+
+Archives: 247 (12.4 TB)                     # Status line
+
+> episode-423.7z        89 MB    2h ago    ✓ # Selected item highlighted
+  episode-422.7z        92 MB    1d ago    ✓ # Normal items
+  vacation-photos.7z   3.8 GB    1w ago    ✓
+  
+[Enter] Details  [d] Delete  [u] Upload  [q] Quit
+```
+
+**Simple List Interface Examples:**
+
+**Blue Tech Theme:**
+```
+7zarch-go                                                     # Bright Blue
+
+Archives: 247 (12.4 TB)                                       # White
+
+> episode-423.7z                89 MB    2h ago    ✓           # Blue bg, White text
+  episode-422.7z                92 MB    1d ago    ✓           # White, Cyan, Green
+  vacation-photos.7z           3.8 GB    1w ago    ✓           # White, Cyan, Green
+  old-project.7z               456 MB    1m ago    ?           # White, Cyan, Yellow
+
+[Enter] Details  [d] Delete  [m] Move  [u] Upload  [q] Quit    # Blue
+```
+
+**Dracula Theme:**
+```
+7zarch-go                                                     # Purple (#BD93F9)
+
+Archives: 247 (12.4 TB)                                       # Foreground (#F8F8F2)
+
+> episode-423.7z                89 MB    2h ago    ✓           # Selection bg (#44475A), Purple text
+  episode-422.7z                92 MB    1d ago    ✓           # Foreground, Cyan (#8BE9FD), Green (#50FA7B)
+  vacation-photos.7z           3.8 GB    1w ago    ✓           # Foreground, Cyan (#8BE9FD), Green (#50FA7B)
+  old-project.7z               456 MB    1m ago    ?           # Foreground, Cyan (#8BE9FD), Yellow (#F1FA8C)
+
+[Enter] Details  [d] Delete  [m] Move  [u] Upload  [q] Quit    # Pink (#FF79C6)
 ```
 
 ### Secondary Use Cases
@@ -653,65 +683,131 @@ func main() {
 7zarch create --interactive   # Interactive creation with path browser
 ```
 
-## Implementation Plan
+## Implementation Strategy
 
-### Phase 1: TUI Foundation (CC Lead)
-- [ ] **Core TUI Architecture** (CC)
-  - [ ] Bubble Tea application structure
-  - [ ] Navigation system and view routing
-  - [ ] Theme system and visual design
-  - [ ] Key binding and input handling
-  - [ ] Integration with existing storage manager
+### Building on PR21 Foundation
+**Existing Foundation (PR21 `feat/tui-actions-errors-overlay`):**
+- ✅ Bubble Tea application structure working
+- ✅ Table component with archive data integration
+- ✅ Selection system and multi-select functionality
+- ✅ Action overlays and confirmation dialogs
+- ✅ Basic keyboard navigation patterns
 
-- [ ] **Dashboard View** (CC)
-  - [ ] Storage overview statistics
-  - [ ] Recent activity display
-  - [ ] Health check and recommendations
-  - [ ] Quick action shortcuts
+### Implementation Plan
 
-### Phase 2: Core Views (CC Lead, AC UX Input)
-- [ ] **Archive Browser** (CC)
-  - [ ] Multi-pane layout (filters, list, details)
-  - [ ] Interactive filtering and sorting
-  - [ ] Multi-select and batch selection
-  - [ ] Pagination for large datasets
+### Phase 1: Simplify & Theme System (CC)
+- [ ] **Strip Complex UI** (CC)
+  - [ ] Remove complex dashboard and overlays
+  - [ ] Focus on simple list → details → actions flow
+  - [ ] Keep working table and selection from PR21
+  - [ ] Simplify navigation to arrow keys + single letter actions
 
-- [ ] **Search Interface** (CC)
-  - [ ] Live search with real-time results
-  - [ ] Advanced filter integration
-  - [ ] Search history and saved searches
-  - [ ] Result preview and navigation
+- [ ] **Theme System Implementation** (CC)
+  - [ ] Theme configuration structure
+  - [ ] 5 base themes: Blue Tech, Terminal Green, Purple, Cyan, Charmbracelet
+  - [ ] 4 Dracula variations: Classic, Warm, Cool, Minimal
+  - [ ] Theme switching mechanism (`--theme` flag or config)
+  - [ ] Color application to all UI elements
 
-### Phase 3: Interactive Operations (Shared)
-- [ ] **Archive Creation** (CC)
-  - [ ] Interactive path browser with tab completion
-  - [ ] Visual source selection
-  - [ ] Configuration wizard
-  - [ ] Real-time progress tracking
+### Phase 2: Core Functionality (CC)
+- [ ] **List View Enhancement** (CC)
+  - [ ] Simple archive list with theme application
+  - [ ] Arrow key navigation with visual selection
+  - [ ] Multi-select with Space bar (checkboxes)
+  - [ ] Integration with 7EP-0007 query system when ready
 
-- [ ] **Batch Operations** (AC/CC)
-  - [ ] Multi-select operations (move, delete, upload)
-  - [ ] Visual progress tracking
-  - [ ] Confirmation dialogs and safety checks
-  - [ ] Operation history and undo capabilities
+- [ ] **Details View** (CC)
+  - [ ] Simple archive details display
+  - [ ] Essential metadata (size, date, status, location)
+  - [ ] Navigation back to list
+  - [ ] Theme-consistent styling
 
-### Phase 4: Advanced Features (Shared)
-- [ ] **Enhanced Details View** (CC)
-  - [ ] Interactive metadata editing
-  - [ ] File content browsing
-  - [ ] Archive integrity tools
-  - [ ] Related archive discovery
+### Phase 3: Actions & Safety (CC)
+- [ ] **Simple Actions** (CC)
+  - [ ] Single-key actions (d=delete, m=move, u=upload)
+  - [ ] Multi-select batch operations
+  - [ ] Safe confirmation dialogs
+  - [ ] Integration with existing CLI commands
 
-- [ ] **Configuration Interface** (AC)
-  - [ ] Settings management in TUI
-  - [ ] Profile configuration
-  - [ ] Keyboard shortcut customization
-  - [ ] Theme and appearance options
+- [ ] **Upload Integration** (CC)
+  - [ ] TrueNAS upload preparation
+  - [ ] Progress tracking for large files
+  - [ ] Remote storage status integration
+  - [ ] Future Tailscale network transparency
+
+### Phase 4: Polish & Future Features (CC)
+- [ ] **Theme Management** (CC)
+  - [ ] Runtime theme switching
+  - [ ] User preference persistence
+  - [ ] Custom theme creation capability
+
+- [ ] **Remote Storage Integration** (CC)
+  - [ ] TrueNAS browsing (when backend ready)
+  - [ ] Download from remote archives
+  - [ ] Integrity verification without download
+  - [ ] Seamless local/remote navigation
+
+## 🎨 Complete Theme System Specification
+
+### Theme Architecture
+```go
+type Theme struct {
+    Name        string
+    Header      lipgloss.Color  // Title/app name
+    Foreground  lipgloss.Color  // Normal text
+    Selection   lipgloss.Color  // Selected item background
+    SelText     lipgloss.Color  // Selected item text
+    Metadata    lipgloss.Color  // Size/date info
+    StatusOK    lipgloss.Color  // ✓ Present archives
+    StatusMiss  lipgloss.Color  // ? Missing archives  
+    StatusDel   lipgloss.Color  // X Deleted archives
+    Commands    lipgloss.Color  // Command help text
+}
+```
+
+### Complete Theme Definitions
+
+#### **1. Blue Tech Theme**
+- Header: `#00BFFF`, Foreground: `#FFFFFF`, Selection: `#1E3A8A`, SelText: `#FFFFFF`
+- Metadata: `#22D3EE`, StatusOK: `#10B981`, StatusMiss: `#F59E0B`, Commands: `#3B82F6`
+
+#### **2. Terminal Green Theme**  
+- Header: `#00FF00`, Foreground: `#FFFFFF`, Selection: `#065F46`, SelText: `#00FF00`
+- Metadata: `#86EFAC`, StatusOK: `#00FF00`, StatusMiss: `#FBBF24`, Commands: `#22C55E`
+
+#### **3. Purple Gradient Theme**
+- Header: `#FF00FF`, Foreground: `#FFFFFF`, Selection: `#7C3AED`, SelText: `#F472B6`
+- Metadata: `#C4B5FD`, StatusOK: `#EC4899`, StatusMiss: `#FB923C`, Commands: `#8B5CF6`
+
+#### **4. Neon Cyan Theme**
+- Header: `#00FFFF`, Foreground: `#FFFFFF`, Selection: `#0F766E`, SelText: `#00FFFF`
+- Metadata: `#FB923C`, StatusOK: `#10B981`, StatusMiss: `#F97316`, Commands: `#06B6D4`
+
+#### **5. Charmbracelet Theme**
+- Header: `#FF1493`, Foreground: `#FFFFFF`, Selection: `#EC4899`, SelText: `#FFFFFF`
+- Metadata: `#FBCFE8`, StatusOK: `#32CD32`, StatusMiss: `#FFD700`, Commands: `#EC4899`
+
+#### **6. Dracula Classic Theme**
+- Header: `#BD93F9`, Foreground: `#F8F8F2`, Selection: `#44475A`, SelText: `#BD93F9`
+- Metadata: `#8BE9FD`, StatusOK: `#50FA7B`, StatusMiss: `#F1FA8C`, Commands: `#FF79C6`
+
+#### **7. Dracula Warm Theme**
+- Header: `#BD93F9`, Foreground: `#F8F8F2`, Selection: `#44475A`, SelText: `#FFB86C`
+- Metadata: `#FFB86C`, StatusOK: `#50FA7B`, StatusMiss: `#F1FA8C`, Commands: `#FF79C6`
+
+#### **8. Dracula Cool Theme**  
+- Header: `#FF79C6`, Foreground: `#F8F8F2`, Selection: `#44475A`, SelText: `#FF79C6`
+- Metadata: `#BD93F9`, StatusOK: `#50FA7B`, StatusMiss: `#FF5555`, Commands: `#BD93F9`
+
+#### **9. Dracula Minimal Theme**
+- Header: `#BD93F9`, Foreground: `#F8F8F2`, Selection: `#44475A`, SelText: `#F8F8F2`
+- Metadata: `#6272A4`, StatusOK: `#50FA7B`, StatusMiss: `#F1FA8C`, Commands: `#6272A4`
 
 ### Dependencies
-- **7EP-0004**: MAS Foundation (completed) - provides storage and registry infrastructure
-- **7EP-0009**: Enhanced Display System (in progress) - shared display logic and themes
-- **7EP-0007**: Enhanced MAS Operations (planned) - search and batch operation integration
+- **7EP-0004**: MAS Foundation ✅ (completed) - provides storage and registry infrastructure
+- **7EP-0014**: Critical Foundation Gaps ✅ (completed) - provides reliable foundation  
+- **7EP-0007**: Enhanced MAS Operations 🔄 (CC implementing) - search and query integration
+- **PR21**: TUI Foundation ✅ (existing) - Bubble Tea app, table, selection system
 
 ## Testing Strategy
 
@@ -785,33 +881,29 @@ Complete CLI compatibility maintained:
 
 **Desktop GUI application**: Evaluated cross-platform desktop app, but TUI maintains the command-line focus and doesn't require GUI framework dependencies.
 
-## AC/CC Implementation Split
+## CC Implementation Strategy
 
-### CC (Claude Code) Responsibilities - TUI Infrastructure
-- **TUI Framework Integration**: Bubble Tea application architecture and component system
-- **View System**: Core view implementations (dashboard, browser, search, details)
-- **Navigation Infrastructure**: Key binding system, view routing, focus management
-- **Visual Design**: Theme system, layout components, responsive design
-- **Performance Optimization**: Efficient rendering, memory management, large dataset handling
+### CC (Claude Code) Responsibilities - Full TUI Implementation
+- **TUI Simplification**: Strip PR21 complexity, focus on list → details → actions
+- **Theme System**: 9 complete themes with runtime switching capability  
+- **List Navigation**: Arrow keys, single-letter actions, multi-select with Space
+- **Details View**: Simple metadata display with theme consistency
+- **Action Integration**: Leverage existing CLI commands for operations
+- **Safety Patterns**: Confirmation dialogs for destructive operations
+- **Performance**: Efficient rendering for large archive collections
 
-### AC (Augment Code) Responsibilities - User Experience
-- **Workflow Design**: User journey mapping, task flow optimization
-- **Interactive Operations**: Batch operation workflows, confirmation dialogs
-- **Configuration Management**: Settings interface, user preference system
-- **Help and Documentation**: In-app help system, keyboard shortcut reference
-- **Accessibility**: Terminal compatibility, keyboard navigation optimization
+### Implementation Coordination with Amp
+- **UX Design**: Amp provides UI mockups, flow guidance, and theme specifications
+- **Architecture Review**: Amp validates approach against podcast archival workflow
+- **Progress Oversight**: Amp monitors implementation against simple UI vision
+- **Quality Assurance**: Amp ensures TUI maintains CLI functionality while improving UX
 
-### Shared Responsibilities
-- **UX Research**: User workflow analysis and interaction design (AC leads, CC implements)
-- **Integration Testing**: Cross-platform and terminal compatibility validation
-- **Feature Specification**: Interactive operation requirements and behaviors
-- **Performance Testing**: User experience benchmarks and optimization
-
-### Coordination Points
-1. **View Design**: Layout specifications and interaction patterns
-2. **Key Bindings**: Shortcut design and conflict resolution
-3. **Operation Workflows**: Multi-step operation design and error handling
-4. **Theme Integration**: Visual consistency with CLI display modes (7EP-0009)
+### PR21 Foundation Strategy
+**Leverage Existing Work:**
+- ✅ **Keep**: Bubble Tea architecture, table component, selection system
+- 🔄 **Simplify**: Remove complex overlays, wizards, multi-pane layouts
+- 🎨 **Enhance**: Add comprehensive theme system with 9 color schemes
+- 🎯 **Focus**: List view + details view + simple actions
 
 ## Future Considerations
 
