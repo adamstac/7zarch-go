@@ -49,7 +49,6 @@ func MasMoveCmd() *cobra.Command {
 		Use:   "move <id>",
 		Short: "Move an archive (default to managed storage if --to omitted)",
 		Args:  cobra.ExactArgs(1),
-		ValidArgsFunction: completeArchiveIDs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
 			cfg, err := config.Load()

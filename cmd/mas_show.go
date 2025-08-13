@@ -25,7 +25,6 @@ func MasShowCmd() *cobra.Command {
 		Use:   "show <id>",
 		Short: "Show archive details by ID (uid, checksum prefix, numeric id, or name)",
 		Args:  cobra.ExactArgs(1),
-		ValidArgsFunction: completeArchiveIDs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
 			cfg, _ := config.Load()
