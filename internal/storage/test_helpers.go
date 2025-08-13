@@ -70,9 +70,9 @@ func CreateTestArchive(t *testing.T, reg *Registry, name string, opts ...TestArc
 		Status:   cfg.status,
 	}
 
-	// Add archive
+	// Register archive
 	if err := reg.Add(archive); err != nil {
-		t.Fatalf("Failed to add test archive: %v", err)
+		t.Fatalf("Failed to register test archive: %v", err)
 	}
 
 	return archive
@@ -211,7 +211,7 @@ func AssertNotFound(t *testing.T, resolver *Resolver, input string) {
 // BenchmarkResolver helps benchmark resolution performance
 func BenchmarkResolver(b *testing.B, archiveCount int) {
 	// Create registry with many archives
-	reg := &Registry{} // Would use TestRegistry in real implementation
+	reg := TestRegistry(&testing.T{})
 	resolver := NewResolver(reg)
 
 	// Create test archives
@@ -221,13 +221,13 @@ func BenchmarkResolver(b *testing.B, archiveCount int) {
 			UID:  fmt.Sprintf("01K2E%06d", i),
 			Name: fmt.Sprintf("archive-%d.7z", i),
 		}
-		reg.Add(archives[i])
+		_ = reg.Add(archives[i])
 	}
 
 	// Benchmark resolution
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Test various resolution types
-		resolver.Resolve(archives[i%archiveCount].UID[:8])
+		_, _ = resolver.Resolve(archives[i%archiveCount].UID[:8])
 	}
 }

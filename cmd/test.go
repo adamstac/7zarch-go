@@ -138,23 +138,21 @@ func runTestDirectory(dir string) error {
 
 	// Run tests concurrently
 	g, ctx := errgroup.WithContext(context.Background())
-	sem := make(chan struct{}, maxConcurrent)
+	g.SetLimit(maxConcurrent)
 
 	for i, archivePath := range archives {
 		i, archivePath := i, archivePath // Capture loop variables
 
 		g.Go(func() error {
-			// Acquire semaphore
-			select {
-			case sem <- struct{}{}:
-				defer func() { <-sem }()
-			case <-ctx.Done():
-				return ctx.Err()
+			if err := ctx.Err(); err != nil {
+				return err
 			}
 
-			// Test archive
+			// Test archive (per-archive timeout for parity with single mode)
 			manager := archive.NewManager()
-			result, err := manager.Test(ctx, archivePath)
+			ctxArchive, cancel := context.WithTimeout(ctx, 10*time.Minute)
+			defer cancel()
+			result, err := manager.Test(ctxArchive, archivePath)
 			if err != nil {
 				result = &archive.TestResult{
 					Passed: false,
@@ -201,18 +199,15 @@ func runTestDirectory(dir string) error {
 func findArchives(dir string) ([]string, error) {
 	var archives []string
 
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-
-		if !info.IsDir() && strings.HasSuffix(path, ".7z") {
+		if !d.IsDir() && strings.EqualFold(filepath.Ext(path), ".7z") {
 			archives = append(archives, path)
 		}
-
 		return nil
 	})
-
 	return archives, err
 }
 

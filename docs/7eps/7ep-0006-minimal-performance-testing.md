@@ -130,7 +130,7 @@ func BenchmarkULIDResolution(b *testing.B) {
             for i := 0; i < b.N; i++ {
                 archive := archives[i%len(archives)]
                 id := tc.getID(archive)
-                _, err := resolver.ResolveID(id)
+                _, err := resolver.Resolve(id)
                 // Allow AmbiguousIDError for 4-char prefixes
                 if err != nil && !isAmbiguousError(err) {
                     b.Fatalf("Resolution failed: %v", err)

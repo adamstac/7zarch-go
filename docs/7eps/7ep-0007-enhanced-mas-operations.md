@@ -1,460 +1,371 @@
 # 7EP-0007: Enhanced MAS Operations
 
 **Status:** Draft  
-**Author(s):** Claude Code (CC)  
-**Assignment:** AC (Primary), CC (Supporting)  
-**Difficulty:** 3 (moderate - building on MAS Foundation with new operations)  
+**Author(s):** Claude Code (CC), Augment Code (AC)  
+**Assignment:** AC/CC Split (coordination needed)  
+**Difficulty:** 3 (moderate - builds on 7EP-0004 foundation)  
 **Created:** 2025-08-12  
 **Updated:** 2025-08-12  
 
 ## Executive Summary
 
-Enhance MAS (Managed Archive Storage) with advanced operations including move/relocate functionality, import workflows for external archives, batch operations, and archive replication to complete the comprehensive archive management suite.
+Extend the MAS (Managed Archive Storage) foundation with advanced operations including batch processing, full-text search, saved queries, shell completion, and enhanced workflow commands to provide a complete archive management experience.
 
 ## Evidence & Reasoning
 
-**Current State (Post 7EP-0004):**
-- ✅ Core MAS Foundation complete with ULID resolution, show, list operations
-- ✅ Performance validated (100-2,941x faster than requirements)
-- ✅ Create, delete, and basic registry operations working
-- ❌ **Missing**: Advanced operations for comprehensive archive lifecycle
+**User feedback/pain points:**
+- Need to perform operations on multiple archives at once (bulk move, delete, upload)
+- Want to save complex filter combinations for repeated use
+- Difficulty discovering archives by content or metadata beyond name/ID
+- Shell completion missing for ULID prefixes and archive names
+- Workflow gaps between basic operations (create → organize → upload cycles)
 
-**User Needs Identified:**
-- **Archive Mobility**: Move archives between locations without re-compression
-- **External Integration**: Import existing .7z files into MAS registry
-- **Batch Operations**: Operate on multiple archives efficiently
-- **Location Management**: Organize archives across storage locations
-- **Registry Maintenance**: Repair, verify, and optimize registry data
+**Current limitations:**
+- All operations work on single archives only
+- No search beyond exact name/ID/prefix matching
+- Filter combinations must be re-typed each session
+- No shell integration for auto-completion
+- Missing workflow automation for common patterns
 
-**Why Now:**
-- **MAS Foundation Stable**: Core infrastructure proven and performant
-- **User Workflow Gaps**: Basic operations leave gaps in complete archive management
-- **Building Momentum**: Continue MAS development while patterns are fresh
-- **Strategic Timing**: Before trash management (7EP-0001) adds complexity
+**Why now:**
+- 7EP-0004 MAS foundation provides stable base for advanced features
+- User feedback indicates single-archive operations are insufficient
+- Competition with other tools requires advanced discoverability features
+- Shell completion expected by CLI power users
 
 ## Use Cases
 
-### Primary Use Case: Archive Organization and Mobility
+### Primary Use Case: Batch Operations
 ```bash
-# Move archive to different location
-7zarch-go move 01K2E33 --to /backup/archives/
+# Select archives by filter and apply operations
+7zarch-go list --profile=media --larger-than=100MB --save-query media-large
+7zarch-go batch --query=media-large move --to=/backup/media/
+7zarch-go batch --query=media-large upload --provider=s3
 
-# Move with rename
-7zarch-go move project-backup.7z --to /archive/project-backup-final.7z
-
-# Relocate managed archive to external storage
-7zarch-go move 01K2E33 --to /external/backup/ --external
-
-# Move multiple archives
-7zarch-go move --pattern "project-*" --to /completed/
+# Quick batch operations without saved queries
+7zarch-go list --older-than=1y | 7zarch-go batch delete --confirm
 ```
 
 ### Secondary Use Cases
-- **External Archive Import**: `7zarch-go import /downloads/*.7z` - Add existing archives to registry
-- **Batch Operations**: `7zarch-go batch --profile media --action verify` - Mass operations
-- **Archive Verification**: `7zarch-go verify --all` - Registry consistency checking  
-- **Storage Optimization**: `7zarch-go organize --by-profile` - Auto-organize by criteria
+
+#### Saved Query Management
+```bash
+# Save complex filter combinations
+7zarch-go query save "my-docs" --profile=documents --pattern="*-2024*" --managed
+7zarch-go query list
+7zarch-go query run my-docs
+
+# Query composition
+7zarch-go query save "large-old" --larger-than=1GB --older-than=6m
+7zarch-go list --query=large-old --status=missing
+```
+
+#### Full-Text Search
+```bash
+# Search across all metadata fields
+7zarch-go search "project backup 2024"
+7zarch-go search --field=path "/Users/*/Documents"
+7zarch-go search --field=name --regex ".*\.sql$"
+
+# Combined with filters
+7zarch-go search "important" --profile=documents --managed
+```
+
+#### Shell Completion & Workflow
+```bash
+# Tab completion for IDs and names
+7zarch-go show <TAB>  # Shows ULID prefixes and archive names
+7zarch-go move 01K2E3<TAB>  # Completes to full ULID
+
+# Workflow automation
+7zarch-go workflow create "daily-backup" \
+  --steps="create,upload,cleanup" \
+  --pattern="/home/user/projects/*" \
+  --schedule="@daily"
+```
 
 ## Technical Design
 
 ### Overview
-Build on 7EP-0004's proven ULID resolution and registry patterns to add advanced operations that maintain registry consistency while providing powerful archive management capabilities.
+Build advanced operations on top of the existing MAS foundation (7EP-0004) using a layered approach:
+1. **Query Layer**: Saved queries and full-text search
+2. **Batch Layer**: Multi-archive operations 
+3. **Shell Layer**: Completion and workflow automation
 
 ### Component Architecture
 
-#### 1. Move/Relocate Operations
+#### 1. Query System (`internal/query/`)
 ```go
-// cmd/mas_move.go - Enhanced version of existing move command
-type MoveOptions struct {
-    Source      string   // ULID, name, or pattern
-    Destination string   // Target path or directory
-    Rename      string   // Optional new name
-    External    bool     // Move to external storage
-    Copy        bool     // Copy instead of move (replication)
-    Verify      bool     // Verify after move
-    Batch       bool     // Allow batch operations
+// Query management and execution
+type Query struct {
+    Name    string            `json:"name"`
+    Filters map[string]string `json:"filters"`
+    Created time.Time         `json:"created"`
+    Used    int              `json:"used"`
 }
 
-func runMasMove(cmd *cobra.Command, args []string) error {
-    resolver := storage.NewResolver(registry)
-    
-    // Resolve source archive(s)
-    archives, err := resolver.ResolvePattern(args[0])
-    if err != nil {
-        return handleResolutionError(err)
-    }
-    
-    // Process each archive
-    for _, archive := range archives {
-        if err := executeMove(archive, options); err != nil {
-            return fmt.Errorf("failed to move %s: %w", archive.Name, err)
-        }
-    }
-    
-    return nil
+type QueryManager struct {
+    storage QueryStorage
+    resolver *storage.Resolver
 }
 
-func executeMove(archive *storage.Archive, opts MoveOptions) error {
-    // Verify source exists and is accessible
-    if err := verifyArchiveAccess(archive); err != nil {
-        return err
-    }
-    
-    // Determine target path
-    targetPath, err := resolveTargetPath(archive, opts)
-    if err != nil {
-        return err
-    }
-    
-    // Perform filesystem move/copy
-    if opts.Copy {
-        err = copyArchiveFile(archive.Path, targetPath)
-    } else {
-        err = moveArchiveFile(archive.Path, targetPath)
-    }
-    if err != nil {
-        return err
-    }
-    
-    // Update registry
-    updatedArchive := *archive
-    updatedArchive.Path = targetPath
-    updatedArchive.Managed = !opts.External
-    updatedArchive.Name = filepath.Base(targetPath)
-    
-    return registry.Update(&updatedArchive)
-}
+func (qm *QueryManager) Save(name string, filters ListFilters) error
+func (qm *QueryManager) Run(name string) ([]*storage.Archive, error)
+func (qm *QueryManager) List() ([]*Query, error)
 ```
 
-#### 2. Import Operations
+#### 2. Search Engine (`internal/search/`)
 ```go
-// cmd/mas_import.go
-type ImportOptions struct {
-    Pattern     string   // File pattern to import
-    Profile     string   // Compression profile to assign
-    Managed     bool     // Import as managed (copy) or external (link)
-    Verify      bool     // Verify checksums during import
-    Batch       bool     // Process multiple files
-    Interactive bool     // Prompt for each file
+// Full-text search across archive metadata
+type SearchIndex struct {
+    registry *storage.Registry
+    index    map[string][]string // term -> archive UIDs
 }
 
-func runMasImport(cmd *cobra.Command, args []string) error {
-    // Discover archive files
-    files, err := discoverArchiveFiles(args[0], options.Pattern)
-    if err != nil {
-        return err
-    }
-    
-    fmt.Printf("Found %d archive files to import\n", len(files))
-    
-    // Process each file
-    var imported, skipped, failed int
-    for _, file := range files {
-        result := processImport(file, options)
-        switch result.Status {
-        case ImportSuccess:
-            imported++
-            fmt.Printf("✓ Imported: %s → %s\n", result.Source, result.Archive.UID[:8])
-        case ImportSkipped:
-            skipped++
-            fmt.Printf("- Skipped: %s (%s)\n", result.Source, result.Reason)
-        case ImportFailed:
-            failed++
-            fmt.Printf("✗ Failed: %s (%s)\n", result.Source, result.Error)
-        }
-    }
-    
-    fmt.Printf("\nImport complete: %d imported, %d skipped, %d failed\n", 
-               imported, skipped, failed)
-    return nil
-}
-
-func processImport(filePath string, opts ImportOptions) ImportResult {
-    // Check if already in registry
-    existing, err := findExistingArchive(filePath)
-    if err == nil {
-        return ImportResult{Status: ImportSkipped, Reason: "Already in registry"}
-    }
-    
-    // Analyze archive
-    info, err := analyzeArchiveFile(filePath)
-    if err != nil {
-        return ImportResult{Status: ImportFailed, Error: err.Error()}
-    }
-    
-    // Create registry entry
-    archive := &storage.Archive{
-        UID:      generateUID(),
-        Name:     filepath.Base(filePath),
-        Path:     filePath, // External path initially
-        Size:     info.Size,
-        Created:  info.Created,
-        Checksum: info.Checksum,
-        Profile:  opts.Profile,
-        Managed:  false, // Start as external
-        Status:   "present",
-    }
-    
-    // If importing as managed, copy to managed storage
-    if opts.Managed {
-        managedPath, err := copyToManagedStorage(filePath, archive)
-        if err != nil {
-            return ImportResult{Status: ImportFailed, Error: err.Error()}
-        }
-        archive.Path = managedPath
-        archive.Managed = true
-    }
-    
-    // Register archive
-    if err := registry.Add(archive); err != nil {
-        return ImportResult{Status: ImportFailed, Error: err.Error()}
-    }
-    
-    return ImportResult{Status: ImportSuccess, Archive: archive}
-}
+func (si *SearchIndex) Search(query string) ([]*storage.Archive, error)
+func (si *SearchIndex) SearchField(field, query string) ([]*storage.Archive, error)
+func (si *SearchIndex) Reindex() error
 ```
 
-#### 3. Batch Operations Framework
+#### 3. Batch Operations (`internal/batch/`)
 ```go
-// cmd/mas_batch.go
-type BatchOperation string
-const (
-    BatchVerify    BatchOperation = "verify"
-    BatchMove      BatchOperation = "move"
-    BatchReprofile BatchOperation = "reprofile"
-    BatchUpdate    BatchOperation = "update"
-)
-
-type BatchOptions struct {
-    Filter      ListFilters  // Reuse list filtering from 7EP-0004
-    Operation   BatchOperation
-    Parameters  map[string]string
-    DryRun      bool
-    Parallel    int // Concurrent operations
-    Continue    bool // Continue on errors
+// Multi-archive operations with progress tracking
+type BatchProcessor struct {
+    manager *storage.Manager
+    progress ProgressTracker
 }
 
-func runMasBatch(cmd *cobra.Command, args []string) error {
-    // Apply filters to find target archives
-    archives, err := registry.ListWithFilters(options.Filter)
-    if err != nil {
-        return err
-    }
-    
-    fmt.Printf("Found %d archives matching criteria\n", len(archives))
-    
-    if options.DryRun {
-        fmt.Printf("DRY RUN: Would perform '%s' operation on:\n", options.Operation)
-        for _, archive := range archives {
-            fmt.Printf("  - %s (%s)\n", archive.Name, archive.UID[:8])
-        }
-        return nil
-    }
-    
-    // Execute batch operation
-    return executeBatchOperation(archives, options)
-}
-
-func executeBatchOperation(archives []*storage.Archive, opts BatchOptions) error {
-    // Setup worker pool for parallel processing
-    jobs := make(chan *storage.Archive, len(archives))
-    results := make(chan BatchResult, len(archives))
-    
-    // Start workers
-    for w := 0; w < opts.Parallel; w++ {
-        go batchWorker(jobs, results, opts)
-    }
-    
-    // Send jobs
-    for _, archive := range archives {
-        jobs <- archive
-    }
-    close(jobs)
-    
-    // Collect results
-    var success, failed int
-    for i := 0; i < len(archives); i++ {
-        result := <-results
-        if result.Error != nil {
-            failed++
-            fmt.Printf("✗ %s: %v\n", result.Archive.Name, result.Error)
-            if !opts.Continue {
-                return result.Error
-            }
-        } else {
-            success++
-            fmt.Printf("✓ %s: %s\n", result.Archive.Name, result.Message)
-        }
-    }
-    
-    fmt.Printf("Batch operation complete: %d success, %d failed\n", success, failed)
-    return nil
-}
+func (bp *BatchProcessor) Move(archives []*Archive, dest string) error
+func (bp *BatchProcessor) Delete(archives []*Archive, confirm bool) error
+func (bp *BatchProcessor) Upload(archives []*Archive, provider string) error
 ```
 
-#### 4. Registry Maintenance Operations
+#### 4. Shell Integration (`internal/completion/`)
 ```go
-// cmd/mas_verify.go
-type VerifyOptions struct {
-    All         bool     // Verify all archives
-    Pattern     string   // Verify archives matching pattern
-    Checksums   bool     // Verify file checksums
-    Registry    bool     // Verify registry consistency
-    Repair      bool     // Attempt automatic repairs
+// Shell completion for bash/zsh/fish
+type CompletionProvider struct {
+    registry *storage.Registry
 }
 
-func runMasVerify(cmd *cobra.Command, args []string) error {
-    var archives []*storage.Archive
-    var err error
-    
-    if options.All {
-        archives, err = registry.List()
-    } else if len(args) > 0 {
-        resolver := storage.NewResolver(registry)
-        archives, err = resolver.ResolvePattern(args[0])
-    } else {
-        return fmt.Errorf("specify --all or archive pattern")
-    }
-    
-    if err != nil {
-        return err
-    }
-    
-    fmt.Printf("Verifying %d archives...\n", len(archives))
-    
-    var issues []VerificationIssue
-    
-    for _, archive := range archives {
-        archiveIssues := verifyArchive(archive, options)
-        issues = append(issues, archiveIssues...)
-    }
-    
-    // Report results
-    if len(issues) == 0 {
-        fmt.Printf("✓ All archives verified successfully\n")
-        return nil
-    }
-    
-    fmt.Printf("Found %d issues:\n", len(issues))
-    for _, issue := range issues {
-        fmt.Printf("  %s: %s (%s)\n", issue.Archive.Name, issue.Description, issue.Severity)
-    }
-    
-    // Attempt repairs if requested
-    if options.Repair {
-        return attemptRepairs(issues)
-    }
-    
-    return nil
-}
+func (cp *CompletionProvider) CompleteUIDs(prefix string) []string
+func (cp *CompletionProvider) CompleteNames(prefix string) []string
+func (cp *CompletionProvider) CompleteCommands() []string
+```
+
+### API Changes
+
+#### New Commands
+```bash
+# Query management
+7zarch-go query save <name> [filters...]
+7zarch-go query list
+7zarch-go query run <name>
+7zarch-go query delete <name>
+
+# Search operations  
+7zarch-go search <query> [filters...]
+7zarch-go reindex  # Rebuild search index
+
+# Batch operations
+7zarch-go batch <operation> [options...]
+7zarch-go batch --query=<name> <operation>
+7zarch-go batch --stdin <operation>  # Read UIDs from stdin
+
+# Shell completion setup
+7zarch-go completion bash|zsh|fish
+```
+
+#### Enhanced Existing Commands
+```bash
+# List command extensions
+7zarch-go list --save-query=<name>    # Save current filters
+7zarch-go list --query=<name>         # Use saved query
+7zarch-go list --output=json|csv      # Machine-readable output
+
+# Show command extensions  
+7zarch-go show --related              # Show similar archives
+7zarch-go show --usage                # Show access history
+```
+
+### Data Model Changes
+
+#### Query Storage (SQLite)
+```sql
+CREATE TABLE queries (
+    name TEXT PRIMARY KEY,
+    filters TEXT NOT NULL,  -- JSON-encoded filters
+    created INTEGER NOT NULL,
+    last_used INTEGER,
+    use_count INTEGER DEFAULT 0
+);
+```
+
+#### Search Index (In-Memory + Persistent Cache)
+```sql
+CREATE TABLE search_index (
+    term TEXT,
+    archive_uid TEXT,
+    field TEXT,  -- name, path, etc.
+    PRIMARY KEY (term, archive_uid, field)
+);
 ```
 
 ## Implementation Plan
 
-### Phase 1: Move Operations Enhancement
-- [ ] **Enhanced Move Command**
-  - [ ] Multi-target move operations
-  - [ ] Pattern-based moves (`--pattern "project-*"`)
-  - [ ] External/managed storage transitions
-  - [ ] Move verification and rollback
+### Phase 1: Query Foundation (AC Lead)
+- [ ] **Query Storage System** (AC)
+  - [ ] SQLite schema for saved queries
+  - [ ] Query CRUD operations
+  - [ ] Query execution against existing filters
+  - [ ] Query management commands (`query save/list/run/delete`)
 
-- [ ] **Path Resolution**
-  - [ ] Smart destination path resolution
-  - [ ] Conflict detection and handling  
-  - [ ] Directory creation as needed
-  - [ ] Permission and space validation
+- [ ] **List Command Integration** (AC)  
+  - [ ] `--save-query` flag for saving current filters
+  - [ ] `--query` flag for using saved queries
+  - [ ] JSON/CSV output formats for scripting
 
-### Phase 2: Import Workflow
-- [ ] **Archive Discovery**
-  - [ ] File pattern matching and filtering
-  - [ ] Recursive directory scanning
-  - [ ] Duplicate detection (by checksum)
-  - [ ] Archive format validation
+### Phase 2: Search & Discovery (CC Lead)
+- [ ] **Full-Text Search Engine** (CC)
+  - [ ] Search index building and maintenance
+  - [ ] Search query parsing and execution
+  - [ ] Field-specific search capabilities
+  - [ ] Search command implementation
 
-- [ ] **Import Processing**
-  - [ ] Batch import with progress reporting
-  - [ ] Managed vs external import modes
-  - [ ] Profile assignment and detection
-  - [ ] Interactive import with user prompts
+- [ ] **Enhanced Show Command** (CC)
+  - [ ] Related archive discovery
+  - [ ] Usage history tracking
+  - [ ] Metadata expansion
 
-### Phase 3: Batch Operations
-- [ ] **Batch Framework**
-  - [ ] Filter-based archive selection
-  - [ ] Parallel processing with worker pools
-  - [ ] Progress reporting and cancellation
-  - [ ] Error handling and continuation strategies
+### Phase 3: Batch Operations (Shared)
+- [ ] **Batch Processing Core** (CC)
+  - [ ] Multi-archive operation framework
+  - [ ] Progress tracking and reporting
+  - [ ] Error handling and rollback
 
-- [ ] **Core Batch Operations**
-  - [ ] Mass verification and checksum validation
-  - [ ] Bulk move and reorganization
-  - [ ] Profile reassignment and optimization
-  - [ ] Metadata updates and corrections
+- [ ] **Batch Command Integration** (AC)
+  - [ ] Batch command with query integration
+  - [ ] Stdin processing for piped operations
+  - [ ] Confirmation prompts for destructive operations
 
-### Phase 4: Registry Maintenance
-- [ ] **Verification System**
-  - [ ] File existence and accessibility checks
-  - [ ] Checksum validation and corruption detection
-  - [ ] Registry consistency verification
-  - [ ] Missing file detection and reporting
+### Phase 4: Shell Integration (CC Lead)
+- [ ] **Completion Provider** (CC)
+  - [ ] ULID prefix completion
+  - [ ] Archive name completion  
+  - [ ] Command and flag completion
+  - [ ] Shell script generation (bash/zsh/fish)
 
-- [ ] **Repair and Maintenance**
-  - [ ] Automatic issue detection and repair
-  - [ ] Registry cleanup and optimization
-  - [ ] Orphaned file detection and cleanup
-  - [ ] Database integrity maintenance
+### Dependencies
+- **7EP-0004**: MAS Foundation (completed) - provides resolver, registry, and basic commands
+- **7EP-0001**: Trash Management (in progress) - batch delete should integrate with trash
+- **7EP-0005**: Test Dataset System (planned) - needed for comprehensive testing
 
-## Success Criteria
+## Testing Strategy
 
-### Move Operations
-- [ ] Can move archives between any storage locations
-- [ ] Pattern-based moves work reliably for batch operations
-- [ ] Registry consistency maintained during all move operations
-- [ ] Rollback capability for failed moves
+### Acceptance Criteria
+- [ ] Can save and reuse complex filter combinations
+- [ ] Full-text search finds archives by any metadata field
+- [ ] Batch operations work on 100+ archive sets with progress tracking
+- [ ] Shell completion works for ULID prefixes and archive names
+- [ ] All operations complete in <5s for typical registries (<10K archives)
+- [ ] Query system handles 100+ saved queries efficiently
 
-### Import Workflow  
-- [ ] Can import existing archive collections efficiently
-- [ ] Duplicate detection prevents registry pollution
-- [ ] Batch imports process 100+ files reliably
-- [ ] Both managed and external import modes work correctly
+### Test Scenarios
 
-### Batch Operations
-- [ ] Can process 1000+ archives in batch operations
-- [ ] Parallel processing improves performance significantly
-- [ ] Error handling allows continuation of batch jobs
-- [ ] Progress reporting provides clear status
+#### Query System Testing
+- Query saving with various filter combinations
+- Query execution with registry changes
+- Query management (list, delete, rename)
+- Query performance with large registries
 
-### Registry Maintenance
-- [ ] Verification detects all common registry inconsistencies
-- [ ] Repair operations resolve issues automatically where possible
-- [ ] Performance remains good even with 10K+ archives
-- [ ] Database integrity maintained under all operations
+#### Search Testing
+- Full-text search across all metadata fields
+- Field-specific searches with regex support
+- Search performance with 10K+ archives
+- Index rebuilding and consistency
 
-## Related Work
+#### Batch Operations Testing  
+- Large batch operations (1000+ archives)
+- Mixed operation types with error handling
+- Progress tracking accuracy
+- Rollback on partial failures
 
-### Builds On
-- **7EP-0004 (Completed)**: MAS Foundation provides ULID resolution, registry operations
-- **7EP-0006 (Completed)**: Performance validation ensures operations scale
-- **Existing Commands**: Current move, delete commands provide foundation
+#### Shell Integration Testing
+- Completion accuracy across different shells
+- Performance of completion queries
+- Integration with existing shell environments
 
-### Integrates With
-- **7EP-0001**: Trash management needs move operations for restore functionality
-- **7EP-0005**: Test scenarios will validate batch operations and edge cases
-- **7EP-0002**: CI integration will test advanced operations automatically
+### Performance Benchmarks
+- **Query execution**: <100ms for complex queries on 10K archives
+- **Search operations**: <500ms for full-text search on 10K archives
+- **Batch operations**: Progress updates every 1-2 seconds for large sets
+- **Completion queries**: <50ms for ULID prefix completion
 
-### Enables
-- **Complete Archive Lifecycle**: Full CRUD operations with advanced workflows
-- **Enterprise Usage**: Batch operations and maintenance for large deployments
-- **Migration Workflows**: Import existing archives and reorganize storage
-- **Operations Reliability**: Verification and repair for production use
+## Migration/Compatibility
+
+### Breaking Changes
+None - all new functionality building on existing commands.
+
+### Upgrade Path
+- Existing commands continue working unchanged
+- New features opt-in through new flags and commands
+- Query system starts empty, users build saved queries over time
+
+### Backward Compatibility
+All existing 7EP-0004 functionality preserved exactly.
+
+## Alternatives Considered
+
+**External search tools**: Considered integrating with `fzf` or `ripgrep` but decided native search provides better integration and doesn't require external dependencies.
+
+**Query language**: Evaluated SQL-like syntax but decided flag-based queries are more CLI-native and easier to save/compose.
+
+**Batch processing via shell pipes**: Considered Unix-style piping (`7zarch-go list | xargs 7zarch-go delete`) but decided native batch operations provide better error handling and progress tracking.
+
+## AC/CC Implementation Split
+
+### AC (Augment Code) Responsibilities - User-Facing Features
+- **Query Management System**: Storage, CRUD operations, query execution
+- **List Command Enhancement**: Save/load queries, output formats  
+- **Batch Command Integration**: Query integration, confirmation flows
+- **User Experience**: Command interfaces, help text, error messages
+- **CLI Integration**: Flag design, command composition, workflow patterns
+
+### CC (Claude Code) Responsibilities - Infrastructure & Performance
+- **Search Engine**: Full-text indexing, search execution, reindexing
+- **Batch Processing Core**: Multi-archive operations, progress tracking
+- **Shell Completion**: Completion provider, shell script generation
+- **Performance Optimization**: Search indexing, batch operation efficiency
+- **Testing Infrastructure**: Benchmarks, performance tests, edge case coverage
+
+### Shared Responsibilities
+- **API Design**: Command interfaces and flag naming (AC leads, CC reviews)
+- **Integration Testing**: Cross-component workflow validation
+- **Error Handling**: Consistent error patterns across components
+- **Documentation**: User guides (AC), technical architecture (CC)
+
+### Coordination Points
+1. **Query Filter Integration**: How saved queries map to existing ListFilters (AC designs, CC implements backend)
+2. **Batch Operation Interface**: How batch processor integrates with existing commands (AC designs CLI, CC implements engine)
+3. **Search Index Schema**: What metadata fields to index and how (CC designs, AC provides user requirements)
+4. **Completion Data Source**: How completion provider accesses registry efficiently (CC implements, AC defines user experience)
+
+### Communication Protocol
+- **Weekly Planning**: AC and CC coordinate feature priorities and dependencies
+- **PR Cross-Review**: AC reviews CC infrastructure PRs, CC reviews AC user experience PRs
+- **Integration Points**: Dedicated coordination sessions when components need to integrate
+- **User Feedback Loop**: AC gathers and prioritizes user needs, CC ensures technical feasibility
 
 ## Future Considerations
 
-- **Storage Backend Abstraction**: Support for S3, Azure, etc.
-- **Archive Deduplication**: Identify and manage duplicate archives
-- **Incremental Operations**: Resume interrupted batch operations
-- **Audit Logging**: Track all operations for compliance
-- **Plugin Architecture**: Extensible batch operations
+- **Query Sharing**: Export/import saved queries between users
+- **Advanced Search**: Fuzzy matching, similarity scoring, machine learning
+- **Workflow Automation**: Scheduled operations, trigger-based actions
+- **Web Interface**: Browser-based archive management dashboard
+- **API Server**: REST API for external integrations
 
----
+## References
 
-This enhanced MAS operations suite transforms 7zarch-go from basic archive management into a comprehensive, enterprise-ready archive lifecycle management system.
+- **Builds on**: 7EP-0004 MAS Foundation Implementation
+- **Integrates with**: 7EP-0001 Trash Management System  
+- **Enables**: Advanced archive discovery and bulk management workflows
+- **Related**: CLI completion patterns from tools like `kubectl`, `docker`, `git`

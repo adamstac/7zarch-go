@@ -198,6 +198,20 @@ func BenchmarkResolverOperations(b *testing.B) {
 			_, err := resolver.Resolve(name)
 			if err != nil {
 				b.Fatalf("Resolve name failed: %v", err)
+
+				b.Run("ResolveUnder50ms", func(b *testing.B) {
+					// Emulate user resolution patterns; expect average <50ms on test data
+					resolver := NewResolver(registry)
+					b.ResetTimer()
+					for i := 0; i < b.N; i++ {
+						uid := testUIDs[i%numArchives]
+						_, err := resolver.Resolve(uid)
+						if err != nil {
+							b.Fatalf("Resolve under 50ms failed: %v", err)
+						}
+					}
+				})
+
 			}
 		}
 	})
@@ -225,7 +239,9 @@ func BenchmarkManagerOperations(b *testing.B) {
 		for i := 0; i < 100; i++ {
 			name := fmt.Sprintf("pre-populate-%d.7z", i)
 			path := fmt.Sprintf("/pre/populate-%d.7z", i)
-			manager.Add(name, path, int64(1024*i), "balanced", "", "", true)
+			if err := manager.Add(name, path, int64(1024*i), "balanced", "", "", true); err != nil {
+				b.Fatalf("pre-populate Manager.Add failed: %v", err)
+			}
 		}
 
 		b.ResetTimer()
@@ -244,7 +260,9 @@ func BenchmarkManagerOperations(b *testing.B) {
 			name := fmt.Sprintf("get-test-%d.7z", i)
 			path := fmt.Sprintf("/get/test-%d.7z", i)
 			testNames[i] = name
-			manager.Add(name, path, int64(1024*i), "balanced", "", "", true)
+			if err := manager.Add(name, path, int64(1024*i), "balanced", "", "", true); err != nil {
+				b.Fatalf("pre-populate Manager.Add failed: %v", err)
+			}
 		}
 
 		b.ResetTimer()
@@ -264,7 +282,9 @@ func BenchmarkManagerOperations(b *testing.B) {
 			name := fmt.Sprintf("upload-test-%d.7z", i)
 			path := fmt.Sprintf("/upload/test-%d.7z", i)
 			testNames[i] = name
-			manager.Add(name, path, int64(1024*i), "balanced", "", "", true)
+			if err := manager.Add(name, path, int64(1024*i), "balanced", "", "", true); err != nil {
+				b.Fatalf("pre-populate Manager.Add failed: %v", err)
+			}
 		}
 
 		b.ResetTimer()

@@ -25,3 +25,8 @@ Brief description of changes and motivation.
 - [ ] I have made corresponding changes to the documentation
 - [ ] My changes generate no new warnings
 - [ ] Any dependent changes have been merged and published
+
+## CodeRabbit hints (optional)
+- @coderabbitai summary — add/update summary in PR body
+- @coderabbitai ignore — skip CodeRabbit review for mechanical PRs
+- Labels: strict/chore/docs to tune review profile
