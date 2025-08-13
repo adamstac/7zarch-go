@@ -10,12 +10,6 @@ linters:
     - errcheck
     - ineffassign
     - gosimple
-    - typecheck
-
-# Keep additional linter settings available for future tightening
-linters-settings:
-  typecheck:
-    include-tests: true
 
 # Keep default enabled linters; add exclusions only where necessary
 issues:
@@ -25,21 +19,4 @@ issues:
       linters:
         - errcheck
       text: 'bar\.(Add|Finish)\('
-    # Allow typecheck on specific test-only yaml usage if still flagged
-    - path: cmd/restore_test\.go
-      linters:
-        - typecheck
-      text: "yaml"
-    - path: internal/config/config\.go
-      linters:
-        - typecheck
-      text: 'undefined: yaml'
-    - path: cmd/config\.go
-      linters:
-        - typecheck
-      text: 'undefined: yaml'
-    - path: cmd/create\.go
-      linters:
-        - typecheck
-      text: 'undefined: progressbar'
 
