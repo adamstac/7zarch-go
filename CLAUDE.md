@@ -34,10 +34,10 @@
   - Purpose: Catches issues, suggests improvements
   - Config: `.coderabbit.yaml`
 
-- **Amp-p** - Senior Technical Architect (NEW 2025-08-13)
+- **Amp-t** - Senior Technical Architect (NEW 2025-08-13)
   - Role: Technical review, architecture oversight, code quality governance
   - Focus: High-level review, documentation standards, process leadership
-  - Activation: `Switching to Amp-p role for technical review.`
+  - Activation: `Switching to Amp-t role for technical review.`
   - Scope: PR reviews, architecture evaluation, technical standards
 
 ## 📍 Key Locations
