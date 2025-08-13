@@ -18,6 +18,7 @@ func MasDeleteCmd() *cobra.Command {
 		Use:   "delete <id>",
 		Short: "Delete an archive (soft by default; --force to remove file)",
 		Args:  cobra.ExactArgs(1),
+		ValidArgsFunction: completeArchiveIDs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
 			cfg, _ := config.Load()

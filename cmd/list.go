@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,6 +15,7 @@ import (
 	"github.com/adamstac/7zarch-go/internal/display/modes"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 // parseHumanDuration supports 'd' (days) and 'w' (weeks) in addition to time.ParseDuration units
@@ -48,6 +51,7 @@ type listFilters struct {
 	onlyManaged  bool
 	onlyExternal bool
 	onlyMissing  bool
+	onlyDeleted  bool
 	status       string
 	profile      string
 	largerThan   int64
@@ -73,6 +77,8 @@ func ListCmd() *cobra.Command {
 	cmd.Flags().String("status", "", "Filter by status (present|missing|deleted)")
 	cmd.Flags().String("profile", "", "Filter by profile (media|documents|balanced)")
 	cmd.Flags().Int64("larger-than", 0, "Filter by size larger than bytes (e.g., 1048576)")
+	cmd.Flags().Bool("deleted", false, "Show only deleted archives")
+	cmd.Flags().String("output", "", "Output format: table|json|csv|yaml (default: table)")
 
 	// Display mode flags
 	cmd.Flags().Bool("table", false, "Use table display mode (enhanced)")
@@ -94,9 +100,16 @@ func runList(cmd *cobra.Command, args []string) error {
 		onlyManaged:  getBool(cmd, "managed"),
 		onlyExternal: getBool(cmd, "external"),
 		onlyMissing:  getBool(cmd, "missing"),
+		onlyDeleted:  getBool(cmd, "deleted"),
 		status:       getString(cmd, "status"),
 		profile:      getString(cmd, "profile"),
 		largerThan:   getInt64(cmd, "larger-than"),
+	}
+
+	// Check for output format
+	outputFormat := getString(cmd, "output")
+	if outputFormat != "" {
+		return listRegistryArchivesWithOutput(opts, outputFormat)
 	}
 
 	// Determine display mode
@@ -235,6 +248,17 @@ func applyAllFilters(archives []*storage.Archive, opts listFilters) []*storage.A
 		filtered := make([]*storage.Archive, 0)
 		for _, a := range archives {
 			if a.Status == "missing" {
+				filtered = append(filtered, a)
+			}
+		}
+		archives = filtered
+	}
+
+	// Apply deleted filter
+	if opts.onlyDeleted {
+		filtered := make([]*storage.Archive, 0)
+		for _, a := range archives {
+			if a.Status == "deleted" {
 				filtered = append(filtered, a)
 			}
 		}
@@ -707,4 +731,119 @@ func formatDuration(d time.Duration) string {
 		return fmt.Sprintf("%dh", int(d.Hours()))
 	}
 	return fmt.Sprintf("%dd", int(d.Hours()/24))
+}
+
+// listRegistryArchivesWithOutput handles machine-readable output formats
+func listRegistryArchivesWithOutput(opts listFilters, format string) error {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	// Initialize storage manager
+	storageManager, err := storage.NewManager(cfg.Storage.ManagedPath)
+	if err != nil {
+		return fmt.Errorf("failed to initialize managed storage: %w", err)
+	}
+	defer storageManager.Close()
+
+	// Get archives based on filters
+	var archives []*storage.Archive
+	if opts.notUploaded {
+		archives, err = storageManager.ListNotUploaded()
+	} else if opts.olderThan != "" {
+		dur, parseErr := parseHumanDuration(opts.olderThan)
+		if parseErr != nil {
+			return fmt.Errorf("invalid duration format: %w", parseErr)
+		}
+		archives, err = storageManager.ListOlderThan(dur)
+	} else {
+		archives, err = storageManager.List()
+	}
+	if err != nil {
+		return fmt.Errorf("failed to list archives: %w", err)
+	}
+
+	// Apply filters
+	archives = applyAllFilters(archives, opts)
+
+	// Output in requested format
+	switch format {
+	case "json":
+		return outputJSON(archives)
+	case "csv":
+		return outputCSV(archives)
+	case "yaml":
+		return outputYAML(archives)
+	case "table":
+		// Fall back to display system
+		return listRegistryArchivesWithDisplay(opts, display.ModeTable)
+	default:
+		return fmt.Errorf("unsupported output format: %s (supported: json, csv, yaml, table)", format)
+	}
+}
+
+func outputJSON(archives []*storage.Archive) error {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+	return enc.Encode(archives)
+}
+
+func outputCSV(archives []*storage.Archive) error {
+	writer := csv.NewWriter(os.Stdout)
+	defer writer.Flush()
+
+	// Write header
+	if err := writer.Write([]string{
+		"uid", "name", "path", "size", "created", "checksum", "profile",
+		"managed", "status", "last_seen", "deleted_at", "original_path",
+		"uploaded", "destination", "uploaded_at",
+	}); err != nil {
+		return fmt.Errorf("failed to write CSV header: %w", err)
+	}
+
+	// Write data rows
+	for _, a := range archives {
+		var lastSeen, deletedAt, uploadedAt string
+		if a.LastSeen != nil {
+			lastSeen = a.LastSeen.Format(time.RFC3339)
+		}
+		if a.DeletedAt != nil {
+			deletedAt = a.DeletedAt.Format(time.RFC3339)
+		}
+		if a.UploadedAt != nil {
+			uploadedAt = a.UploadedAt.Format(time.RFC3339)
+		}
+
+		row := []string{
+			a.UID,
+			a.Name,
+			a.Path,
+			fmt.Sprintf("%d", a.Size),
+			a.Created.Format(time.RFC3339),
+			a.Checksum,
+			a.Profile,
+			fmt.Sprintf("%t", a.Managed),
+			a.Status,
+			lastSeen,
+			deletedAt,
+			a.OriginalPath,
+			fmt.Sprintf("%t", a.Uploaded),
+			a.Destination,
+			uploadedAt,
+		}
+
+		if err := writer.Write(row); err != nil {
+			return fmt.Errorf("failed to write CSV row: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func outputYAML(archives []*storage.Archive) error {
+	enc := yaml.NewEncoder(os.Stdout)
+	defer enc.Close()
+	return enc.Encode(archives)
 }

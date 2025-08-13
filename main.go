@@ -38,6 +38,7 @@ Features:
 	rootCmd.AddCommand(cmd.ListCmd())
 	rootCmd.AddCommand(cmd.ProfilesCmd())
 	rootCmd.AddCommand(cmd.ConfigCmd())
+	rootCmd.AddCommand(cmd.CompletionCmd()) // Shell completion
 	// MAS commands (as top-level commands for convenience)
 	rootCmd.AddCommand(cmd.MasShowCmd())   // "show" command
 	rootCmd.AddCommand(cmd.MasDbCmd())     // "db" command

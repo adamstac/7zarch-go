@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -12,6 +14,7 @@ import (
 	"github.com/adamstac/7zarch-go/internal/config"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 // TrashCmd groups trash-related subcommands.
@@ -29,7 +32,7 @@ func trashListCmd() *cobra.Command {
 	var (
 		flagWithinDays int
 		flagBefore     string
-		flagJSON       bool
+		flagOutput     string
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -70,30 +73,8 @@ func trashListCmd() *cobra.Command {
 				out = append(out, a)
 			}
 
-			if flagJSON {
-				// Enrich with countdown
-				type row struct {
-					UID       string     `json:"uid"`
-					Name      string     `json:"name"`
-					Path      string     `json:"path"`
-					DeletedAt *time.Time `json:"deleted_at"`
-					PurgeDate string     `json:"purge_date"`
-					DaysLeft  int        `json:"days_left"`
-				}
-				rows := make([]row, 0, len(out))
-				for _, a := range out {
-					var purgeStr string
-					days := -1
-					if a.DeletedAt != nil {
-						purge := a.DeletedAt.Add(time.Duration(cfg.Storage.RetentionDays) * 24 * time.Hour)
-						purgeStr = purge.Format("2006-01-02")
-						days = int(time.Until(purge).Hours() / 24)
-					}
-					rows = append(rows, row{UID: a.UID, Name: a.Name, Path: a.Path, DeletedAt: a.DeletedAt, PurgeDate: purgeStr, DaysLeft: days})
-				}
-				enc := json.NewEncoder(cmd.OutOrStdout())
-				enc.SetIndent("", "  ")
-				return enc.Encode(rows)
+			if flagOutput != "" {
+				return outputTrashList(out, flagOutput, cfg.Storage.RetentionDays, cmd.OutOrStdout())
 			}
 
 			// Text output
@@ -119,16 +100,17 @@ func trashListCmd() *cobra.Command {
 	}
 	cmd.Flags().IntVar(&flagWithinDays, "within-days", 0, "Show items purging within N days (0=all)")
 	cmd.Flags().StringVar(&flagBefore, "before", "", "Only show items deleted before YYYY-MM-DD")
-	cmd.Flags().BoolVar(&flagJSON, "json", false, "Output as JSON")
+	cmd.Flags().StringVar(&flagOutput, "output", "", "Output format: json|csv|yaml (default: human-readable)")
 	return cmd
 }
 
 func trashPurgeCmd() *cobra.Command {
 	var (
-		flagAll    bool
-		flagForce  bool
-		flagDryRun bool
-		flagWithin int
+		flagAll       bool
+		flagForce     bool
+		flagDryRun    bool
+		flagWithin    int
+		flagOlderThan string
 	)
 	cmd := &cobra.Command{
 		Use:   "purge",
@@ -161,6 +143,16 @@ func trashPurgeCmd() *cobra.Command {
 				// Eligibility
 				if flagAll {
 					eligible = append(eligible, a)
+					continue
+				}
+				if flagOlderThan != "" && a.DeletedAt != nil {
+					cutoff, err := parseOlderThan(flagOlderThan)
+					if err != nil {
+						return fmt.Errorf("invalid --older-than format: %w", err)
+					}
+					if a.DeletedAt.Before(cutoff) {
+						eligible = append(eligible, a)
+					}
 					continue
 				}
 				if flagWithin > 0 {
@@ -218,6 +210,7 @@ func trashPurgeCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&flagForce, "force", false, "Skip confirmation prompts")
 	cmd.Flags().BoolVar(&flagDryRun, "dry-run", false, "Show actions without making changes")
 	cmd.Flags().IntVar(&flagWithin, "within-days", 0, "Only purge items purging within N days (0=all)")
+	cmd.Flags().StringVar(&flagOlderThan, "older-than", "", "Purge archives deleted older than duration (e.g., '30d', '1w')")
 	return cmd
 }
 
@@ -241,4 +234,115 @@ func parseYMD(s string) (time.Time, error) {
 		return time.Time{}, err
 	}
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local), nil
+}
+
+// parseOlderThan parses duration strings like "30d", "1w" and returns the cutoff time
+func parseOlderThan(s string) (time.Time, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return time.Time{}, fmt.Errorf("empty duration")
+	}
+	if strings.HasSuffix(s, "d") {
+		n, err := strconv.ParseInt(strings.TrimSuffix(s, "d"), 10, 64)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("invalid days: %w", err)
+		}
+		return time.Now().Add(-time.Duration(n) * 24 * time.Hour), nil
+	}
+	if strings.HasSuffix(s, "w") {
+		n, err := strconv.ParseInt(strings.TrimSuffix(s, "w"), 10, 64)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("invalid weeks: %w", err)
+		}
+		return time.Now().Add(-time.Duration(n) * 7 * 24 * time.Hour), nil
+	}
+	// Try standard time.ParseDuration
+	dur, err := time.ParseDuration(s)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid duration format: %w", err)
+	}
+	return time.Now().Add(-dur), nil
+}
+
+// trashRow represents a row in trash list output
+type trashRow struct {
+	UID       string     `json:"uid" yaml:"uid" csv:"uid"`
+	Name      string     `json:"name" yaml:"name" csv:"name"`
+	Path      string     `json:"path" yaml:"path" csv:"path"`
+	DeletedAt *time.Time `json:"deleted_at" yaml:"deleted_at" csv:"deleted_at"`
+	PurgeDate string     `json:"purge_date" yaml:"purge_date" csv:"purge_date"`
+	DaysLeft  int        `json:"days_left" yaml:"days_left" csv:"days_left"`
+}
+
+// outputTrashList outputs trash list in machine-readable format
+func outputTrashList(archives []*storage.Archive, format string, retentionDays int, out io.Writer) error {
+
+	rows := make([]trashRow, 0, len(archives))
+	for _, a := range archives {
+		var purgeStr string
+		days := -1
+		if a.DeletedAt != nil {
+			purge := a.DeletedAt.Add(time.Duration(retentionDays) * 24 * time.Hour)
+			purgeStr = purge.Format("2006-01-02")
+			days = int(time.Until(purge).Hours() / 24)
+		}
+		rows = append(rows, trashRow{
+			UID:       a.UID,
+			Name:      a.Name,
+			Path:      a.Path,
+			DeletedAt: a.DeletedAt,
+			PurgeDate: purgeStr,
+			DaysLeft:  days,
+		})
+	}
+
+	switch format {
+	case "json":
+		enc := json.NewEncoder(out)
+		enc.SetIndent("", "  ")
+		return enc.Encode(rows)
+	case "csv":
+		return outputTrashCSV(rows, out)
+	case "yaml":
+		enc := yaml.NewEncoder(out)
+		defer enc.Close()
+		return enc.Encode(rows)
+	default:
+		return fmt.Errorf("unsupported output format: %s (supported: json, csv, yaml)", format)
+	}
+}
+
+func outputTrashCSV(rows []trashRow, out io.Writer) error {
+	writer := csv.NewWriter(out)
+	defer writer.Flush()
+
+	// Write header
+	if err := writer.Write([]string{
+		"uid", "name", "path", "deleted_at", "purge_date", "days_left",
+	}); err != nil {
+		return fmt.Errorf("failed to write CSV header: %w", err)
+	}
+
+	// Write data rows
+	for _, row := range rows {
+		var deletedAt string
+		if row.DeletedAt != nil {
+			deletedAt = row.DeletedAt.Format(time.RFC3339)
+		}
+
+		csvRow := []string{
+			row.UID,
+			row.Name,
+			row.Path,
+			deletedAt,
+			row.PurgeDate,
+			fmt.Sprintf("%d", row.DaysLeft),
+		}
+
+		if err := writer.Write(csvRow); err != nil {
+			return fmt.Errorf("failed to write CSV row: %w", err)
+		}
+	}
+
+	return nil
 }

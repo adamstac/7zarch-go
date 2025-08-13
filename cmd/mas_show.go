@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"crypto/sha256"
+	"encoding/csv"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -11,14 +13,19 @@ import (
 	"github.com/adamstac/7zarch-go/internal/config"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 func MasShowCmd() *cobra.Command {
-	var verify bool
+	var (
+		verify bool
+		output string
+	)
 	cmd := &cobra.Command{
 		Use:   "show <id>",
 		Short: "Show archive details by ID (uid, checksum prefix, numeric id, or name)",
 		Args:  cobra.ExactArgs(1),
+		ValidArgsFunction: completeArchiveIDs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
 			cfg, _ := config.Load()
@@ -47,11 +54,16 @@ func MasShowCmd() *cobra.Command {
 			arc.LastSeen = &now
 			_ = mgr.Registry().Update(arc)
 
+			if output != "" {
+				return outputArchive(arc, output, verify)
+			}
+
 			printArchive(arc, verify)
 			return nil
 		},
 	}
 	cmd.Flags().BoolVar(&verify, "verify", false, "Verify checksum against file (slower)")
+	cmd.Flags().StringVar(&output, "output", "", "Output format: json|csv|yaml (default: human-readable)")
 	return cmd
 }
 
@@ -125,4 +137,77 @@ func safePrefix(s string, n int) string {
 		return s
 	}
 	return s[:n]
+}
+
+// outputArchive outputs single archive in machine-readable format
+func outputArchive(a *storage.Archive, format string, verify bool) error {
+	// Create enriched archive with verified checksum if requested
+	archiveData := *a
+	if verify && a.Status == "present" && a.Checksum != "" {
+		if computed, err := computeSHA256(a.Path); err == nil {
+			metadata := fmt.Sprintf(`{"checksum_verified":%t,"computed_checksum":"%s"}`, computed == a.Checksum, computed)
+			archiveData.Metadata = metadata
+		}
+	}
+
+	switch format {
+	case "json":
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		return enc.Encode(&archiveData)
+	case "csv":
+		return outputArchiveCSV(&archiveData)
+	case "yaml":
+		enc := yaml.NewEncoder(os.Stdout)
+		defer enc.Close()
+		return enc.Encode(&archiveData)
+	default:
+		return fmt.Errorf("unsupported output format: %s (supported: json, csv, yaml)", format)
+	}
+}
+
+func outputArchiveCSV(a *storage.Archive) error {
+	writer := csv.NewWriter(os.Stdout)
+	defer writer.Flush()
+
+	// Write header
+	if err := writer.Write([]string{
+		"uid", "name", "path", "size", "created", "checksum", "profile",
+		"managed", "status", "last_seen", "deleted_at", "original_path",
+		"uploaded", "destination", "uploaded_at",
+	}); err != nil {
+		return fmt.Errorf("failed to write CSV header: %w", err)
+	}
+
+	// Write data row
+	var lastSeen, deletedAt, uploadedAt string
+	if a.LastSeen != nil {
+		lastSeen = a.LastSeen.Format(time.RFC3339)
+	}
+	if a.DeletedAt != nil {
+		deletedAt = a.DeletedAt.Format(time.RFC3339)
+	}
+	if a.UploadedAt != nil {
+		uploadedAt = a.UploadedAt.Format(time.RFC3339)
+	}
+
+	row := []string{
+		a.UID,
+		a.Name,
+		a.Path,
+		fmt.Sprintf("%d", a.Size),
+		a.Created.Format(time.RFC3339),
+		a.Checksum,
+		a.Profile,
+		fmt.Sprintf("%t", a.Managed),
+		a.Status,
+		lastSeen,
+		deletedAt,
+		a.OriginalPath,
+		fmt.Sprintf("%t", a.Uploaded),
+		a.Destination,
+		uploadedAt,
+	}
+
+	return writer.Write(row)
 }

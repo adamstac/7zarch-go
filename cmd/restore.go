@@ -23,6 +23,7 @@ func RestoreCmd() *cobra.Command {
 		Use:   "restore <id>",
 		Short: "Restore a deleted archive from trash",
 		Args:  cobra.ExactArgs(1),
+		ValidArgsFunction: completeDeletedArchiveIDs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
 			cfg, _ := config.Load()
