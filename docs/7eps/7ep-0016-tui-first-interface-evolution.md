@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Evolve 7zarch-go from CLI-with-TUI to TUI-first application with embedded Vim-style command line, making the visual interface the primary user experience while maintaining full CLI compatibility for automation and scripting.
+Evolve 7zarch-go into a **staging-to-remote workflow tool** with simple TUI-first interface and embedded command line. Focus on **podcast archival workflow**: MAS local as 24-48h staging → intelligent compression analysis → push to TrueNAS remote storage → simple remote browsing and pull-back capabilities.
 
 ## Evidence & Reasoning
 
@@ -20,10 +20,12 @@ Evolve 7zarch-go from CLI-with-TUI to TUI-first application with embedded Vim-st
 - ✅ User feedback positive - "very good and simple start, great base to build on"
 
 **User Vision:**
-- TUI becomes the entire application interface
-- Vim-style command line embedded within TUI
-- All CLI commands accessible from within visual interface
-- Seamless workflow for podcast archival management
+- **MAS Local = Staging** - 24-48 hour staging area before remote storage
+- **Remote Browsing** - View and traverse TrueNAS archive collections  
+- **Push/Pull Workflow** - Git-like model (pull to staging, work, push remote)
+- **Compression Intelligence** - Tool analyzes and suggests recompression
+- **Simple TUI** - Terminal-friendly, minimal borders and visual clutter
+- **Embedded Command Line** - Vim-style `:` commands for advanced operations
 
 **Strategic Opportunity:**
 - Differentiate from all other CLI archive tools
@@ -32,37 +34,70 @@ Evolve 7zarch-go from CLI-with-TUI to TUI-first application with embedded Vim-st
 
 ## Use Cases
 
-### Primary Use Case: TUI-First Experience
+### Primary Use Case: Staging-to-Remote Workflow
 ```bash
-# Default launch goes to visual interface
+# Default launch shows staging + remote status
 7zarch-go
 
-# Visual interface with embedded command line
-┌─ Archive Browser ─────────────────────────────┐
-│ Archives: 247 (12.4 TB)                       │
-│                                               │ 
-│ > episode-423.7z        89 MB    2h ago    ✓  │
-│   episode-422.7z        92 MB    1d ago    ✓  │
-│   vacation-photos.7z   3.8 GB    1w ago    ✓  │
-│                                               │
-│ [Visual navigation and content]               │
-└───────────────────────────────────────────────┘
-│ :create episode-424 --profile media          │  <-- Vim-style command line
-└───────────────────────────────────────────────┘
+# Simple interface with staging awareness
+7zarch-go                                       Local Staging | Remote (TrueNAS)
 
-# CLI mode still available for automation
-7zarch-go --cli list --output json
+Staging: 3 episodes (267 MB) - Ready for remote
+> episode-424.7z        89 MB    2h ago    ✓ media profile
+  episode-423.7z        92 MB    1d ago    ✓ needs upload  
+  vacation-photos.7z   3.8 GB    1w ago    ✓ compress better?
+
+Remote: 1,247 episodes (14.2 TB) via Tailscale
+
+:push recent                                   <-- Simple command line
+:browse remote                                 <-- View TrueNAS archives
+:pull episode-420                              <-- Download for editing
+:analyze compression vacation-photos.7z        <-- Check compression efficiency
 ```
 
 ### Secondary Use Cases
-- **Command discovery** - Tab completion in embedded command line
-- **Complex operations** - Command line for advanced workflows  
-- **Hybrid workflows** - Visual browsing + command execution
-- **Script integration** - CLI mode preserves automation compatibility
+
+#### Remote Archive Analysis
+```bash
+# Browse remote storage via TUI
+:browse remote
+
+# Analyze compression efficiency
+:analyze episode-420.7z
+→ "Compressed with documents profile, could save 40% with media profile"
+→ "Original: 2.1GB → Current: 89MB (96%) → Optimal: 54MB (97.4%)"
+
+# View Tailscale URL for sharing
+:details episode-423.7z
+→ "Tailscale URL: http://truenas.tail-net.ts.net/archives/2024/episode-423.7z"
+→ "Press 'c' to copy URL to clipboard"
+```
+
+#### Batch Recompression Workflows  
+```bash
+# Find archives that could benefit from recompression
+:analyze old --profile-mismatch
+→ "Found 23 archives from 2022-2023 using suboptimal compression"
+→ "Potential savings: 3.2GB (18% improvement)"
+
+# Batch recompress with new smart profiles
+:recompress 2022 --profile media --confirm
+→ "Will recompress 47 episodes from 2022 with media profile"
+→ "Estimated time: 2h 15m, savings: 1.8GB"
+```
+
+#### Push/Pull Operations
+```bash
+# Git-like push/pull model
+:push staging                    # Upload everything in staging to remote
+:pull episode-400 episode-401    # Download specific episodes to staging  
+:pull year:2023 guest:alice      # Bulk pull based on criteria
+:status                          # Show staging vs remote sync status
+```
 
 ## Technical Design
 
-### Architecture Overview
+### Architecture Overview - Simple & Focused
 ```go
 type TUIApp struct {
     // Current components (keep)
@@ -70,34 +105,83 @@ type TUIApp struct {
     viewport     viewport.Model
     theme        Theme
     
-    // New command line components
-    commandMode  bool           // Toggle between nav and command mode
-    commandLine  textinput.Model // Vim-style command input
-    commandHist  []string       // Command history
-    suggestions  []string       // Tab completion suggestions
+    // Staging/Remote awareness
+    localStaging  []*storage.Archive    // MAS local (24-48h staging)
+    remoteArchives []*storage.Archive   // TrueNAS remote storage
+    viewMode      ViewMode              // Local | Remote
     
-    // Command execution
-    executor     CommandExecutor // Shared with CLI mode
+    // Simple command line
+    commandMode   bool                  // ':' toggles command mode
+    commandInput  textinput.Model       // Simple command input
+    commandHist   []string             // Command history
+    
+    // Remote integration
+    tailscaleURL  string               // Base Tailscale URL for remote files
+    syncStatus    map[string]SyncState // Track push/pull status
 }
 
-type CommandExecutor interface {
-    Execute(cmd string, args []string) tea.Cmd
-    Complete(partial string) []string
-    Validate(cmd string) error
-}
+type ViewMode int
+const (
+    LocalView ViewMode = iota  // Staging area view
+    RemoteView                 // TrueNAS remote storage view
+)
+
+type SyncState int
+const (
+    InSync SyncState = iota    // Local and remote match
+    NeedsUpload               // Local newer, needs push
+    NeedsDownload             // Remote newer, can pull
+    ConflictState             // Both modified, needs resolution
+)
 ```
 
-### Interface Modes
-1. **Navigation Mode** (default)
-   - Arrow keys navigate archives
-   - Single letters trigger actions
-   - Visual feedback and selection
+### Core Features
 
-2. **Command Mode** (`:` key like Vim)
-   - Embedded command line at bottom
-   - Full CLI command access
-   - Tab completion and history
-   - Execute and return to navigation
+#### 1. **Staging/Remote View Toggle**
+```bash
+# Toggle between local staging and remote archives
+[Tab] Switch Local ⟷ Remote
+[l] Local staging view
+[r] Remote TrueNAS view
+```
+
+#### 2. **Compression Analysis Engine**
+```bash
+:analyze episode-420.7z
+→ "Profile used: documents (suboptimal for audio)"
+→ "Compression: 2.1GB → 89MB (95.7%)"  
+→ "Optimal: media profile → 54MB (97.4%)"
+→ "Tool recommendation: Recompress with media profile"
+```
+
+#### 3. **Remote File Details with Tailscale URLs**
+```bash
+# Details view for remote files
+episode-423.7z (Remote)
+
+Size: 89 MB
+Created: August 13, 2024 2:30 PM
+Profile: media (optimal ✓)
+Tailscale URL: http://truenas.tail-net.ts.net/archives/2024/08/episode-423.7z
+
+[c] Copy URL  [p] Pull to staging  [a] Analyze compression
+```
+
+#### 4. **Push/Pull Commands**
+```bash
+:push                          # Push all staging to remote
+:push episode-424.7z          # Push specific file
+:pull episode-420             # Pull specific episode to staging
+:pull recent 5                # Pull last 5 episodes  
+:status                       # Show sync status (like git status)
+```
+
+#### 5. **Batch Recompression**
+```bash
+:recompress --analyze         # Find suboptimal compression
+:recompress 2022 --profile media --dry-run
+:recompress selected --confirm
+```
 
 ### Command Integration Strategy
 ```go
@@ -187,19 +271,45 @@ func (app *TUIApp) executeEmbeddedCommand(cmdLine string) tea.Cmd {
 - Script integration maintained
 - Configuration and data formats unchanged
 
+## 🎨 Simple Interface Design Principles
+
+### Terminal-Friendly Aesthetics
+- **Minimal borders** - Clean lines, no heavy box drawing
+- **Text-based indicators** - Status with simple characters (✓ ? X)
+- **Readable layouts** - Spacious but not wasteful  
+- **Theme consistency** - Colors enhance, don't overwhelm
+
+### Example Simple Interface
+```
+7zarch-go                                              Staging | Remote (TrueNAS)
+
+Local Staging (3 files, 267 MB)
+> episode-424.7z          89 MB   2h ago   ✓ ready → upload
+  episode-423.7z          92 MB   1d ago   ✓ needs upload
+  vacation-photos.7z     3.8 GB   1w ago   ? recompress?
+
+Remote Storage (1,247 files, 14.2 TB) via Tailscale
+  episode-422.7z          87 MB   2d ago   ✓ synced
+  episode-421.7z          91 MB   3d ago   ✓ synced  
+  episode-420.7z          89 MB   4d ago   ✓ synced
+
+[Tab] Switch view  [Enter] Details  [:] Command mode  [q] Quit
+:
+```
+
 ## Future Considerations
 
-### Advanced Command Integration
-- **Visual command builder** - Build commands by selecting archives in TUI
-- **Command templates** - Save frequently used command patterns
-- **Macro support** - Record and replay command sequences
-- **Multi-pane interface** - Command output in separate pane
+### Compression Intelligence
+- **Profile analysis** - Detect suboptimal compression choices
+- **Efficiency scoring** - Rate compression effectiveness  
+- **Batch optimization** - Recompress old archives with new profiles
+- **Savings estimation** - Show potential space/time savings
 
-### User Experience Enhancements
-- **Command suggestion** - AI-like suggestions based on context
-- **Visual command feedback** - Progress and results integrated with interface
-- **Keyboard shortcuts** - Quick access to common commands without typing
-- **Customizable interface** - User-defined layouts and command mappings
+### Remote Storage Integration  
+- **Tailscale URL management** - Easy URL copying and sharing
+- **Bandwidth optimization** - Smart push/pull based on connection
+- **Integrity verification** - Checksum validation without download
+- **Directory traversal** - Browse remote folder structures
 
 ## References
 
