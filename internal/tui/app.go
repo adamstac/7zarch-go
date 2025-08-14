@@ -190,7 +190,20 @@ func (a *SimpleApp) renderArchive(archive *storage.Archive, isSelected bool) str
 		checkbox = "[✓]"
 	}
 	
-	statusIcon := "✓"
+	// Status text (monospace-safe)
+	statusText := "OK"
+	switch archive.Status {
+	case "missing":
+		statusText = "MISS"
+	case "deleted":
+		statusText = "DEL"
+	}
+	
+	// Location text  
+	locationText := "EXTERNAL"
+	if archive.Managed {
+		locationText = "MANAGED"
+	}
 	
 	name := archive.Name
 	if len(name) > 30 {
@@ -199,9 +212,9 @@ func (a *SimpleApp) renderArchive(archive *storage.Archive, isSelected bool) str
 	
 	size := humanize.Bytes(uint64(archive.Size))
 	
-	// Build content
-	content := fmt.Sprintf("%s%s %-30s %10s %8s %s",
-		selector, checkbox, name, size, "2h ago", statusIcon)
+	// Build content with proper status/location
+	content := fmt.Sprintf("%s%s %-30s %10s %8s %-4s %-8s",
+		selector, checkbox, name, size, "2h ago", statusText, locationText)
 	
 	if isSelected {
 		return lipgloss.NewStyle().
@@ -242,8 +255,16 @@ func (a *SimpleApp) renderDetailContent() string {
 	statusText := "Status: " + a.getStatusDisplay(archive.Status)
 	lines = append(lines, statusText)
 	
-	locationText := "Location: " + lipgloss.NewStyle().Foreground(a.theme.Foreground).Render(archive.Path)
-	lines = append(lines, locationText)
+	// Location indicator (MANAGED/EXTERNAL)
+	locationType := "EXTERNAL"
+	if archive.Managed {
+		locationType = "MANAGED"
+	}
+	locationLabel := "Location: " + lipgloss.NewStyle().Foreground(a.theme.Metadata).Render(locationType)
+	lines = append(lines, locationLabel)
+	
+	pathText := "Path: " + lipgloss.NewStyle().Foreground(a.theme.Foreground).Render(archive.Path)
+	lines = append(lines, pathText)
 	
 	if archive.Checksum != "" {
 		checksumText := "Checksum: " + lipgloss.NewStyle().Foreground(a.theme.Metadata).Render(archive.Checksum[:16]+"...")
@@ -275,15 +296,15 @@ func (a *SimpleApp) renderConfirm() string {
 	return box.Render(content)
 }
 
-// getStatusDisplay returns styled status text
+// getStatusDisplay returns styled status text (monospace-safe)
 func (a *SimpleApp) getStatusDisplay(status string) string {
 	switch status {
 	case "present":
-		return lipgloss.NewStyle().Foreground(a.theme.StatusOK).Render("Present ✓")
+		return lipgloss.NewStyle().Foreground(a.theme.StatusOK).Render("OK")
 	case "missing":
-		return lipgloss.NewStyle().Foreground(a.theme.StatusMiss).Render("Missing ?")
+		return lipgloss.NewStyle().Foreground(a.theme.StatusMiss).Render("MISS")
 	case "deleted":
-		return lipgloss.NewStyle().Foreground(a.theme.StatusDel).Render("Deleted X")
+		return lipgloss.NewStyle().Foreground(a.theme.StatusDel).Render("DEL")
 	default:
 		return lipgloss.NewStyle().Foreground(a.theme.Foreground).Render(status)
 	}
