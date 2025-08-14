@@ -78,6 +78,11 @@ func (r *Resolver) Resolve(input string) (*Archive, error) {
 	return nil, &ArchiveNotFoundError{ID: input}
 }
 
+// Registry returns the underlying registry for use by other components
+func (r *Resolver) Registry() *Registry {
+	return r.reg
+}
+
 func isAllDigits(s string) bool {
 	if s == "" {
 		return false

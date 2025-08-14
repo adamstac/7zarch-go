@@ -63,59 +63,38 @@ func TestMigrationRunner_Integration(t *testing.T) {
 		t.Fatalf("failed to get pending migrations: %v", err)
 	}
 
-	// Should have identity and trash migrations pending
-	if len(pending) < 1 {
-		t.Fatalf("expected at least 1 pending migration, got %d", len(pending))
+	// Should have trash, query, and search migrations pending
+	if len(pending) < 3 {
+		t.Fatalf("expected at least 3 pending migrations, got %d", len(pending))
 	}
 
-	// Apply pending migrations
+	// Apply pending migrations using the runner
 	backupPath, err := runner.CreateBackup(dbPath)
 	if err != nil {
 		t.Fatalf("failed to create backup: %v", err)
 	}
 
-	// Apply the trash migration manually to test the process
-	trashApplied, err := registry.IsMigrationApplied(migrationTrashID)
-	if err != nil {
-		t.Fatalf("failed to check if trash migration applied: %v", err)
+	// Apply all pending migrations
+	if err := runner.ApplyPending(dbPath); err != nil {
+		t.Fatalf("failed to apply pending migrations: %v", err)
 	}
 
-	if !trashApplied {
-		tx, err := db.Begin()
-		if err != nil {
-			t.Fatalf("failed to begin transaction: %v", err)
-		}
-
-		if !columnExists(db, "archives", "deleted_at") {
-			if _, err := tx.Exec(`ALTER TABLE archives ADD COLUMN deleted_at TIMESTAMP`); err != nil {
-				_ = tx.Rollback()
-				t.Fatalf("failed to add deleted_at column: %v", err)
-			}
-		}
-
-		if !columnExists(db, "archives", "original_path") {
-			if _, err := tx.Exec(`ALTER TABLE archives ADD COLUMN original_path TEXT`); err != nil {
-				_ = tx.Rollback()
-				t.Fatalf("failed to add original_path column: %v", err)
-			}
-		}
-
-		if err := tx.Commit(); err != nil {
-			t.Fatalf("failed to commit migration: %v", err)
-		}
-
-		if err := registry.MarkMigrationApplied(migrationTrashID, migrationTrashName); err != nil {
-			t.Fatalf("failed to mark trash migration as applied: %v", err)
-		}
-	}
-
-	// Verify columns were added
+	// Verify trash columns were added
 	if !columnExists(db, "archives", "deleted_at") {
 		t.Fatal("deleted_at column not found after migration")
 	}
 
 	if !columnExists(db, "archives", "original_path") {
 		t.Fatal("original_path column not found after migration")
+	}
+
+	// Verify query and search tables were created
+	if !tableExists(db, "queries") {
+		t.Fatal("queries table not found after migration")
+	}
+
+	if !tableExists(db, "search_index") {
+		t.Fatal("search_index table not found after migration")
 	}
 
 	// Verify data was preserved
@@ -150,7 +129,7 @@ func TestMigrationRunner_Integration(t *testing.T) {
 		t.Fatalf("failed to get applied migrations: %v", err)
 	}
 
-	expectedMigrations := []string{migrationBaselineID, migrationTrashID}
+	expectedMigrations := []string{migrationBaselineID, migrationTrashID, migrationQueryID, migrationSearchID}
 	if len(applied) < len(expectedMigrations) {
 		t.Fatalf("expected at least %d applied migrations, got %d", len(expectedMigrations), len(applied))
 	}

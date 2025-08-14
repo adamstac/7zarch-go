@@ -29,6 +29,12 @@ The `list` command displays all archives tracked in the MAS registry, organized 
 | `--profile` | string | Filter by compression profile | - |
 | `--larger-than` | string | Show archives larger than size (e.g., '100MB', '1GB') | - |
 
+### Query Integration (7EP-0007 Phase 1)
+| Flag | Type | Description | Default |
+|------|------|-------------|---------|
+| `--query` | string | Use saved query filters | - |
+| `--save-query` | string | Save current filters as named query | - |
+
 ### Display Mode Options
 | Flag | Description | Min Width | Best For |
 |------|-------------|-----------|----------|
@@ -259,6 +265,42 @@ DELETED (auto-purge older than 30 days)
 
 # Missing managed archives
 7zarch-go list --managed --status missing
+```
+
+### Query Integration (7EP-0007)
+
+**Save current filters as a named query:**
+```bash
+# Save complex filter combination for reuse
+7zarch-go list --profile media --larger-than 100MB --not-uploaded --save-query large-media-pending
+
+# Save frequently used patterns
+7zarch-go list --pattern "project-*" --managed --save-query my-projects
+```
+
+**Use saved queries:**
+```bash
+# Run a previously saved query
+7zarch-go list --query large-media-pending
+7zarch-go list --query my-projects
+
+# Combine saved queries with additional filters
+7zarch-go list --query my-projects --older-than 7d
+```
+
+**Query management workflow:**
+```bash
+# Create and test filters
+7zarch-go list --profile documents --managed --not-uploaded
+
+# Save for future use
+7zarch-go list --profile documents --managed --not-uploaded --save-query docs-to-upload
+
+# Use the saved query later
+7zarch-go list --query docs-to-upload
+
+# See what queries are available
+7zarch-go query list
 ```
 
 ## Directory Listing
