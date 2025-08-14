@@ -31,6 +31,38 @@ Establish a systematic Document Driven Development (DDD) framework that separate
 - **Document everything** - All decisions and priorities captured in git-tracked docs
 - **Enable autonomy** - Team members can see their priorities and dependencies clearly
 
+## Operational Activation Protocol
+
+**Strategic Recognition**: Framework effectiveness requires **immediate operational activation** when coordination friction is identified.
+
+### **Activation Triggers**
+- **Coordination Friction**: Team members unclear on current priorities or next tasks
+- **Cross-Team Dependencies**: Blocking relationships visible but not systematically tracked
+- **Handoff Inefficiency**: Success patterns exist but require manual discovery each time
+- **Strategic Misalignment**: Implementation work disconnected from strategic priorities
+
+### **Same-Day Activation Process**
+1. **Immediate Document Creation**
+   - Create operational docs using framework templates (docs/development/)
+   - Populate with current real project state (not example content)
+   - Establish NEXT.md as primary coordination hub
+
+2. **Boot-up Integration** 
+   - Update existing team startup documents (/CLAUDE.md, etc.)
+   - Add operational document sequence to team onboarding
+   - Document operational framework usage patterns
+
+3. **Live Validation**
+   - Apply framework to current coordination challenges (same session)
+   - Use real project handoffs to test coordination patterns
+   - Refine templates based on immediate operational feedback
+
+### **Operational Success Metrics**
+- **<30 Second Priority Discovery**: Team members find current work priorities quickly
+- **Visible Cross-Dependencies**: Blocking relationships clear in NEXT.md
+- **Reduced Coordination Overhead**: Less time spent clarifying "what should I work on next"
+- **Preserved Team Momentum**: Framework enhances existing patterns without disruption
+
 ## Use Cases
 
 ### Primary Use Case: Clear Priority Coordination
@@ -42,6 +74,76 @@ Establish a systematic Document Driven Development (DDD) framework that separate
 
 # Result: Clear understanding of current work + next priorities + coordination needs
 ```
+
+## Boot-up Integration Specification
+
+**Strategic Integration**: Framework must connect seamlessly with existing team startup sequences to ensure adoption and operational effectiveness.
+
+### **Primary Boot-up Path Enhancement**
+
+#### **Target Integration Point**: /CLAUDE.md Quick Start Checklist
+**Current Boot-up Sequence (Enhanced)**:
+```bash
+1. Check git status
+   git status && git pull && git branch
+
+2. Review current state  
+   cat docs/development/pr-merge-roadmap.md | head -50
+   gh pr list && git log --oneline -10
+
+2.5. **CHECK OPERATIONAL PRIORITIES** (NEW)
+     # Personal current assignments and coordination
+     cat docs/development/CLAUDE.md | head -20
+     
+     # Shared team priorities and blockers  
+     cat docs/development/NEXT.md | head -30
+     
+     # Active 7EP coordination context
+     grep -l "Status.*ACTIVE\|In Progress" docs/7eps/*.md | xargs ls -la
+
+3. Understand today's priorities
+   cat docs/development/tomorrow-plan.md  # (deprecated → use NEXT.md)
+
+4. Test the build
+   go build -o 7zarch-go . && ./7zarch-go list --dashboard
+```
+
+### **Day 1 Team Onboarding Sequence**
+**For New Team Members or Role Transitions**:
+1. **Identity Understanding**
+   - Read `/CLAUDE.md` (role definition and capabilities)
+   - Read `/AMP.md` (leadership roles and activation)
+   - Understand team member capabilities and authorities
+
+2. **Current Work Context**
+   - Read `docs/development/CLAUDE.md` (current assignments)  
+   - Read `docs/development/NEXT.md` (shared coordination hub)
+   - Review active 7EPs for coordination requirements
+
+3. **Operational Integration**
+   - Execute enhanced boot-up checklist (above)
+   - Identify immediate coordination needs or blockers
+   - Update personal assignment doc with availability/capacity
+
+### **Framework Document Reading Sequence**
+**Optimized Information Discovery**:
+```markdown
+## Operational Priority (Daily)
+1. docs/development/NEXT.md       # What's happening now across all teams
+2. docs/development/CLAUDE.md     # My current work and next priorities  
+3. Active 7EPs                    # Sprint-level coordination context
+
+## Reference Information (As Needed)
+4. docs/7eps/index.md            # Long-term feature planning
+5. /CLAUDE.md                    # Role definition and context
+6. docs/development/README.md     # Framework usage patterns
+```
+
+### **Integration Success Metrics**
+- **Boot-up Time Reduction**: From "unclear priorities" to "ready to work" in <3 minutes
+- **Coordination Clarity**: Cross-team dependencies visible within boot-up sequence
+- **Framework Adoption**: Natural integration enhances (doesn't replace) existing successful patterns
+- **Context Preservation**: All coordination context accessible through familiar startup process
 
 ### Secondary Use Cases
 
@@ -107,6 +209,79 @@ docs/development/CLAUDE.md:
 ```
 
 **Purpose:** Current task tracking, priority coordination, immediate planning
+
+## Documentation Hierarchy Clarification
+
+**Strategic Hierarchy**: Clear operational documentation relationship for effective team coordination and priority management.
+
+### **Primary Operational Hub**: docs/development/NEXT.md
+
+#### **Hub Designation Rationale**
+- **Single Source of Truth** for "what's happening now" across all team members
+- **Cross-Team Visibility** - All coordination points visible in one document
+- **Real-Time Updates** - Updated when blockers occur or completions happen
+- **Strategic Alignment** - Connects individual work to project priorities
+
+#### **Operational Document Relationship**
+```markdown
+## Primary Coordination Flow
+docs/development/NEXT.md              # Team coordination hub
+├── docs/development/CLAUDE.md        # CC current assignments (feeds into NEXT.md)
+├── docs/development/AUGMENT.md       # AC current assignments (feeds into NEXT.md)  
+├── docs/development/AMP.md           # Amp current assignments (feeds into NEXT.md)
+└── docs/development/ADAM.md          # Adam priorities (drives NEXT.md priorities)
+
+## Supporting Reference
+docs/7eps/index.md                    # Long-term planning reference
+docs/7eps/7ep-XXXX.md                 # Active sprint coordination (linked from NEXT.md)
+```
+
+### **Documentation Type Classifications**
+
+#### **Operational Documents** (Updated Frequently)
+- **docs/development/NEXT.md** - Updated when: blockers occur, phases complete, priorities shift
+- **docs/development/[TEAM].md** - Updated when: status changes, new assignments, handoffs occur
+- **Active 7EPs** - Updated during: implementation phases, architectural changes
+
+#### **Reference Documents** (Updated Infrequently)  
+- **Root identity docs** (/AMP.md, /CLAUDE.md) - Role definitions and capabilities
+- **Completed 7EPs** - Historical specification reference
+- **Process documentation** - Framework standards and patterns
+
+#### **Strategic Documents** (Updated Based on Decisions)
+- **docs/development/ADAM.md** - Adam's current strategic priorities and decisions needed
+- **Active 7EP coordination sections** - Sprint-level strategic direction
+
+### **Update Responsibility Matrix**
+
+| Document | Primary Owner | Update Trigger | Coordination Responsibility |
+|----------|---------------|----------------|----------------------------|
+| **NEXT.md** | Shared (whoever encounters blocker/completion) | Real-time | Cross-team visibility |
+| **CLAUDE.md** | CC | Status changes | Personal coordination with team |
+| **AUGMENT.md** | AC | Status changes | Personal coordination with team |
+| **AMP.md** | Amp | Status changes | Leadership coordination |
+| **ADAM.md** | Adam | Strategic decisions | Strategic direction setting |
+| **Active 7EPs** | Assigned implementer | Implementation progress | Sprint coordination |
+
+### **Coordination Effectiveness Patterns**
+
+#### **Daily Operations**
+1. **Team members** update personal assignment docs when status changes
+2. **NEXT.md** updated by whoever encounters blockers or completes major phases  
+3. **Active 7EPs** updated during implementation with technical progress
+4. **Cross-team** handoffs documented in NEXT.md coordination sections
+
+#### **Strategic Coordination**
+1. **Adam** updates strategic priorities in ADAM.md and NEXT.md
+2. **Amp strategic/technical** reviews reflected in NEXT.md and AMP.md
+3. **Implementation teams** align personal assignment docs with strategic direction
+4. **Project phases** coordinated through NEXT.md priority sequencing
+
+### **Operational Hierarchy Success Metrics**
+- **Information Discovery Speed**: Team members find current priorities within NEXT.md quickly
+- **Cross-Team Visibility**: Dependencies and blockers visible across team boundaries
+- **Strategic Alignment**: Individual work clearly connected to project strategic direction  
+- **Coordination Overhead Reduction**: Less time spent in meetings clarifying "what's next"
 
 #### **Layer 4: Process Documentation** (docs/development/)
 ```
