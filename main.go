@@ -56,6 +56,8 @@ Features:
 	rootCmd.AddCommand(cmd.QueryCmd())
 	// Search Engine (7EP-0007)
 	rootCmd.AddCommand(cmd.SearchCmd())
+	// Batch Operations (7EP-0007)
+	rootCmd.AddCommand(cmd.BatchCmd())
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {
