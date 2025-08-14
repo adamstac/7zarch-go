@@ -14,6 +14,7 @@ import (
 	"github.com/adamstac/7zarch-go/internal/debug"
 	"github.com/adamstac/7zarch-go/internal/display"
 	"github.com/adamstac/7zarch-go/internal/display/modes"
+	"github.com/adamstac/7zarch-go/internal/query"
 	"github.com/adamstac/7zarch-go/internal/storage"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -105,6 +106,10 @@ Display mode is auto-detected based on terminal width if not specified.`,
 	cmd.Flags().Int64("larger-than", 0, "Filter by size larger than bytes (e.g., 1048576)")
 	cmd.Flags().Bool("deleted", false, "Show only deleted archives")
 	cmd.Flags().String("output", "", "Output format: table|json|csv|yaml (default: table)")
+	
+	// Query integration flags
+	cmd.Flags().String("save-query", "", "Save current filters as a named query")
+	cmd.Flags().String("query", "", "Use a saved query instead of specifying filters")
 
 	// Display mode flags
 	cmd.Flags().Bool("table", false, "Use table display mode (enhanced)")
@@ -121,6 +126,16 @@ Display mode is auto-detected based on terminal width if not specified.`,
 
 func runList(cmd *cobra.Command, args []string) error {
 	directory, _ := cmd.Flags().GetString("directory")
+	
+	// Check for query integration flags
+	queryName := getString(cmd, "query")
+	saveQueryName := getString(cmd, "save-query")
+	
+	// If using a saved query, load it instead of collecting individual flags
+	if queryName != "" {
+		return runListWithSavedQuery(cmd, queryName, saveQueryName)
+	}
+	
 	opts := listFilters{
 		details:      getBool(cmd, "details"),
 		notUploaded:  getBool(cmd, "not-uploaded"),
@@ -134,6 +149,14 @@ func runList(cmd *cobra.Command, args []string) error {
 		profile:      getString(cmd, "profile"),
 		largerThan:   getInt64(cmd, "larger-than"),
 		debug:        getBool(cmd, "debug"),
+	}
+	
+	// If save-query flag is set, save the current filters
+	if saveQueryName != "" {
+		if err := saveCurrentFiltersAsQuery(opts, saveQueryName); err != nil {
+			return fmt.Errorf("failed to save query: %w", err)
+		}
+		fmt.Printf("✅ Query '%s' saved successfully\n", saveQueryName)
 	}
 	
 	// Initialize metrics if debug mode
@@ -842,7 +865,7 @@ func listRegistryArchivesWithOutput(opts listFilters, format string) error {
 		return outputYAML(archives)
 	case "table":
 		// Fall back to display system
-		return listRegistryArchivesWithDisplay(opts, display.ModeTable)
+		return listRegistryArchivesWithDisplay(opts, display.ModeTable, nil)
 	default:
 		return fmt.Errorf("unsupported output format: %s (supported: json, csv, yaml, table)", format)
 	}
@@ -910,4 +933,120 @@ func outputYAML(archives []*storage.Archive) error {
 	enc := yaml.NewEncoder(os.Stdout)
 	defer enc.Close()
 	return enc.Encode(archives)
+}
+
+// runListWithSavedQuery executes list using a saved query
+func runListWithSavedQuery(cmd *cobra.Command, queryName, saveQueryName string) error {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	// Initialize storage manager
+	storageManager, err := storage.NewManager(cfg.Storage.ManagedPath)
+	if err != nil {
+		return fmt.Errorf("failed to initialize storage manager: %w", err)
+	}
+	defer storageManager.Close()
+
+	// Initialize query manager
+	resolver := storage.NewResolver(storageManager.Registry())
+	queryManager := query.NewQueryManager(storageManager.Registry().DB(), resolver)
+
+	// Run the saved query
+	archives, err := queryManager.Run(queryName)
+	if err != nil {
+		return fmt.Errorf("failed to run query '%s': %w", queryName, err)
+	}
+
+	// If save-query flag is also set, this doesn't make sense with --query, so warn
+	if saveQueryName != "" {
+		fmt.Printf("⚠️  Warning: --save-query ignored when using --query\n")
+	}
+
+	// Check for output format first
+	outputFormat := getString(cmd, "output")
+	if outputFormat != "" {
+		switch outputFormat {
+		case "json":
+			return outputJSON(archives)
+		case "csv":
+			return outputCSV(archives)
+		case "yaml":
+			return outputYAML(archives)
+		default:
+			return fmt.Errorf("unsupported output format: %s", outputFormat)
+		}
+	}
+
+	// Display results using same logic as normal list
+	if len(archives) == 0 {
+		fmt.Printf("📋 Query '%s' - No archives found\n", queryName)
+		return nil
+	}
+
+	fmt.Printf("📋 Query '%s' - %d archives found\n\n", queryName, len(archives))
+
+	// Use simplified display for now
+	return printGroupedArchives(archives, getBool(cmd, "details"))
+}
+
+// saveCurrentFiltersAsQuery converts listFilters to a map and saves as query
+func saveCurrentFiltersAsQuery(opts listFilters, queryName string) error {
+	// Convert listFilters to map format expected by query system
+	filters := make(map[string]string)
+
+	if opts.notUploaded {
+		filters["not-uploaded"] = "true"
+	}
+	if opts.pattern != "" {
+		filters["pattern"] = opts.pattern
+	}
+	if opts.olderThan != "" {
+		filters["older-than"] = opts.olderThan
+	}
+	if opts.onlyManaged {
+		filters["managed"] = "true"
+	}
+	if opts.onlyExternal {
+		filters["external"] = "true"
+	}
+	if opts.onlyMissing {
+		filters["missing"] = "true"
+	}
+	if opts.onlyDeleted {
+		filters["deleted"] = "true"
+	}
+	if opts.status != "" {
+		filters["status"] = opts.status
+	}
+	if opts.profile != "" {
+		filters["profile"] = opts.profile
+	}
+	if opts.largerThan > 0 {
+		filters["larger-than"] = fmt.Sprintf("%d", opts.largerThan)
+	}
+
+	if len(filters) == 0 {
+		return fmt.Errorf("no filters specified - cannot save empty query")
+	}
+
+	// Load configuration and initialize query manager
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	storageManager, err := storage.NewManager(cfg.Storage.ManagedPath)
+	if err != nil {
+		return fmt.Errorf("failed to initialize storage manager: %w", err)
+	}
+	defer storageManager.Close()
+
+	resolver := storage.NewResolver(storageManager.Registry())
+	queryManager := query.NewQueryManager(storageManager.Registry().DB(), resolver)
+
+	// Save the query
+	return queryManager.Save(queryName, filters)
 }
