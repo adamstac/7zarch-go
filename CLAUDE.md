@@ -91,8 +91,21 @@ When starting a new session:
    git log --oneline -10
    ```
 
+2.5. **CHECK OPERATIONAL PRIORITIES** (DDD Framework)
+   ```bash
+   # Personal current assignments and coordination
+   cat docs/development/CLAUDE.md | head -20
+   
+   # Shared team priorities and blockers  
+   cat docs/development/NEXT.md | head -30
+   
+   # Active 7EP coordination context
+   grep -l "Status.*ACTIVE\|In Progress" docs/7eps/*.md | xargs ls -la
+   ```
+
 3. **Understand today's priorities**
-   - Check `/docs/development/tomorrow-plan.md` if it exists
+   - Check `/docs/development/NEXT.md` for shared team coordination
+   - Review `/docs/development/CLAUDE.md` for personal assignments
    - Look for any session summaries from previous work
 
 4. **Test the build**
