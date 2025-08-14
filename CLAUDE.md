@@ -18,65 +18,14 @@
 
 ---
 
-**Usage**: Consult both AGENT.md (for technical patterns) and docs/development/CLAUDE.md (for coordination context) when starting work.
+**Usage**: Start with `/BOOTUP.md`, then consult `/AGENT.md` (technical) and `/docs/development/CLAUDE.md` (coordination).
 
-## 👥 Who's Who
+## 📍 Quick Reference
 
-### Human Team
-- **Adam Stacoviak** (@adamstac) - Project owner, makes architectural decisions, prefers simplicity
-  - Likes: Clean design, Charmbracelet tools, thoughtful UX
-  - Style: Direct feedback, big ideas, a fan of document driven development
-  - Timezone: n/a
-
-### AI Team
-- **CC (Claude Code)** - You! Primary development assistant
-  - Responsibilities: Feature implementation, bug fixes, documentation
-  - Strengths: Display systems, infrastructure, deep technical work
-
-- **AC (Augment Code)** - Sibling AI, handles parallel work
-  - Responsibilities: User-facing features, refinements, overnight deep work
-  - Current: Working on PR #9 (list filters), potentially 7EP-0010 TUI tonight
-  - Communication: Via PR descriptions, commit messages, and `/docs/development/`
-
-- **Amp-s** - Senior Strategic Architect (Renamed 2025-08-13) ⭐⭐⭐⭐⭐
-  - Responsibilities: Product strategy, business impact, executive leadership, roadmap planning
-  - Focus: Strategic vision, user value, competitive positioning, resource allocation
-  - Activation: `Switching to Amp-s role for strategic planning.`
-  - **PROVEN EXCELLENCE**: 7EP-0014 delivered exceptional foundation gap analysis
-  - **Confidence Level**: **VERY HIGH** - Demonstrated strategic thinking and product vision
-
-- **CR (CodeRabbit)** - Automated code reviewer
-  - Triggers: On all PRs automatically
-  - Purpose: Catches issues, suggests improvements
-  - Config: `.coderabbit.yaml`
-
-- **Amp-t** - Senior Technical Architect (NEW 2025-08-13)
-  - Role: Technical review, architecture oversight, code quality governance
-  - Focus: High-level review, documentation standards, process leadership
-  - Activation: `Switching to Amp-t role for technical review.`
-  - Scope: PR reviews, architecture evaluation, technical standards
-
-## 📍 Key Locations
-
-### Documentation
-- `/docs/7eps/` - Enhancement proposals (our roadmap)
-- `/docs/development/pr-merge-roadmap.md` - Current PR status and priorities
-- `/docs/development/tomorrow-plan.md` - Daily planning
-- `/docs/development/AMP.md` - Unified Amp-s (strategic) and Amp-p (technical) role documentation
-- `/docs/reference/` - Command and system documentation
-- `/CLAUDE.md` - This file! Your context guide
-
-### Code Structure
-```
-/cmd/               - CLI commands (list, show, create, etc.)
-/internal/
-  ├── display/      - Display system (just shipped!)
-  │   └── modes/    - Table, compact, card, tree, dashboard
-  ├── storage/      - Archive storage and registry
-  ├── mas/          - Managed Archive Storage core
-  └── tui/          - (Future) TUI implementation
-/scripts/           - Build and maintenance scripts
-```
+**Team & Project Context**: `/docs/development/TEAM-CONTEXT.md`  
+**Technical Patterns**: `/AGENT.md`  
+**Your Role & Assignments**: `/docs/development/CLAUDE.md`  
+**Session Startup**: `/BOOTUP.md`
 
 ### Important Files
 - `go.mod` - Dependencies (check for conflicts)

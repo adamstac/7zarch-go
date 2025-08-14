@@ -1,9 +1,8 @@
 # AI Team Member Boot-up Guide
 
-**Purpose**: Standardized startup sequence for all AI team members (CC, AC, Amp) to quickly understand current project state and coordination needs.
-
-**Last Updated**: 2025-08-14  
-**Framework**: Document Driven Development (7EP-0017)
+**Purpose**: Standardized startup sequence for all AI team members  
+**Framework**: Document Driven Development (7EP-0017)  
+**Team Context**: See `/docs/development/TEAM-CONTEXT.md` for shared project overview
 
 ## 🚀 Quick Start Sequence
 
@@ -22,8 +21,8 @@ gh pr list && git log --oneline -10
 
 ### 3. **CHECK OPERATIONAL PRIORITIES** (DDD Framework)
 ```bash
-# Personal current assignments and coordination
-cat docs/development/CLAUDE.md | head -20      # Replace with your role: AMP.md, AUGMENT.md
+# Personal assignments (replace [ROLE] with: CLAUDE, AMP, AUGMENT, ADAM)
+cat docs/development/[ROLE].md | head -20
 
 # Shared team priorities and blockers  
 cat docs/development/NEXT.md | head -30
@@ -45,9 +44,9 @@ make dev && ./7zarch-go list --dashboard
 3. Active 7EPs - Sprint-level coordination requirements
 
 **Reference Information (As Needed)**:
-4. `docs/7eps/index.md` - Long-term feature planning
-5. `/CLAUDE.md`, `/AMP.md` - Role definitions and capabilities  
-6. `docs/development/README.md` - Framework usage patterns
+4. `/AGENT.md` - Technical build/test patterns and code style
+5. `/docs/development/TEAM-CONTEXT.md` - Project structure and team overview
+6. `docs/7eps/index.md` - Long-term feature planning
 
 ## 🎯 Current Project State
 
