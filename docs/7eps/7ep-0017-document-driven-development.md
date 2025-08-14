@@ -252,6 +252,25 @@ docs/development/CLAUDE.md:
   - [ ] Standards for team assignment doc maintenance
   - [ ] Cross-team communication protocols
 
+### Phase 4: Documentation Cleanup & Migration
+- [ ] **Audit Existing docs/development/ Files**
+  - [ ] Review tomorrow-plan.md → Migrate relevant content to NEXT.md or archive
+  - [ ] Review pr-merge-roadmap.md → Update for new coordination patterns or archive
+  - [ ] Review 7ep-0010-*.md → Migrate to reference docs or archive as historical
+  - [ ] Review sprint-planning-analysis.md → Integrate with new priority framework
+
+- [ ] **Content Migration Strategy**
+  - [ ] Identify content to migrate to new team assignment docs
+  - [ ] Archive historical content that's no longer relevant
+  - [ ] Update remaining docs to work with new framework
+  - [ ] Remove duplicate or outdated coordination files
+
+- [ ] **Final Documentation Structure**
+  - [ ] Clean docs/development/ with only current framework files
+  - [ ] Ensure all coordination flows through new system
+  - [ ] Validate no critical information lost in migration
+  - [ ] Document what was archived and why
+
 ## Framework Benefits
 
 ### **Individual Clarity**
@@ -416,12 +435,32 @@ None - framework enhances existing coordination without breaking current pattern
 1. **Create team assignment docs** for current team members
 2. **Populate NEXT.md** with current project state
 3. **Enhance active 7EPs** with coordination sections
-4. **Begin using patterns** for new work while existing work continues
+4. **Clean up docs/development/** - Migrate, archive, or update existing files
+5. **Begin using patterns** for new work while existing work continues
+
+### Documentation Cleanup Analysis
+
+#### **Files to Review in docs/development/:**
+- **tomorrow-plan.md** - Daily planning → Migrate to NEXT.md or archive
+- **pr-merge-roadmap.md** - Outdated PR tracking → Update with current coordination or archive
+- **7ep-0010-tui-implementation-guide.md** - Implementation guide → Move to reference docs or archive
+- **7ep-0010-quick-reference.md** - Quick reference → Move to reference docs or archive  
+- **sprint-planning-analysis.md** - Strategic planning → Integrate with NEXT.md or keep as reference
+- **migration-best-practices.md** - Keep (technical reference)
+- **emoji-usage-guidelines.md** - Keep (technical standards)
+
+#### **Migration Strategy:**
+1. **Content audit** - Identify what's still relevant vs historical
+2. **Reference migration** - Move technical guides to docs/reference/
+3. **Priority integration** - Migrate planning content to NEXT.md and team assignment docs
+4. **Historical archiving** - Move outdated content to docs/archive/ 
+5. **Final structure** - docs/development/ contains only active framework files
 
 ### Backward Compatibility
 - Existing 7EP process unchanged
 - Team identity docs remain as role definitions  
 - Current coordination patterns continue while framework adds structure
+- All content preserved through migration process
 
 ## Future Considerations
 
