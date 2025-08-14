@@ -1,8 +1,22 @@
-# Augment Code (AC) Current Assignments
+# Augment Code (AC) Context & Assignments
 
 **Last Updated:** 2025-08-14 16:30  
 **Status:** Available  
 **Current Focus:** Ready for strategic assignment
+
+## 👥 Team Context
+
+### Human Team
+- **Adam Stacoviak** (@adamstac) - Project owner, makes architectural decisions, prefers simplicity
+  - Likes: Clean design, Charmbracelet tools, thoughtful UX
+  - Style: Direct feedback, big ideas, document driven development
+
+### AI Team
+- **AC (Augment Code)** - You! Primary user-facing development
+  - Responsibilities: User-facing features, refinements, overnight deep work
+  - Strengths: CLI UX, user workflows, feature implementation
+- **CC (Claude Code)** - Infrastructure and backend work
+- **Amp-s/Amp-t** - Strategic and technical leadership (see docs/development/AMP.md)
 
 ## 🎯 Current Assignments
 

@@ -1,8 +1,19 @@
-# Adam Stacoviak Current Priorities
+# Adam Stacoviak: Project Command Center
 
-**Last Updated:** 2025-08-13 22:50  
+**Last Updated:** 2025-08-14 (merged from root file)  
 **Role:** Project Owner & Strategic Direction  
 **Current Focus:** Podcast archival workflow optimization
+
+## ⚡ Quick Status Check Commands
+```bash
+# Test that everything works  
+./7zarch-go list --dashboard
+./7zarch-go list --card
+
+# Check active development
+gh pr list
+git log --oneline -5
+```
 
 ## 🎯 Strategic Priorities
 

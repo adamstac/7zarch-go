@@ -1,8 +1,24 @@
-# Claude Code (CC) Context & Bootup Guide
+# Claude Code (CC) Context Guide
 
-**Purpose**: Quick context loading for Claude Code sessions on the 7zarch-go project.
-**Maintain**: Update this file at session end with important context changes.
-**Location**: `/CLAUDE.md` (root of project)
+## 📍 Essential References for Claude Code
+
+**Technical Competency**: `/AGENT.md`
+- Build/test/lint commands and development workflow
+- Architecture overview and codebase structure
+- Code style conventions and patterns specific to the project
+
+**Role Context & Assignments**: `/docs/development/CLAUDE.md`
+- Current assignments and priorities
+- Team coordination context and communication patterns
+- Role-specific responsibilities and focus areas
+
+**Session Startup**: `/BOOTUP.md`
+- Standardized startup sequence for AI team members
+- Current project state and immediate priorities
+
+---
+
+**Usage**: Consult both AGENT.md (for technical patterns) and docs/development/CLAUDE.md (for coordination context) when starting work.
 
 ## 👥 Who's Who
 

@@ -1,6 +1,6 @@
 # 7EP-0017: Document Driven Development Framework
 
-**Status:** Draft  
+**Status:** Active  
 **Author(s):** Amp (Sourcegraph), Adam Stacoviak  
 **Assignment:** Framework Design  
 **Difficulty:** 3 (moderate - process standardization with systematic coordination)  
@@ -650,6 +650,52 @@ None - framework enhances existing coordination without breaking current pattern
 - **Template standardization** - Standardized templates based on successful patterns
 - **Automation opportunities** - Potential for automated status tracking and updates
 - **Scale preparation** - Framework patterns that work for larger teams
+
+## AI Agent Technical Competency Framework
+
+### **Document Architecture for AI Agents**
+
+The DDD framework integrates a systematic approach to AI agent technical competency and coordination:
+
+**Technical Competency Layer**: `/AGENT.md` (universal for all AI agents)
+- Build/test/lint commands and development workflow
+- Architecture overview and package structure
+- Code style conventions and patterns specific to the project
+- Key technical concepts unique to the codebase
+
+**Role Coordination Layer**: `/docs/development/[ROLE].md` (role-specific)
+- Current assignments and priorities
+- Team coordination context and communication patterns  
+- Role-specific responsibilities and focus areas
+- Cross-team dependencies and blocking relationships
+
+**Operational Procedure Layer**: `/BOOTUP.md` (session startup)
+- Standardized startup sequence for quick context loading
+- References to both technical and role-specific documentation
+- Current project state and team status
+- Immediate priorities and coordination needs
+
+### **Root File Strategy**
+
+**Pointer Files in Root** (for agent accessibility):
+- `/CLAUDE.md` → References both AGENT.md and docs/development/CLAUDE.md
+- `/AMP.md` → References both AGENT.md and docs/development/AMP.md  
+- `/AUGMENT.md` → References both AGENT.md and docs/development/AUGMENT.md
+
+**Single Source of Truth** (eliminates duplication):
+- Technical patterns: AGENT.md only
+- Role coordination: docs/development/[ROLE].md only
+- Root files become simple navigation aids
+
+### **Integration with DDD Framework**
+
+This technical competency layer complements existing DDD components:
+1. **Strategic Planning** (7EPs) - What to build
+2. **Role Definition** (docs/development/) - Who builds it  
+3. **Priority Coordination** (NEXT.md) - Current focus
+4. **Technical Execution** (AGENT.md) - How to build effectively
+
+**Result**: AI agents get both coordination context and technical competency from a clear, non-duplicated document structure that scales with team growth.
 
 ## References
 

@@ -1,8 +1,35 @@
-# Amp Current Assignments
+# AMP: Dual Senior Leadership Roles
 
 **Last Updated:** 2025-08-14 16:30  
 **Status:** Available  
 **Current Focus:** Strategic direction and DDD framework operational validation
+
+## 🎯 Role Overview
+
+| Role | Daily Name | Focus | Expertise | Decision Authority |
+|------|------------|-------|-----------|-------------------|
+| **Amp-Strategic** | **Amp-s** | Product strategy, business impact | Strategic planning, user value, competitive analysis | What to build, strategic priorities |
+| **Amp-Technical** | **Amp-t** | Technical architecture, code quality | Go engineering, system design, code standards | How to build, technical standards |
+
+## 🚀 Quick Activation
+
+### Amp-s (Strategic)
+```
+Switching to Amp-s role for strategic planning.
+
+[Strategic request details]
+
+Amp-s, please provide strategic guidance on [initiative].
+```
+
+### Amp-t (Technical)  
+```
+Switching to Amp-t role for technical review.
+
+[Technical review details]
+
+Amp-t, please provide technical review of [code/architecture].
+```
 
 ## 🎯 Current Assignments
 
