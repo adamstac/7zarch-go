@@ -177,7 +177,12 @@ func (p *Processor) processWithProgress(ctx context.Context, archives []*storage
 	concurrency := p.concurrent
 	p.mu.RUnlock()
 
-	archiveChan := make(chan *storage.Archive, total)
+	// Bounded memory channel buffer - limit to concurrency * 2 to prevent excessive memory usage
+	bufferSize := concurrency * 2
+	if bufferSize > total {
+		bufferSize = total
+	}
+	archiveChan := make(chan *storage.Archive, bufferSize)
 	var wg sync.WaitGroup
 
 	// Start workers

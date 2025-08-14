@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -48,6 +47,7 @@ Examples:
 	// Selection flags
 	cmd.Flags().String("query", "", "Use saved query to select archives")
 	cmd.Flags().Bool("stdin", false, "Read archive UIDs from stdin")
+	cmd.Flags().Bool("all", false, "Process all archives (REQUIRED if no query/stdin specified)")
 
 	// Operation-specific flags
 	cmd.Flags().String("to", "", "Destination path for move operation")
@@ -84,10 +84,26 @@ func runBatch(cmd *cobra.Command, args []string) error {
 	// Get selection method
 	queryName, _ := cmd.Flags().GetString("query")
 	useStdin, _ := cmd.Flags().GetBool("stdin")
+	useAll, _ := cmd.Flags().GetBool("all")
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 
-	if queryName != "" && useStdin {
-		return fmt.Errorf("cannot use both --query and --stdin")
+	// Validate selection method - exactly one must be specified
+	selectionCount := 0
+	if queryName != "" {
+		selectionCount++
+	}
+	if useStdin {
+		selectionCount++
+	}
+	if useAll {
+		selectionCount++
+	}
+
+	if selectionCount == 0 {
+		return fmt.Errorf("must specify exactly one selection method: --query, --stdin, or --all")
+	}
+	if selectionCount > 1 {
+		return fmt.Errorf("cannot combine selection methods: use only one of --query, --stdin, or --all")
 	}
 
 	// Initialize storage
@@ -112,12 +128,15 @@ func runBatch(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to read archives from stdin: %w", err)
 		}
-	} else {
-		// Use all archives (filters will be implemented later)
+	} else if useAll {
+		// Use all archives (explicitly requested with --all flag)
 		archives, err = manager.Registry().List()
 		if err != nil {
 			return fmt.Errorf("failed to list archives: %w", err)
 		}
+	} else {
+		// This should never happen due to validation above
+		return fmt.Errorf("internal error: no valid selection method")
 	}
 
 	if len(archives) == 0 {
@@ -129,7 +148,12 @@ func runBatch(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Selected %d archive(s) for %s operation:\n", len(archives), operation)
 	for i, archive := range archives {
 		if i < 10 { // Show first 10
-			fmt.Printf("  - %s (%s)\n", archive.Name, archive.UID[:12])
+			// Safe UID prefix extraction with bounds checking
+			uidDisplay := archive.UID
+			if len(archive.UID) > 12 {
+				uidDisplay = archive.UID[:12]
+			}
+			fmt.Printf("  - %s (%s)\n", archive.Name, uidDisplay)
 		} else if i == 10 {
 			fmt.Printf("  ... and %d more\n", len(archives)-10)
 			break
@@ -207,7 +231,7 @@ func performMove(cmd *cobra.Command, archives []*storage.Archive, destPath strin
 		}
 	}
 
-	ctx := context.Background()
+	ctx := cmd.Context()
 	err := processor.Move(ctx, archives, destPath, progressCallback)
 	if err != nil {
 		return fmt.Errorf("batch move failed: %w", err)
@@ -248,7 +272,7 @@ func performDelete(cmd *cobra.Command, archives []*storage.Archive, manager *sto
 		}
 	}
 
-	ctx := context.Background()
+	ctx := cmd.Context()
 	err := processor.Delete(ctx, archives, progressCallback)
 	if err != nil {
 		return fmt.Errorf("batch delete failed: %w", err)
