@@ -1,8 +1,18 @@
-# PR Merge Roadmap - Development Coordination
+# Development Coordination Overview
 
-**Status**: Major Foundation Work Complete - Advanced Features Phase Active  
+**Status**: Advanced Features Phase - Document Driven Development Framework Active  
 **Last Updated**: 2025-08-13  
-**Current Focus**: CC implementing 7EP-0007 Enhanced MAS Operations
+**Coordination**: See docs/development/NEXT.md for current priorities and coordination
+
+## 📋 Framework Transition
+
+**New Coordination System:**
+- **Individual priorities:** docs/development/[TEAM].md
+- **Shared coordination:** docs/development/NEXT.md  
+- **Feature specifications:** docs/7eps/ (unchanged)
+- **Team capabilities:** Root-level team docs (AMP.md, CLAUDE.md, etc.)
+
+**This document transitioned to archive status** - use new framework for coordination.
 
 ## 📊 Current State Analysis - FOUNDATION COMPLETE
 
