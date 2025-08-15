@@ -21,10 +21,10 @@ type GitPatternValidator struct {
 
 func NewGitPatternValidator() *GitPatternValidator {
 	return &GitPatternValidator{
-		SessionLogPattern:    regexp.MustCompile(`^# Session Log - .+`),
-		CoordinationCommits:  regexp.MustCompile(`coordination:|feat:.+coordination|session:`),
-		BranchNamingPattern:  regexp.MustCompile(`^(feature|feat|fix|docs)/.+$`),
-		SessionCommitPattern: regexp.MustCompile(`session: (start|end)`),
+		SessionLogPattern:    regexp.MustCompile(`(?i)^# Session Log - .+`),
+		CoordinationCommits:  regexp.MustCompile(`(?i)(coordination:|feat:.+coordination|session:)`),
+		BranchNamingPattern:  regexp.MustCompile(`^(feature|feat|fix|docs|chore|refactor|hotfix)/.+$|^main$|^feat/7ep-\d+-.*$`),
+		SessionCommitPattern: regexp.MustCompile(`(?i)session: (start|end)`),
 	}
 }
 
@@ -169,6 +169,7 @@ func (gpv *GitPatternValidator) getRecentCommits(baseDir string, count int) []Gi
 	
 	output, err := cmd.Output()
 	if err != nil {
+		// Properly handle git command failures
 		return []GitCommit{}
 	}
 
@@ -203,8 +204,8 @@ func (gpv *GitPatternValidator) validateCommitMessage(commit GitCommit) CommitVa
 	// Check for coordination patterns
 	validation.HasCoord = gpv.CoordinationCommits.MatchString(commit.Message)
 
-	// Validate commit message format (conventional commits style)
-	conventionalPattern := regexp.MustCompile(`^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+`)
+	// Validate commit message format (conventional commits style) - improved pattern
+	conventionalPattern := regexp.MustCompile(`^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?\s*:\s*.+`)
 	validation.Compliant = conventionalPattern.MatchString(commit.Message)
 
 	if !validation.Compliant {

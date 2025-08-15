@@ -150,8 +150,14 @@ test_work_simulation() {
     # Simulate role file update (typical work pattern)
     echo -e "${YELLOW}Testing role file work updates...${NC}"
     
-    # Update role file to simulate work assignment
-    sed -i.bak 's/\[Assignment Name\].*\[STATUS\].*/Test Assignment - ACTIVE (lifecycle integration testing)/' "docs/development/roles/${TEST_AGENT}.md"
+    # Update role file to simulate work assignment (portable sed)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS sed
+        sed -i '' 's/\[Assignment Name\].*\[STATUS\].*/Test Assignment - ACTIVE (lifecycle integration testing)/' "docs/development/roles/${TEST_AGENT}.md"
+    else
+        # GNU sed (Linux)
+        sed -i 's/\[Assignment Name\].*\[STATUS\].*/Test Assignment - ACTIVE (lifecycle integration testing)/' "docs/development/roles/${TEST_AGENT}.md"
+    fi
     
     # Test that role file update is valid
     if grep -q "Test Assignment - ACTIVE" "docs/development/roles/${TEST_AGENT}.md"; then
