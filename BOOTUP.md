@@ -32,7 +32,7 @@ gh pr list && git log --oneline -10
 ### 3. **CHECK OPERATIONAL PRIORITIES** (DDD Framework)
 ```bash
 # Personal assignments (replace [ROLE] with: CLAUDE, AMP, AUGMENT, ADAM)
-cat docs/development/[ROLE].md | head -20
+cat docs/development/roles/[ROLE].md | head -20
 
 # Shared team priorities and blockers  
 cat docs/development/NEXT.md | head -30
@@ -90,6 +90,7 @@ git commit -m "session: start new session $(date)"
 **Reference Information (As Needed)**:
 4. `/AGENT.md` - Technical build/test patterns and code style
 5. `/docs/development/TEAM-CONTEXT.md` - Project structure and team overview
+6. `/docs/development/actions/` - Standardized workflow processes (COMMIT.md, MERGE.md, NEW-FEATURE.md)
 6. `docs/7eps/index.md` - Long-term feature planning
 
 ## 🎯 Current Project State
@@ -115,7 +116,7 @@ git commit -m "session: start new session $(date)"
 ### For Claude Code (CC)
 ```bash
 # Check CC-specific assignments
-cat docs/development/CLAUDE.md
+cat docs/development/roles/CLAUDE.md
 
 # Focus areas: Backend features, infrastructure, technical implementation
 ```
@@ -123,7 +124,7 @@ cat docs/development/CLAUDE.md
 ### For Augment Code (AC)  
 ```bash
 # Check AC-specific assignments
-cat docs/development/AUGMENT.md
+cat docs/development/roles/AUGMENT.md
 
 # Focus areas: User experience, frontend features, quality assurance
 ```
@@ -131,7 +132,7 @@ cat docs/development/AUGMENT.md
 ### For Amp (Strategic/Technical Leadership)
 ```bash  
 # Check Amp assignments
-cat docs/development/AMP.md
+cat docs/development/roles/AMP.md
 
 # Focus areas: Strategic planning, architectural oversight, cross-team coordination
 ```

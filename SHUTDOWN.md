@@ -23,7 +23,7 @@ Execute these steps in order when ending a session:
 ### 1. Update Role Documents
 ```bash
 # Update your current status and progress
-vim docs/development/CLAUDE.md
+vim docs/development/roles/CLAUDE.md
 
 # Key updates needed:
 # - Mark completed tasks as ✅ Complete

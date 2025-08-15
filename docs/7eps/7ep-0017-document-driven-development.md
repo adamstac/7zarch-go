@@ -68,7 +68,7 @@ Establish a systematic Document Driven Development (DDD) framework that separate
 ### Primary Use Case: Clear Priority Coordination
 ```bash
 # Team member wants to know what to work on
-1. Check personal assignment doc: docs/development/CLAUDE.md
+1. Check personal assignment doc: docs/development/roles/CLAUDE.md
 2. Check shared priorities: docs/development/NEXT.md  
 3. Check active 7EP coordination: docs/7eps/7ep-XXXX.md
 
@@ -93,7 +93,7 @@ Establish a systematic Document Driven Development (DDD) framework that separate
 
 2.5. **CHECK OPERATIONAL PRIORITIES** (NEW)
      # Personal current assignments and coordination
-     cat docs/development/CLAUDE.md | head -20
+     cat docs/development/roles/CLAUDE.md | head -20
      
      # Shared team priorities and blockers  
      cat docs/development/NEXT.md | head -30
@@ -116,7 +116,7 @@ Establish a systematic Document Driven Development (DDD) framework that separate
    - Understand team member capabilities and authorities
 
 2. **Current Work Context**
-   - Read `docs/development/CLAUDE.md` (current assignments)  
+   - Read `docs/development/roles/CLAUDE.md` (current assignments)  
    - Read `docs/development/NEXT.md` (shared coordination hub)
    - Review active 7EPs for coordination requirements
 
@@ -130,13 +130,14 @@ Establish a systematic Document Driven Development (DDD) framework that separate
 ```markdown
 ## Operational Priority (Daily)
 1. docs/development/NEXT.md       # What's happening now across all teams
-2. docs/development/CLAUDE.md     # My current work and next priorities  
+2. docs/development/roles/CLAUDE.md     # My current work and next priorities  
 3. Active 7EPs                    # Sprint-level coordination context
 
 ## Reference Information (As Needed)
 4. docs/7eps/index.md            # Long-term feature planning
 5. /CLAUDE.md                    # Role definition and context
 6. docs/development/README.md     # Framework usage patterns
+7. docs/development/actions/       # Standardized workflow processes (COMMIT.md, MERGE.md, NEW-FEATURE.md)
 ```
 
 ### **Integration Success Metrics**
@@ -164,7 +165,7 @@ docs/development/NEXT.md:
 #### Individual Task Management  
 ```markdown
 # Example: CC current work clarity
-docs/development/CLAUDE.md:
+docs/development/roles/CLAUDE.md:
 ## Current Assignments (Updated: 2025-08-13)
 - **7EP-0007 Phase 3** - ACTIVE (implementing batch operations, ETA: 3-4 days)
 - **Performance review** - BLOCKED (waiting for Amp architectural feedback)
@@ -201,11 +202,12 @@ docs/development/CLAUDE.md:
 
 #### **Layer 3: Current Work** (docs/development/)
 ```
-/docs/development/AMP.md      # Amp current assignments and priorities
-/docs/development/CLAUDE.md   # CC current work and next tasks
-/docs/development/AUGMENT.md  # AC current assignments and coordination
-/docs/development/ADAM.md     # Project owner current focus and decisions
+/docs/development/roles/AMP.md      # Amp current assignments and priorities
+/docs/development/roles/CLAUDE.md   # CC current work and next tasks
+/docs/development/roles/AUGMENT.md  # AC current assignments and coordination
+/docs/development/roles/ADAM.md     # Project owner current focus and decisions
 /docs/development/NEXT.md     # Shared coordination hub for everyone
+/docs/development/actions/    # Workflow processes (COMMIT.md, MERGE.md, NEW-FEATURE.md)
 ```
 
 **Purpose:** Current task tracking, priority coordination, immediate planning
@@ -226,10 +228,11 @@ docs/development/CLAUDE.md:
 ```markdown
 ## Primary Coordination Flow
 docs/development/NEXT.md              # Team coordination hub
-├── docs/development/CLAUDE.md        # CC current assignments (feeds into NEXT.md)
-├── docs/development/AUGMENT.md       # AC current assignments (feeds into NEXT.md)  
-├── docs/development/AMP.md           # Amp current assignments (feeds into NEXT.md)
-└── docs/development/ADAM.md          # Adam priorities (drives NEXT.md priorities)
+├── docs/development/roles/CLAUDE.md        # CC current assignments (feeds into NEXT.md)
+├── docs/development/roles/AUGMENT.md       # AC current assignments (feeds into NEXT.md)  
+├── docs/development/roles/AMP.md           # Amp current assignments (feeds into NEXT.md)
+├── docs/development/roles/ADAM.md          # Adam priorities (drives NEXT.md priorities)
+└── docs/development/actions/               # Standardized workflow processes
 
 ## Supporting Reference
 docs/7eps/index.md                    # Long-term planning reference
@@ -249,7 +252,7 @@ docs/7eps/7ep-XXXX.md                 # Active sprint coordination (linked from 
 - **Process documentation** - Framework standards and patterns
 
 #### **Strategic Documents** (Updated Based on Decisions)
-- **docs/development/ADAM.md** - Adam's current strategic priorities and decisions needed
+- **docs/development/roles/ADAM.md** - Adam's current strategic priorities and decisions needed
 - **Active 7EP coordination sections** - Sprint-level strategic direction
 
 ### **Update Responsibility Matrix**
@@ -403,10 +406,13 @@ docs/7eps/7ep-XXXX.md                 # Active sprint coordination (linked from 
 
 ### Phase 2: Template Creation & Examples  
 - [ ] **Team Assignment Templates**
-  - [ ] Create docs/development/AMP.md template and example
-  - [ ] Create docs/development/CLAUDE.md template with current work
-  - [ ] Create docs/development/AUGMENT.md template
-  - [ ] Create docs/development/ADAM.md template for project owner priorities
+  - [ ] Create docs/development/roles/AMP.md template and example
+  - [ ] Create docs/development/roles/CLAUDE.md template with current work
+  - [ ] Create docs/development/roles/AUGMENT.md template
+  - [ ] Create docs/development/roles/ADAM.md template for project owner priorities
+  - [ ] Create docs/development/actions/COMMIT.md workflow
+  - [ ] Create docs/development/actions/MERGE.md workflow
+  - [ ] Create docs/development/actions/NEW-FEATURE.md workflow
 
 - [ ] **NEXT.md Coordination Hub**
   - [ ] Design shared priority coordination structure
@@ -512,7 +518,7 @@ None - framework enhances existing documentation, doesn't replace it.
 
 ## Implementation Examples
 
-### Example: docs/development/AMP.md
+### Example: docs/development/roles/AMP.md
 ```markdown
 # Amp Current Assignments
 
@@ -678,9 +684,9 @@ The DDD framework integrates a systematic approach to AI agent technical compete
 ### **Root File Strategy**
 
 **Pointer Files in Root** (for agent accessibility):
-- `/CLAUDE.md` → References both AGENT.md and docs/development/CLAUDE.md
-- `/AMP.md` → References both AGENT.md and docs/development/AMP.md  
-- `/AUGMENT.md` → References both AGENT.md and docs/development/AUGMENT.md
+- `/CLAUDE.md` → References both AGENT.md and docs/development/roles/CLAUDE.md
+- `/AMP.md` → References both AGENT.md and docs/development/roles/AMP.md  
+- `/AUGMENT.md` → References both AGENT.md and docs/development/roles/AUGMENT.md
 
 **Single Source of Truth** (eliminates duplication):
 - Technical patterns: AGENT.md only

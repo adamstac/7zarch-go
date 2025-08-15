@@ -15,7 +15,7 @@ Review BOOTUP.md for vision and operational context.
 - Architecture overview and codebase structure
 - Code style conventions and patterns specific to the project
 
-**Role Context & Assignments**: `/docs/development/CLAUDE.md`
+**Role Context & Assignments**: `/docs/development/roles/CLAUDE.md`
 - Current assignments and priorities
 - Team coordination context and communication patterns
 - Role-specific responsibilities and focus areas
@@ -26,13 +26,13 @@ Review BOOTUP.md for vision and operational context.
 
 ---
 
-**Usage**: Start with `/BOOTUP.md`, then consult `/AGENT.md` (technical) and `/docs/development/CLAUDE.md` (coordination).
+**Usage**: Start with `/BOOTUP.md`, then consult `/AGENT.md` (technical) and `/docs/development/roles/CLAUDE.md` (coordination).
 
 ## 📍 Quick Reference
 
 **Team & Project Context**: `/docs/development/TEAM-CONTEXT.md`  
 **Technical Patterns**: `/AGENT.md`  
-**Your Role & Assignments**: `/docs/development/CLAUDE.md`  
+**Your Role & Assignments**: `/docs/development/roles/CLAUDE.md`  
 **Session Startup**: `/BOOTUP.md`
 
 ### Important Files
@@ -67,7 +67,7 @@ When starting a new session:
 2.5. **CHECK OPERATIONAL PRIORITIES** (DDD Framework)
    ```bash
    # Personal current assignments and coordination
-   cat docs/development/CLAUDE.md | head -20
+   cat docs/development/roles/CLAUDE.md | head -20
    
    # Shared team priorities and blockers  
    cat docs/development/NEXT.md | head -30
@@ -78,7 +78,7 @@ When starting a new session:
 
 3. **Understand today's priorities**
    - Check `/docs/development/NEXT.md` for shared team coordination
-   - Review `/docs/development/CLAUDE.md` for personal assignments
+   - Review `/docs/development/roles/CLAUDE.md` for personal assignments
    - Look for any session summaries from previous work
 
 4. **Test the build**
