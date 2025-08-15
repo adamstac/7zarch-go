@@ -17,7 +17,7 @@
       <description><![CDATA[{{ .Summary }}]]></description>
       <link>{{ joinURL $.Config.BaseURL .URL }}</link>
       <guid isPermaLink="true">{{ joinURL $.Config.BaseURL .URL }}</guid>
-      <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 MST" }}</pubDate>
+      <pubDate>{{ .Date.UTC.Format "Mon, 02 Jan 2006 15:04:05 GMT" }}</pubDate>
       <dc:creator>{{ .Author }}</dc:creator>
     </item>
     {{ end }}
