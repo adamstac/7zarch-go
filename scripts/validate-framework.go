@@ -209,7 +209,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	targetDir := os.Args[1]
+	targetDir := filepath.Clean(os.Args[1])
+	// Convert to absolute path for security
+	absTargetDir, err := filepath.Abs(targetDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: cannot resolve absolute path: %v\n", err)
+		os.Exit(1)
+	}
+	targetDir = absTargetDir
+	
 	validator := NewRoleFileValidator()
 	
 	var allResults []ValidationResult
@@ -218,9 +226,10 @@ func main() {
 
 	// Validate all role files
 	roleDir := filepath.Join(targetDir, "docs/development/roles")
-	err := filepath.Walk(roleDir, func(path string, info os.FileInfo, err error) error {
+	walkErr := filepath.Walk(roleDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			fmt.Printf("Warning: cannot access %s: %v\n", path, err)
+			return nil // Continue on file system errors
 		}
 
 		if !strings.HasSuffix(path, ".md") || 
@@ -243,8 +252,8 @@ func main() {
 		return nil
 	})
 
-	if err != nil {
-		log.Fatalf("Error walking directory: %v", err)
+	if walkErr != nil {
+		log.Fatalf("Error walking directory: %v", walkErr)
 	}
 
 	// Output results

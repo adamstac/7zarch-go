@@ -277,7 +277,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	baseDir := os.Args[1]
+	baseDir := filepath.Clean(os.Args[1])
+	// Convert to absolute path for security
+	absBaseDir, err := filepath.Abs(baseDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: cannot resolve absolute path: %v\n", err)
+		os.Exit(1)
+	}
+	baseDir = absBaseDir
+	
 	checker := NewConsistencyChecker()
 
 	fmt.Println("🔍 DDD Framework Consistency Check")
