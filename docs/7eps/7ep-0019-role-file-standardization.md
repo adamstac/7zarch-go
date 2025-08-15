@@ -185,12 +185,12 @@ Establish comprehensive agent role lifecycle standards that define how AI team m
 ```markdown
 ## 👥 Team Context
 ### Human Team
-- **Adam Stacoviak** (@adamstac) - Project owner, architectural decisions
-  - Likes: Clean design, Charmbracelet tools, thoughtful UX
-  - Style: Direct feedback, big ideas, document driven development
+- **[Project Owner]** - Architectural decisions and strategic direction
+  - Preferences: Clean design, Charmbracelet tools, thoughtful UX
+  - Communication style: Direct feedback, big ideas, document driven development
 
 ### AI Team  
-- **AC (Augment Code)** - You! Primary user-facing development
+- **AC (Augment Code)** - Primary user-facing development
 - **CC (Claude Code)** - Infrastructure and backend work
 - **Amp-s/Amp-t** - Strategic and technical leadership
 ```

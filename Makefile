@@ -91,6 +91,44 @@ test-coverage-html: test-coverage ## Generate HTML coverage report
 	go tool cover -html=$(COVERAGE_PROFILE) -o $(COVERAGE_HTML)
 	@echo "Coverage report: $(COVERAGE_HTML)"
 
+##@ DDD Framework Validation (7EP-0020)
+
+validate-framework: ## Run complete DDD framework validation suite
+	@echo "🔍 Running DDD Framework Validation Suite..."
+	@echo "============================================="
+	@cd scripts && go build validate-framework.go && ./validate-framework ..
+	@echo ""
+	@cd scripts && go build validate-consistency.go && ./validate-consistency ..
+	@echo ""
+	@cd scripts && go build validate-git-patterns.go && ./validate-git-patterns ..
+	@echo ""
+	@echo "📊 DDD Framework validation complete"
+	@echo ""
+	@echo "📊 Framework Health Summary:"
+	@./scripts/framework-health.sh | tail -5
+
+validate-framework-roles: ## Validate role files only
+	@echo "🔍 Validating role files only..."
+	@cd scripts && go build validate-framework.go && ./validate-framework ..
+
+validate-framework-consistency: ## Validate cross-document consistency
+	@echo "🔍 Validating cross-document consistency..."
+	@cd scripts && go build validate-consistency.go && ./validate-consistency ..
+
+validate-framework-git: ## Validate git patterns
+	@echo "🔍 Validating git patterns..."
+	@cd scripts && go build validate-git-patterns.go && ./validate-git-patterns ..
+
+validate-framework-integration: ## Test complete framework integration
+	@echo "🔍 Testing framework integration..."
+	@./scripts/test-agent-lifecycle.sh
+	@echo ""
+	@./scripts/test-workflows.sh
+
+framework-health: ## Generate DDD framework health dashboard
+	@echo "📊 Generating framework health dashboard..."
+	@./scripts/framework-health.sh
+
 ##@ Benchmarking Targets  
 
 bench: ## Run all benchmarks
