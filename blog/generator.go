@@ -50,6 +50,7 @@ type BlogConfig struct {
 	Description string
 	BaseURL     string
 	Author      string
+	GitHubURL   string
 }
 
 func main() {
@@ -60,6 +61,7 @@ func main() {
 		Description: "7-Zip with a brain deserves a blog with soul",
 		BaseURL:     "https://adamstac.github.io/7zarch-go",
 		Author:      "7zarch Team",
+		GitHubURL:   "https://github.com/adamstac/7zarch-go",
 	}
 
 	fmt.Printf("🚀 Building blog from %s/ to %s/\n", *sourceDir, *outputDir)
@@ -230,6 +232,17 @@ func processMarkdown(content []byte) template.HTML {
 	return template.HTML(buf.String())
 }
 
+// joinURL safely joins base URL and path
+func joinURL(baseURL, path string) string {
+	if strings.HasSuffix(baseURL, "/") && strings.HasPrefix(path, "/") {
+		return baseURL + path[1:]
+	}
+	if !strings.HasSuffix(baseURL, "/") && !strings.HasPrefix(path, "/") {
+		return baseURL + "/" + path
+	}
+	return baseURL + path
+}
+
 // estimateReadingTime calculates reading time based on word count
 func estimateReadingTime(content string) int {
 	words := strings.Fields(content)
@@ -296,7 +309,12 @@ func generateIndexPage(posts []Post, config BlogConfig) {
 
 // generateRSSFeed creates an RSS feed for the blog
 func generateRSSFeed(posts []Post, config BlogConfig) {
-	tmpl, err := template.ParseFiles("templates/rss.xml")
+	// Create template with custom functions
+	tmpl := template.New("rss.xml").Funcs(template.FuncMap{
+		"joinURL": joinURL,
+	})
+	
+	tmpl, err := tmpl.ParseFiles("templates/rss.xml")
 	if err != nil {
 		panic(fmt.Sprintf("Failed to parse RSS template: %v", err))
 	}

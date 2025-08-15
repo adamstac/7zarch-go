@@ -13,7 +13,7 @@
     <nav>
       <a href="/" class="logo">7zarch</a>
       <a href="/">blog</a>
-      <a href="https://github.com/adamstac/7zarch-go">github</a>
+      <a href="{{ .Config.GitHubURL }}">github</a>
     </nav>
   </header>
   
@@ -48,7 +48,7 @@
   
   <footer>
     <p>{{ .Config.Description }}</p>
-    <p><a href="/feed.xml">RSS</a> · <a href="https://github.com/adamstac/7zarch-go">Source</a></p>
+    <p><a href="/feed.xml">RSS</a> · <a href="{{ .Config.GitHubURL }}">Source</a></p>
   </footer>
 </body>
 </html>
