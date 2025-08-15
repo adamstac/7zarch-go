@@ -158,6 +158,7 @@ Establish comprehensive agent role lifecycle standards that define how AI team m
 - **COMMIT.md**: Add role context updates to commit patterns
 - **MERGE.md**: Include coordination visibility in merge workflows
 - **NEW-FEATURE.md**: Define role-specific feature development approaches
+- **TEAM-UPDATE.md**: Standardized team coordination update patterns (NEW)
 - Create cross-workflow coordination patterns
 
 #### 1.3 Enhanced Role Template & Documentation
@@ -308,7 +309,8 @@ Establish comprehensive agent role lifecycle standards that define how AI team m
 ### Phase 1 Complete - Agent Lifecycle Framework
 - [ ] BOOTUP.md enhanced with role file integration and context loading patterns
 - [ ] SHUTDOWN.md enhanced with role state preservation and coordination update protocols
-- [ ] All workflow actions (COMMIT.md, MERGE.md, NEW-FEATURE.md) include role integration patterns
+- [ ] All workflow actions (COMMIT.md, MERGE.md, NEW-FEATURE.md, TEAM-UPDATE.md) include role integration patterns
+- [ ] TEAM-UPDATE.md created for standardized team coordination workflows
 - [ ] ROLE-TEMPLATE.md includes lifecycle integration sections and operational patterns
 - [ ] README.md documents complete agent lifecycle guidance and cross-agent coordination protocols
 
@@ -336,6 +338,7 @@ Establish comprehensive agent role lifecycle standards that define how AI team m
 ### Session 1: Agent Lifecycle Framework (2-3 hours)
 - Enhance BOOTUP.md and SHUTDOWN.md with role integration
 - Update all workflow actions with role coordination patterns
+- Create TEAM-UPDATE.md for standardized coordination workflows
 - Create lifecycle-integrated ROLE-TEMPLATE.md
 - Document complete agent operational framework
 
