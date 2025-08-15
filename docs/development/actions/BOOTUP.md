@@ -38,7 +38,7 @@ cat docs/development/roles/[ROLE].md | head -20
 cat docs/development/NEXT.md | head -30
 
 # Active 7EP coordination context
-grep -l "Status.*ACTIVE\|In Progress" docs/7eps/*.md | xargs ls -la
+grep -l "Status.*ACTIVE\|In Progress" docs/7eps/*.md | xargs --no-run-if-empty ls -la
 ```
 
 ### 3.5. **ROLE CONTEXT INTEGRATION** (Agent Lifecycle)

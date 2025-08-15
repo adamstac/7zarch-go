@@ -85,11 +85,18 @@ fi
 
 # Calculate session timing
 SESSION_END=$(date "+%Y-%m-%d %H:%M:%S")
-SESSION_START_TIME=$(grep "Start Time:" "$SESSION_LOG" | sed 's/.*Start Time:** //' || echo "Unknown")
+SESSION_START_TIME=$(grep "Start Time:" "$SESSION_LOG" | sed -E 's/.*\*\*Start Time:\*\* //' || echo "Unknown")
 
 # Calculate duration if we can parse start time  
 if [[ "$SESSION_START_TIME" != "Unknown" ]]; then
-    START_EPOCH=$(date -j -f "%Y-%m-%d %H:%M:%S" "$SESSION_START_TIME" +%s 2>/dev/null || date +%s)
+    # Portable date parsing (works on Linux and macOS)
+    if date --version >/dev/null 2>&1; then
+        # GNU date (Linux)
+        START_EPOCH=$(date -d "$SESSION_START_TIME" +%s 2>/dev/null || date +%s)
+    else
+        # BSD date (macOS)
+        START_EPOCH=$(date -j -f "%Y-%m-%d %H:%M:%S" "$SESSION_START_TIME" +%s 2>/dev/null || date +%s)
+    fi
     END_EPOCH=$(date +%s)
     SESSION_DURATION=$((END_EPOCH - START_EPOCH))
     SESSION_HOURS=$((SESSION_DURATION / 3600))
@@ -135,11 +142,11 @@ $(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "- No changes detected")
 
 ### 🔄 Role State Updates
 $(echo "Agent Role File Updates:")
-$(grep -A 3 "Active Work\|Current Assignments" docs/development/roles/[AGENT].md | head -5)
+$(grep -A 3 "Active Work\|Current Assignments" docs/development/roles/\${AGENT:-AMP}.md | head -5 2>/dev/null || echo "- No role updates")
 
 ### 🤝 Team Coordination Changes
 $(echo "NEXT.md Coordination Updates:")
-$(git diff HEAD~1 HEAD docs/development/NEXT.md | grep "^+\|^-" | head -5 || echo "- No coordination changes")
+$(git diff HEAD~1 HEAD -- docs/development/NEXT.md 2>/dev/null | grep "^+\|^-" | head -5 || echo "- No coordination changes")
 
 ### 📊 Session Stats
 - **Commits This Session:** ${COMMIT_COUNT}

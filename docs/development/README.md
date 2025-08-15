@@ -23,20 +23,44 @@
 
 ## 🎯 **How to Use This System**
 
-### For Team Members
-1. **Check your assignment doc** - docs/development/[YOUR-NAME].md  
-2. **Check shared priorities** - docs/development/NEXT.md
-3. **Update your status** when work progresses or blocks
+### Agent Lifecycle Framework (7EP-0019)
+Complete operational framework for AI team members from session startup to shutdown:
 
-### For Project Owner
-1. **Review NEXT.md** for overall project coordination
-2. **Update ADAM.md** with strategic priorities and decisions
-3. **Monitor team assignment docs** for progress and blockers
+1. **Session Startup** - Use [`actions/BOOTUP.md`](actions/BOOTUP.md)
+   - Git sync and build verification
+   - Load role context and assignments
+   - Validate coordination needs
+   - Ready state confirmation
+
+2. **Daily Operations** - Role-driven work execution
+   - Follow assignments in your role file (`roles/[AGENT].md`)
+   - Use workflow actions (`COMMIT.md`, `MERGE.md`, `NEW-FEATURE.md`)
+   - Update coordination via [`actions/TEAM-UPDATE.md`](actions/TEAM-UPDATE.md)
+   - Maintain real-time status in role file and `NEXT.md`
+
+3. **Session Shutdown** - Use [`actions/SHUTDOWN.md`](actions/SHUTDOWN.md)
+   - Commit work with clear status
+   - Update role file with session completion
+   - Document next session priorities
+   - Preserve coordination context
+
+### For Team Members
+1. **Start each session** with `actions/BOOTUP.md` sequence
+2. **Check your role file** - `docs/development/roles/[AGENT].md` for current assignments
+3. **Check shared priorities** - `docs/development/NEXT.md` for team coordination
+4. **Update coordination** using `actions/TEAM-UPDATE.md` when status changes
+5. **End each session** with `actions/SHUTDOWN.md` sequence
+
+### For Project Owner (Adam)
+1. **Strategic decisions** - Use [`STRATEGIC-DECISION-FRAMEWORK.md`](STRATEGIC-DECISION-FRAMEWORK.md)
+2. **Team assignment** - Update agent role files with new priorities  
+3. **Coordination oversight** - Monitor `NEXT.md` for team-wide blockers and progress
 
 ### For Cross-Team Coordination
-1. **Use active 7EPs** for sprint-level coordination
-2. **Update NEXT.md** when priorities shift or blockers arise
-3. **Reference team assignment docs** for current capacity and focus
+1. **Role integration** - All agents follow standardized lifecycle patterns
+2. **Real-time status** - Role files and `NEXT.md` maintain current coordination state
+3. **Systematic handoffs** - BOOTUP/SHUTDOWN preserve context across sessions
+4. **Quality validation** - Use `scripts/validate-roles.sh` to ensure compliance
 
 ## 📂 **Archive Location**
 
@@ -45,6 +69,10 @@ Historical development documentation moved to:
 
 ## 🔄 **Framework Status**
 
-**Implementation:** 7EP-0017 Document Driven Development Framework  
-**Status:** Active testing and validation phase  
-**Next:** Content migration completion and final cleanup
+**Implementation:** 
+- 7EP-0017 Document Driven Development Framework ✅ Complete
+- 7EP-0019 Agent Lifecycle & Coordination Standardization ✅ Complete
+
+**Status:** Operational - Full agent lifecycle framework active  
+**Quality:** All role files compliant, validation linter operational  
+**Next:** Team adoption validation and framework refinement based on usage

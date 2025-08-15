@@ -42,7 +42,7 @@ git push origin main
 ```
 
 **Response**: "✅ Pushed to main: [X commits pushed]"  
-**Role Coordination**: Use TEAM-UPDATE.md if work completion affects other agents
+**Role Coordination**: Update role files and NEXT.md if work completion affects other agents (use TEAM-UPDATE.md)
 
 ---
 

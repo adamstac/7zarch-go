@@ -12,18 +12,35 @@
 ```
 "Commit those changes"
          |
-    [Check Status]
+    [Check Branch Strategy]
          |
-    Is it clear?
+    Need branch?
     /         \
    YES         NO
     |           |
-[Scenario A]  [More Complex]
-              /     |     \
-           Mixed  Messy  Unclear
-             |      |       |
-        [Scen B] [Scen C] [Scen D]
+[Create Branch] [Work on Main]
+    |           |
+[Check Status] [Check Status]
+         |           |
+    Is it clear?   Is it clear?
+    /         \    /         \
+   YES         NO YES         NO
+    |           |   |           |
+[Scenario A]  [Complex] [Scenario A] [Complex]
 ```
+
+### Branch Decision Criteria
+**Use Branch When:**
+- Multi-file feature work (like 7EP implementation)
+- Experimental changes that might need revision
+- Work that affects core systems or multiple components
+- Changes requiring review before merge
+
+**Work on Main When:**
+- Simple documentation updates
+- Single-file bug fixes
+- Role file status updates
+- Session logs and coordination updates
 
 ## 📋 Scenario Workflows
 
@@ -44,7 +61,7 @@ git commit -m "feat/fix/docs: [clear description]
 
 **Response**: "✅ Committed locally: [brief summary]"  
 **Next**: Use MERGE.md workflow if you want to push to remote  
-**Role Coordination**: Update role file status if significant milestone completed
+**Role Coordination**: Update role file and NEXT.md if significant milestone completed (use TEAM-UPDATE.md)
 
 ---
 

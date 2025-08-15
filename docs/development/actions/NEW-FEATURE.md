@@ -57,8 +57,12 @@ Agent: CC (Claude Code)
 Branch: feat/7ep-${7EP_NUM}-${7EP_DESC}
 Status: Beginning implementation"
 
-# Update coordination
+# Update coordination (use TEAM-UPDATE.md for role coordination)
 echo "- **CC**: Started 7EP-${7EP_NUM} implementation on $(date +%Y-%m-%d)" >> docs/development/NEXT.md
+
+# Update role file with new assignment
+echo "### 🎯 Role State Update" >> docs/development/roles/CLAUDE.md  
+echo "- **7EP-${7EP_NUM}** - ACTIVE (feature implementation started $(date +%Y-%m-%d))" >> docs/development/roles/CLAUDE.md
 ```
 
 **Response**: "🎯 Started 7EP-${7EP_NUM} on branch feat/7ep-${7EP_NUM}-${7EP_DESC}"
