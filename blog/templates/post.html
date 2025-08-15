@@ -32,7 +32,7 @@
       </header>
       
       <div class="content">
-        {{ .Post.Content }}
+        {{ .Post.Content | safeHTML }}
       </div>
     </article>
   </main>

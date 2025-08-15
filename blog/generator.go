@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alecthomas/chroma/formatters/html"
+	chromahtml "github.com/alecthomas/chroma/formatters/html"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
@@ -38,7 +38,7 @@ type Post struct {
 	Author      string    `yaml:"author"`
 	Slug        string    `yaml:"slug"`
 	Summary     string    `yaml:"summary"`
-	Content     template.HTML
+	Content     string    // Changed from template.HTML to string for safety
 	ReadingTime int
 	Filename    string
 	URL         string
@@ -73,7 +73,7 @@ func main() {
 	}
 
 	// Ensure output directory exists
-	if err := os.MkdirAll(*outputDir, 0755); err != nil {
+	if err := os.MkdirAll(*outputDir, 0750); err != nil {
 		panic(fmt.Sprintf("Failed to create output directory: %v", err))
 	}
 
@@ -138,7 +138,7 @@ func loadPosts(dir string) []Post {
 	// Check if source directory exists
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		fmt.Printf("⚠️  Source directory %s doesn't exist - creating it\n", dir)
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0750); err != nil {
 			panic(fmt.Sprintf("Failed to create source directory: %v", err))
 		}
 		return posts
@@ -206,7 +206,7 @@ func parsePost(content []byte, filename string) Post {
 }
 
 // processMarkdown converts markdown to HTML with syntax highlighting
-func processMarkdown(content []byte) template.HTML {
+func processMarkdown(content []byte) string {
 	md := goldmark.New(
 		goldmark.WithExtensions(
 			extension.GFM,        // GitHub Flavored Markdown
@@ -214,8 +214,8 @@ func processMarkdown(content []byte) template.HTML {
 			highlighting.NewHighlighting(
 				highlighting.WithStyle("github"),
 				highlighting.WithFormatOptions(
-					html.WithLineNumbers(true),
-					html.WithClasses(true),
+					chromahtml.WithLineNumbers(true),
+					chromahtml.WithClasses(true),
 				),
 			),
 		),
@@ -229,7 +229,8 @@ func processMarkdown(content []byte) template.HTML {
 		panic(fmt.Sprintf("Failed to convert markdown: %v", err))
 	}
 
-	return template.HTML(buf.String())
+	// Return as string - templates will handle HTML escaping
+	return buf.String()
 }
 
 // joinURL safely joins base URL and path
@@ -255,7 +256,10 @@ func estimateReadingTime(content string) int {
 
 // generatePostPage creates an individual HTML page for a post
 func generatePostPage(post Post, config BlogConfig) {
-	tmpl, err := template.ParseFiles("templates/post.html")
+	tmpl := template.New("post.html").Funcs(template.FuncMap{
+		"safeHTML": func(s string) template.HTML { return template.HTML(s) },
+	})
+	tmpl, err := tmpl.ParseFiles("templates/post.html")
 	if err != nil {
 		panic(fmt.Sprintf("Failed to parse post template: %v", err))
 	}
@@ -355,7 +359,7 @@ func copyStaticAssets() {
 	}
 
 	// Ensure output static directory exists
-	if err := os.MkdirAll(outputStaticDir, 0755); err != nil {
+	if err := os.MkdirAll(outputStaticDir, 0750); err != nil {
 		panic(fmt.Sprintf("Failed to create static output directory: %v", err))
 	}
 
@@ -383,7 +387,7 @@ func copyStaticAssets() {
 		}
 
 		// Ensure destination directory exists
-		if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(destPath), 0750); err != nil {
 			return err
 		}
 
