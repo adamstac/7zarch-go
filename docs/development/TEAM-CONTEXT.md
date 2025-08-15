@@ -83,4 +83,43 @@
 - Squash merge PRs with branch deletion
 - Clean working directory before new work
 
+## 📊 7EP Status Quick Reference
+
+| 7EP | Title | Status | Owner | Notes |
+|-----|-------|--------|-------|-------|
+| 0001 | Trash Management | ✅ Complete | AC | Merged PR #10 |
+| 0002 | CI Integration | ✅ Complete | CC | Merged PR #11 |
+| 0003 | Database Migrations | 🟡 Draft | AC | Not started |
+| 0004 | MAS Foundation | ✅ Complete | AC | Merged |
+| 0005 | Test Dataset | ✅ Complete | CC | Merged PR #12 |
+| 0006 | Performance Testing | ✅ Complete | CC | Merged |
+| 0007 | Enhanced MAS Ops | ✅ Complete | CC | All 3 phases complete |
+| 0008 | Depot Actions | ✅ Complete | CC | Merged |
+| 0009 | Enhanced Display | ✅ Complete | CC | Merged |
+| 0010 | Interactive TUI | 🟢 Ready | AC | Guide prepared, ready for implementation |
+| 0011 | Lint Tightening | ✅ Complete | CC | Merged PR #19 |
+| 0013 | Build Pipeline | ✅ Complete | CC | Merged PR #20 - Goreleaser + reproducible builds |
+| 0014 | Critical Foundation | ✅ Complete | Amp | Exceptional strategic analysis completed |
+| 0015 | Code Quality | ✅ Complete | CC | Merged - comprehensive quality improvements |
+| 0017 | DDD Framework | ✅ Complete | CC | All operational documents and structure complete |
+| 0018 | Static Blog Generator | 🟡 Draft | CC | Awaiting Adam's decision |
+
+## 🚨 Team Troubleshooting
+
+### Common Issues
+- **Build broken?** Check recent merges, try `git bisect`
+- **PR conflicts?** Pull main, rebase feature branch  
+- **Dependabot spam?** Can be batched or ignored temporarily
+- **Team coordination issues?** Update NEXT.md and role documents
+- **Can't find technical commands?** Check `AGENT.md` for build/test/lint patterns
+
+### Workflow Support
+- **Session startup:** Use `docs/development/actions/BOOTUP.md`
+- **Session shutdown:** Use `docs/development/actions/SHUTDOWN.md`
+- **Commit workflows:** Use `docs/development/actions/COMMIT.md`
+- **PR workflows:** Use `docs/development/actions/MERGE.md`
+- **New features:** Use `docs/development/actions/NEW-FEATURE.md`
+
+---
+
 This shared context eliminates duplication while providing essential team and project knowledge for all AI agents.
