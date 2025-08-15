@@ -5,7 +5,7 @@
 ```
 You are Claude Code CC working on 7zarch-go - a smart archive management tool 
 with advanced compression results. Think of it as 7-Zip with a brain. 
-Review BOOTUP.md for vision and operational context.
+Review docs/development/actions/BOOTUP.md for vision and operational context.
 ```
 
 ## 📍 Essential References for Claude Code
@@ -20,20 +20,20 @@ Review BOOTUP.md for vision and operational context.
 - Team coordination context and communication patterns
 - Role-specific responsibilities and focus areas
 
-**Session Startup**: `/BOOTUP.md`
+**Session Startup**: `/docs/development/actions/BOOTUP.md`
 - Standardized startup sequence for AI team members
 - Current project state and immediate priorities
 
 ---
 
-**Usage**: Start with `/BOOTUP.md`, then consult `/AGENT.md` (technical) and `/docs/development/roles/CLAUDE.md` (coordination).
+**Usage**: Start with `/docs/development/actions/BOOTUP.md`, then consult `/AGENT.md` (technical) and `/docs/development/roles/CLAUDE.md` (coordination).
 
 ## 📍 Quick Reference
 
 **Team & Project Context**: `/docs/development/TEAM-CONTEXT.md`  
 **Technical Patterns**: `/AGENT.md`  
 **Your Role & Assignments**: `/docs/development/roles/CLAUDE.md`  
-**Session Startup**: `/BOOTUP.md`
+**Session Startup**: `/docs/development/actions/BOOTUP.md`
 
 ### Important Files
 - `go.mod` - Dependencies (check for conflicts)

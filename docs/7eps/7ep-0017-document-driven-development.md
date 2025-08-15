@@ -675,7 +675,7 @@ The DDD framework integrates a systematic approach to AI agent technical compete
 - Role-specific responsibilities and focus areas
 - Cross-team dependencies and blocking relationships
 
-**Operational Procedure Layer**: `/BOOTUP.md` (session startup)
+**Operational Procedure Layer**: `/docs/development/actions/BOOTUP.md` (session startup)
 - Standardized startup sequence for quick context loading
 - References to both technical and role-specific documentation
 - Current project state and team status
