@@ -1,0 +1,107 @@
+# 7zarch Blog Deployment
+# 
+# DEPLOYMENT STRATEGY: Draft/Published Directory Structure
+# - blog/drafts/     → Safe to edit, never deployed
+# - blog/published/  → Auto-deploys to production  
+# - Manual trigger   → Always available as override
+
+name: Deploy Blog
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Deployment reason (optional)'
+        required: false
+        default: 'Manual deployment'
+  push:
+    branches: [main]
+    paths: 
+      - 'blog/published/**'    # Only published posts trigger deployment
+      - 'blog/templates/**'    # Template changes are safe to deploy
+      - 'blog/static/**'       # CSS/asset changes are safe to deploy
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      
+      - name: Install dependencies
+        run: |
+          cd blog
+          go mod download
+      
+      - name: Build blog
+        run: |
+          cd blog
+          mkdir -p public/static
+          # Only process published posts for production
+          go run generator.go --source=published --output=public --verbose
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./blog/public
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        
+      - name: Log deployment
+        run: |
+          echo "::notice::Blog deployed successfully to ${{ steps.deployment.outputs.page_url }}"
+          echo "::notice::Trigger: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "::notice::Reason: ${{ github.event.inputs.reason }}"
+          fi
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "::notice::Changed files in commit: ${{ github.event.head_commit.modified }}"
+          fi
+
+# PUBLISHING WORKFLOW:
+#
+# 1. Write drafts safely:
+#    vim blog/drafts/my-new-post.md
+#    git add blog/drafts/my-new-post.md 
+#    git commit -m "draft: exploring new ideas"
+#    git push  # ← No deployment triggered
+#
+# 2. Publish when ready:
+#    git mv blog/drafts/my-new-post.md blog/published/003-my-new-post.md
+#    git commit -m "publish: my new post" 
+#    git push  # ← Deployment triggered automatically
+#
+# 3. Manual deployment (if needed):
+#    GitHub → Actions → Deploy Blog → Run workflow → Enter reason
+#
+# BENEFITS:
+# ✅ Safe to iterate on drafts in main branch
+# ✅ Intentional publishing via file move
+# ✅ Clear publication intent in git history  
+# ✅ No accidental deployments
+# ✅ Manual override always available
