@@ -1,13 +1,16 @@
-# Merge Workflow: "Submit PR", "Merge to Master"
+# Merge Workflow: "Push to Main", "Submit PR", "Merge to Master"
 
-**Purpose**: Standardized process for merging work to main branch  
+**Purpose**: Standardized process for pushing local commits to remote and managing PRs  
 **Framework**: Document Driven Development (7EP-0017)  
-**Trigger Phrases**: "Submit PR", "Create pull request", "Merge to master", "Ready for review"
+**Scope**: REMOTE OPERATIONS - Pushes to remote, creates PRs, merges branches  
+**Trigger Phrases**: "Push to main", "Submit PR", "Create pull request", "Merge to master", "Ready for review", "Ship it"
+
+**🚨 IMPORTANT**: This workflow handles remote operations. Use COMMIT.md workflow first for local commits.
 
 ## 🎯 Quick Decision Tree
 
 ```
-"Submit PR" / "Merge to master"
+"Push to main" / "Submit PR" / "Merge to master"
          |
     [Check Status]
          |
@@ -22,7 +25,27 @@
 
 ## 📋 Merge Scenarios
 
-### Scenario A: Ready for PR ✅
+### Scenario A: Simple Push to Main ✅
+**Status**: Local commits ready, just need to push to remote main
+
+```bash
+git status  # Should show "Your branch is ahead of 'origin/main' by X commits"
+```
+
+**Action**:
+```bash
+# Verify we're on main branch
+git branch --show-current
+
+# Push to remote
+git push origin main
+```
+
+**Response**: "✅ Pushed to main: [X commits pushed]"
+
+---
+
+### Scenario B: Ready for PR ✅
 **Status**: Work complete, tests passing, clean history
 
 ```bash
@@ -69,7 +92,7 @@ EOF
 
 ---
 
-### Scenario B: Work Complete, Needs Cleanup 🔧
+### Scenario C: Work Complete, Needs Cleanup 🔧
 **Status**: Work done but messy commits or failing tests
 
 **Action**:
@@ -88,7 +111,7 @@ EOF
 
 ---
 
-### Scenario C: Work in Progress 🚧
+### Scenario D: Work in Progress 🚧
 **Status**: Partial work, not ready for final review
 
 **Action**:
@@ -121,7 +144,7 @@ EOF
 
 ---
 
-### Scenario D: Direct to Main (Hotfix) 🚨
+### Scenario E: Direct to Main (Hotfix) 🚨
 **Status**: Critical fix needed immediately on main
 
 **Action**:

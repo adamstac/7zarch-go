@@ -2,7 +2,10 @@
 
 **Purpose**: Standardized process for when Adam (or team lead) says "commit those changes"  
 **Framework**: Document Driven Development (7EP-0017)  
-**Trigger Phrases**: "Commit those changes", "Ship it", "Let's commit", "Save that work"
+**Scope**: LOCAL COMMITS ONLY - Does not push to remote  
+**Trigger Phrases**: "Commit those changes", "Let's commit", "Save that work"
+
+**🚨 IMPORTANT**: This workflow creates LOCAL commits only. It does NOT push to remote/main. Use MERGE.md workflow for pushing to remote.
 
 ## 🎯 Quick Decision Tree
 
@@ -37,10 +40,10 @@ git commit -m "feat/fix/docs: [clear description]
 
 - [Bullet point of key change 1]
 - [Bullet point of key change 2]"
-git push origin main
 ```
 
-**Response**: "✅ Committed and pushed: [brief summary]"
+**Response**: "✅ Committed locally: [brief summary]"  
+**Next**: Use MERGE.md workflow if you want to push to remote
 
 ---
 
