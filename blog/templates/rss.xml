@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>{{ .Config.Title }}</title>
     <description>{{ .Config.Description }}</description>
@@ -16,9 +16,9 @@
       <title>{{ .Title }}</title>
       <description><![CDATA[{{ .Summary }}]]></description>
       <link>{{ joinURL $.Config.BaseURL .URL }}</link>
-      <guid>{{ joinURL $.Config.BaseURL .URL }}</guid>
-      <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</pubDate>
-      <author>{{ .Author }}</author>
+      <guid isPermaLink="true">{{ joinURL $.Config.BaseURL .URL }}</guid>
+      <pubDate>{{ .Date.UTC.Format "Mon, 02 Jan 2006 15:04:05 GMT" }}</pubDate>
+      <dc:creator>{{ .Author }}</dc:creator>
     </item>
     {{ end }}
   </channel>
