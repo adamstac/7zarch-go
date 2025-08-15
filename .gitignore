@@ -58,3 +58,4 @@ PRIVATE.md
 
 # Claude Code local settings
 .claude/
+.session-active
