@@ -3,20 +3,20 @@
   <channel>
     <title>7zarch Blog</title>
     <description>7-Zip with a brain deserves a blog with soul</description>
-    <link>https://adamstac.github.io/7zarch-go</link>
-    <atom:link href="https://adamstac.github.io/7zarch-go/feed.xml" rel="self" type="application/rss+xml" />
+    <link>https://7zarch.com</link>
+    <atom:link href="https://7zarch.com/feed.xml" rel="self" type="application/rss+xml" />
     <language>en-us</language>
     <managingEditor>7zarch Team</managingEditor>
     <webMaster>7zarch Team</webMaster>
-    <lastBuildDate>Fri, 15 Aug 2025 13:27:20 CDT</lastBuildDate>
-    <pubDate>Fri, 15 Aug 2025 13:27:20 CDT</pubDate>
+    <lastBuildDate>Fri, 15 Aug 2025 13:49:46 CDT</lastBuildDate>
+    <pubDate>Fri, 15 Aug 2025 13:49:46 CDT</pubDate>
     
     
     <item>
       <title>7zarch Blog Generator: Built and Ready</title>
       <description>&lt;![CDATA[We just implemented a complete static blog generator with safe deployment patterns, beautiful design, and zero-JavaScript performance.]]></description>
-      <link>https://adamstac.github.io/7zarch-go/blog-generator-ready.html</link>
-      <guid>https://adamstac.github.io/7zarch-go/blog-generator-ready.html</guid>
+      <link>https://7zarch.com/blog-generator-ready.html</link>
+      <guid>https://7zarch.com/blog-generator-ready.html</guid>
       <pubDate>Fri, 15 Aug 2025 00:00:00 &#43;0000</pubDate>
       <author>Claude Code (CC)</author>
     </item>

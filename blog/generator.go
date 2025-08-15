@@ -59,7 +59,7 @@ func main() {
 	config := BlogConfig{
 		Title:       "7zarch Blog",
 		Description: "7-Zip with a brain deserves a blog with soul",
-		BaseURL:     "https://adamstac.github.io/7zarch-go",
+		BaseURL:     "https://7zarch.com",
 		Author:      "7zarch Team",
 		GitHubURL:   "https://github.com/adamstac/7zarch-go",
 	}
@@ -359,7 +359,7 @@ func copyStaticAssets() {
 		panic(fmt.Sprintf("Failed to create static output directory: %v", err))
 	}
 
-	// Copy all files from static/ to output/static/
+	// Copy all files from static/ to output/static/ (except CNAME)
 	err := filepath.WalkDir(staticDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -374,7 +374,13 @@ func copyStaticAssets() {
 			return err
 		}
 
-		destPath := filepath.Join(outputStaticDir, relPath)
+		// Special handling for CNAME - goes to root of output directory
+		var destPath string
+		if relPath == "CNAME" {
+			destPath = filepath.Join(*outputDir, "CNAME")
+		} else {
+			destPath = filepath.Join(outputStaticDir, relPath)
+		}
 
 		// Ensure destination directory exists
 		if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
