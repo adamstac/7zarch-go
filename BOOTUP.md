@@ -102,6 +102,24 @@ cat docs/development/AMP.md
 # Focus areas: Strategic planning, architectural oversight, cross-team coordination
 ```
 
+### For Adam
+```bash
+# Check team coordination and decisions needed
+cat docs/development/NEXT.md
+
+# Review pending strategic decisions
+grep -B2 -A5 "Strategic\|Decision\|Waiting.*Adam" docs/development/NEXT.md
+
+# Check for items awaiting approval
+grep -B2 -A5 "Awaiting.*decision\|Approval" docs/development/*.md docs/7eps/*.md
+```
+
+**Key Decision Points for Adam**:
+1. **Review NEXT.md** - What decisions are blocking the team?
+2. **Check Draft 7EPs** - Any new proposals awaiting approval?
+3. **Strategic Direction** - Set next major focus area when ready
+4. **Resource Allocation** - Assign AI agents to specific work streams
+
 ## 📊 Success Checklist
 
 After boot-up, you should clearly understand:
