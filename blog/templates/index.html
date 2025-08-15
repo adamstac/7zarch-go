@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ .Config.Title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ .Config.Description }}">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="alternate" type="application/rss+xml" href="/feed.xml" title="{{ .Config.Title }}">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">7zarch</a>
+      <a href="/">blog</a>
+      <a href="https://github.com/adamstac/7zarch-go">github</a>
+    </nav>
+  </header>
+  
+  <main>
+    <div class="hero">
+      <h1>{{ .Config.Title }}</h1>
+      <p>{{ .Config.Description }}</p>
+    </div>
+    
+    {{ if .Posts }}
+    <section class="posts">
+      {{ range .Posts }}
+      <article class="post-preview">
+        <h2><a href="{{ .URL }}">{{ .Title }}</a></h2>
+        <p class="meta">
+          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time> · 
+          <span>{{ .Author }}</span> · 
+          <span>{{ .ReadingTime }} min read</span>
+        </p>
+        {{ if .Summary }}
+        <p class="summary">{{ .Summary }}</p>
+        {{ end }}
+      </article>
+      {{ end }}
+    </section>
+    {{ else }}
+    <section class="empty">
+      <p>No posts yet. Check back soon for insights on AI-augmented development, archive management, and building tools with soul.</p>
+    </section>
+    {{ end }}
+  </main>
+  
+  <footer>
+    <p>{{ .Config.Description }}</p>
+    <p><a href="/feed.xml">RSS</a> · <a href="https://github.com/adamstac/7zarch-go">Source</a></p>
+  </footer>
+</body>
+</html>

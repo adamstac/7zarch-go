@@ -1,0 +1,387 @@
+/* 7zarch Blog Styles - Classy Hacker Aesthetic */
+
+/* Typography Variables */
+:root {
+  --font-mono: 'Berkeley Mono', 'JetBrains Mono', 'SF Mono', monospace;
+  --font-sans: -apple-system, system-ui, sans-serif;
+  
+  /* Content width constraints */
+  --content-width: 680px;
+  --code-width: 920px;
+}
+
+/* Color System - Terminal Aesthetic */
+:root {
+  /* Base monochrome palette */
+  --black: #0a0a0a;
+  --gray-900: #171717;
+  --gray-800: #262626;
+  --gray-700: #404040;
+  --gray-600: #525252;
+  --gray-500: #737373;
+  --gray-400: #a3a3a3;
+  --gray-300: #d4d4d4;
+  --gray-200: #e5e5e5;
+  --white: #fafafa;
+  
+  /* Accent: classic terminal green */
+  --accent: #10b981;
+  --accent-dim: #065f46;
+  --accent-light: #34d399;
+  
+  /* Syntax highlighting palette */
+  --syntax-keyword: #f97316;
+  --syntax-string: #10b981;
+  --syntax-comment: #6b7280;
+  --syntax-function: #3b82f6;
+}
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: var(--gray-900);
+  background: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Hierarchy */
+
+/* Massive, confident headers */
+h1 { 
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin: 2rem 0;
+  color: var(--black);
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 3rem 0 1.5rem;
+  color: var(--gray-900);
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem;
+  color: var(--gray-900);
+}
+
+h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--gray-800);
+}
+
+/* Paragraphs and content */
+p {
+  margin: 1.5rem 0;
+}
+
+/* Lists */
+ul, ol {
+  margin: 1.5rem 0;
+  padding-left: 2rem;
+}
+
+li {
+  margin: 0.5rem 0;
+}
+
+/* Blockquotes */
+blockquote {
+  margin: 2rem 0;
+  padding: 1rem 2rem;
+  border-left: 4px solid var(--accent);
+  background: var(--gray-200);
+  color: var(--gray-800);
+  font-style: italic;
+}
+
+/* Layout Components */
+
+/* Navigation */
+header {
+  border-bottom: 1px solid var(--gray-300);
+}
+
+nav {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: var(--content-width);
+  margin: 0 auto;
+}
+
+nav a {
+  color: var(--gray-700);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+nav a:hover {
+  color: var(--accent);
+}
+
+nav .logo {
+  font-weight: 800;
+  color: var(--gray-900);
+  font-family: var(--font-mono);
+}
+
+/* Main Content */
+main {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Hero Section (Index Page) */
+.hero {
+  text-align: center;
+  margin: 4rem 0 6rem;
+}
+
+.hero h1 {
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  font-size: 1.25rem;
+  color: var(--gray-700);
+  margin: 0;
+}
+
+/* Post Previews */
+.posts {
+  margin: 4rem 0;
+}
+
+.post-preview {
+  margin: 4rem 0;
+  padding-bottom: 3rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.post-preview:last-child {
+  border-bottom: none;
+}
+
+.post-preview h2 {
+  margin: 0 0 0.5rem;
+}
+
+.post-preview h2 a {
+  color: var(--gray-900);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.post-preview h2 a:hover {
+  color: var(--accent);
+}
+
+.post-preview .meta {
+  margin: 0.5rem 0 1rem;
+}
+
+.post-preview .summary {
+  margin: 1rem 0 0;
+  color: var(--gray-700);
+}
+
+/* Empty State */
+.empty {
+  text-align: center;
+  margin: 6rem 0;
+  color: var(--gray-600);
+}
+
+/* Article Styles */
+article {
+  margin: 2rem 0;
+}
+
+article header {
+  margin-bottom: 3rem;
+}
+
+article .summary {
+  font-size: 1.25rem;
+  color: var(--gray-700);
+  font-style: italic;
+  margin: 2rem 0;
+}
+
+/* Post metadata */
+.meta {
+  color: var(--gray-700);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.meta time {
+  color: var(--accent-dim);
+}
+
+/* Code Styling */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* Inline code */
+p code, li code {
+  background: var(--gray-200);
+  color: var(--gray-900);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+/* Code blocks extend wider for better readability */
+pre {
+  max-width: var(--code-width);
+  margin: 2rem 0;
+  margin-left: calc((var(--content-width) - var(--code-width)) / 2);
+  margin-right: calc((var(--content-width) - var(--code-width)) / 2);
+  padding: 1.5rem;
+  overflow-x: auto;
+  background: var(--gray-900);
+  border-radius: 0.5rem;
+  line-height: 1.6;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: var(--gray-300);
+  font-size: 0.85rem;
+}
+
+/* Syntax highlighting classes (for Chroma) */
+.chroma {
+  background: var(--gray-900) !important;
+}
+
+.chroma .k { color: var(--syntax-keyword); } /* Keywords */
+.chroma .s, .chroma .s1, .chroma .s2 { color: var(--syntax-string); } /* Strings */
+.chroma .c, .chroma .c1, .chroma .cm { color: var(--syntax-comment); } /* Comments */
+.chroma .nf { color: var(--syntax-function); } /* Functions */
+.chroma .na { color: var(--accent-light); } /* Attributes */
+.chroma .o { color: var(--gray-400); } /* Operators */
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--accent-dim);
+}
+
+/* Footer */
+footer {
+  margin-top: 6rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--gray-700);
+  border-top: 1px solid var(--gray-300);
+  background: var(--gray-200);
+}
+
+footer p {
+  margin: 0.5rem 0;
+}
+
+footer a {
+  color: var(--gray-700);
+  font-weight: 500;
+}
+
+footer a:hover {
+  color: var(--accent);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  /* Adjust header sizes for mobile */
+  h1 {
+    font-size: 2.5rem;
+  }
+  
+  .hero h1 {
+    font-size: 3rem;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
+  }
+  
+  /* Make code blocks full-width on mobile */
+  pre {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-radius: 0;
+  }
+  
+  /* Adjust navigation for mobile */
+  nav {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+  
+  /* Reduce margins for mobile */
+  main {
+    padding: 1.5rem 1rem;
+  }
+  
+  .hero {
+    margin: 2rem 0 4rem;
+  }
+  
+  .post-preview {
+    margin: 2rem 0;
+  }
+  
+  footer {
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 1rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  .hero h1 {
+    font-size: 2.25rem;
+  }
+  
+  nav {
+    padding: 1rem;
+    gap: 1rem;
+  }
+}

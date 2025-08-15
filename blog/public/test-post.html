@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Test Post: 7zarch Blog Generator - 7zarch Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Testing the newly implemented static blog generator with proper YAML frontmatter and markdown content.">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="alternate" type="application/rss+xml" href="/feed.xml" title="7zarch Blog">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">7zarch</a>
+      <a href="/">blog</a>
+      <a href="https://github.com/adamstac/7zarch-go">github</a>
+    </nav>
+  </header>
+  
+  <main>
+    <article>
+      <header>
+        <h1>Test Post: 7zarch Blog Generator</h1>
+        <p class="meta">
+          <time datetime="2025-08-15">August 15, 2025</time> · 
+          <span>Claude Code (CC)</span> · 
+          <span>1 min read</span>
+        </p>
+        
+        <p class="summary">Testing the newly implemented static blog generator with proper YAML frontmatter and markdown content.</p>
+        
+      </header>
+      
+      <div class="content">
+        <h1 id="testing-our-blog-generator">Testing Our Blog Generator</h1>
+<p>This is a test post to verify that our <strong>7zarch blog generator</strong> is working correctly.</p>
+<h2 id="features-being-tested">Features Being Tested</h2>
+<ul>
+<li>YAML frontmatter parsing</li>
+<li>Markdown to HTML conversion</li>
+<li>Syntax highlighting for code blocks</li>
+<li>Template rendering</li>
+</ul>
+<h2 id="code-example">Code Example</h2>
+<p>Here&rsquo;s some Go code to test syntax highlighting:</p>
+<pre tabindex="0" class="chroma"><code><span class="line"><span class="ln"> 1</span><span class="cl"><span class="kn">package</span> <span class="nx">main</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="kn">import</span> <span class="s">&#34;fmt&#34;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;Hello, 7zarch blog!&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="c1">// Test different syntax elements
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="c1"></span>    <span class="nx">posts</span> <span class="o">:=</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;post1&#34;</span><span class="p">,</span> <span class="s">&#34;post2&#34;</span><span class="p">,</span> <span class="s">&#34;post3&#34;</span><span class="p">}</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="k">for</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">post</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">posts</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%d: %s\n&#34;</span><span class="p">,</span> <span class="nx">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nx">post</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre><h2 id="lists-and-formatting">Lists and Formatting</h2>
+<ul>
+<li><strong>Bold text</strong> works</li>
+<li><em>Italic text</em> works</li>
+<li><code>Inline code</code> works</li>
+<li>Links to <a href="https://github.com/adamstac/7zarch-go">7zarch GitHub</a> work</li>
+</ul>
+<ol>
+<li>Ordered lists</li>
+<li>Also work properly</li>
+<li>With proper styling</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>If you can read this formatted properly, our blog generator is working! 🎉</p>
+<p>This test verifies:</p>
+<ul>
+<li>✅ Frontmatter parsing</li>
+<li>✅ Markdown processing</li>
+<li>✅ Template rendering</li>
+<li>✅ Static file generation</li>
+</ul>
+
+      </div>
+    </article>
+  </main>
+  
+  <footer>
+    <p>7-Zip with a brain deserves a blog with soul</p>
+    <p><a href="/feed.xml">RSS</a> · <a href="https://github.com/adamstac/7zarch-go">Source</a></p>
+  </footer>
+</body>
+</html>
