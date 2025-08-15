@@ -71,14 +71,84 @@ git push origin main
 git status
 ```
 
-### 5. Document Session Context
+### 5. Complete Session Log
 ```bash
-# If session produced significant work, add brief summary
-echo "## Session Summary $(date +%Y-%m-%d)" >> SESSION-NOTES.md
-echo "- [Key accomplishment 1]" >> SESSION-NOTES.md  
-echo "- [Key accomplishment 2]" >> SESSION-NOTES.md
-echo "- [Next session should focus on...]" >> SESSION-NOTES.md
-echo "" >> SESSION-NOTES.md
+# Get session log file from bootup
+if [ -f .session-active ]; then
+    source .session-active
+    SESSION_LOG=${SESSION_LOG_FILE}
+else
+    # Fallback if no active session file
+    DATE_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
+    SESSION_LOG="docs/logs/session-${DATE_STAMP}.md"
+fi
+
+# Calculate session timing
+SESSION_END=$(date "+%Y-%m-%d %H:%M:%S")
+SESSION_START_TIME=$(grep "Start Time:" "$SESSION_LOG" | sed 's/.*Start Time:** //' || echo "Unknown")
+
+# Calculate duration if we can parse start time  
+if [[ "$SESSION_START_TIME" != "Unknown" ]]; then
+    START_EPOCH=$(date -j -f "%Y-%m-%d %H:%M:%S" "$SESSION_START_TIME" +%s 2>/dev/null || date +%s)
+    END_EPOCH=$(date +%s)
+    SESSION_DURATION=$((END_EPOCH - START_EPOCH))
+    SESSION_HOURS=$((SESSION_DURATION / 3600))
+    SESSION_MINUTES=$(((SESSION_DURATION % 3600) / 60))
+    DURATION_TEXT="${SESSION_HOURS}h ${SESSION_MINUTES}m"
+else
+    DURATION_TEXT="Unknown"
+fi
+
+# Find session commits - look for commits since session start
+# Get the commit that started this session (contains "session: start")
+SESSION_START_COMMIT=$(git log --oneline --grep="session: start" -1 --format="%H" 2>/dev/null)
+
+# If we found a start commit, get all commits since then, otherwise get recent commits
+if [[ -n "$SESSION_START_COMMIT" ]]; then
+    SESSION_COMMITS=$(git log --oneline --format="- [\`%h\`](../../commit/%H) %s" ${SESSION_START_COMMIT}..HEAD 2>/dev/null)
+    COMMIT_COUNT=$(git rev-list --count ${SESSION_START_COMMIT}..HEAD 2>/dev/null || echo "0")
+else
+    # Fallback: get last 5 commits
+    SESSION_COMMITS=$(git log -5 --oneline --format="- [\`%h\`](../../commit/%H) %s" 2>/dev/null)
+    COMMIT_COUNT=$(echo "$SESSION_COMMITS" | wc -l | tr -d ' ')
+fi
+
+# Append shutdown summary to existing session log
+cat >> "$SESSION_LOG" << EOF
+
+## 🛑 Session Shutdown - $(date)
+
+### ⏱️ Final Timing
+- **End Time:** ${SESSION_END}
+- **Duration:** ${DURATION_TEXT}
+- **Status:** 🔴 **OFFLINE** - Session terminated successfully
+
+### 📋 Session Deliverables
+- [Key accomplishment 1]
+- [Key accomplishment 2]
+
+### 📁 Files Changed
+$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "- No changes detected")
+
+### 🎯 Next Session Priorities  
+- [What should happen next]
+
+### 📊 Session Stats
+- **Commits This Session:** ${COMMIT_COUNT}
+- **Files Modified:** $(git diff --name-only HEAD~1 HEAD 2>/dev/null | wc -l | tr -d ' ')
+
+### 🔗 Session Commits
+${SESSION_COMMITS:-"- No commits found for this session"}
+
+---
+*Session completed by DDD Framework shutdown process*
+EOF
+
+# Clean up session tracking
+rm -f .session-active
+
+# Add final log to git
+git add "$SESSION_LOG"
 ```
 
 ## 🔄 Handoff Protocol
