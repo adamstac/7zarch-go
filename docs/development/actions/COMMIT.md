@@ -43,7 +43,8 @@ git commit -m "feat/fix/docs: [clear description]
 ```
 
 **Response**: "✅ Committed locally: [brief summary]"  
-**Next**: Use MERGE.md workflow if you want to push to remote
+**Next**: Use MERGE.md workflow if you want to push to remote  
+**Role Coordination**: Update role file status if significant milestone completed
 
 ---
 

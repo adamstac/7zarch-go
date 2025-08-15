@@ -41,7 +41,8 @@ git branch --show-current
 git push origin main
 ```
 
-**Response**: "✅ Pushed to main: [X commits pushed]"
+**Response**: "✅ Pushed to main: [X commits pushed]"  
+**Role Coordination**: Use TEAM-UPDATE.md if work completion affects other agents
 
 ---
 

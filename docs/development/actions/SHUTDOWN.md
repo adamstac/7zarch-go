@@ -133,6 +133,14 @@ $(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "- No changes detected")
 ### 🎯 Next Session Priorities  
 - [What should happen next]
 
+### 🔄 Role State Updates
+$(echo "Agent Role File Updates:")
+$(grep -A 3 "Active Work\|Current Assignments" docs/development/roles/[AGENT].md | head -5)
+
+### 🤝 Team Coordination Changes
+$(echo "NEXT.md Coordination Updates:")
+$(git diff HEAD~1 HEAD docs/development/NEXT.md | grep "^+\|^-" | head -5 || echo "- No coordination changes")
+
 ### 📊 Session Stats
 - **Commits This Session:** ${COMMIT_COUNT}
 - **Files Modified:** $(git diff --name-only HEAD~1 HEAD 2>/dev/null | wc -l | tr -d ' ')
