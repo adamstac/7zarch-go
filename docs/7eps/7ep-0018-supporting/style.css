@@ -1,0 +1,148 @@
+/* 7EP-0018 Supporting File: Core Blog Styles */
+
+/* Typography Variables */
+:root {
+  --font-mono: 'Berkeley Mono', 'JetBrains Mono', 'SF Mono', monospace;
+  --font-sans: -apple-system, system-ui, sans-serif;
+  
+  /* Content width constraints */
+  --content-width: 680px;
+  --code-width: 920px;
+}
+
+/* Color System - Terminal Aesthetic */
+:root {
+  /* Base monochrome palette */
+  --black: #0a0a0a;
+  --gray-900: #171717;
+  --gray-700: #404040;
+  --gray-300: #d4d4d4;
+  --white: #fafafa;
+  
+  /* Accent: classic terminal green */
+  --accent: #10b981;
+  --accent-dim: #065f46;
+  
+  /* Syntax highlighting palette */
+  --syntax-keyword: #f97316;
+  --syntax-string: #10b981;
+  --syntax-comment: #6b7280;
+}
+
+/* Base Typography */
+body {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: var(--gray-900);
+  background: var(--white);
+}
+
+/* Massive, confident headers */
+h1 { 
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin: 2rem 0;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 3rem;
+}
+
+/* Content Container */
+main {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Code blocks extend wider */
+pre {
+  max-width: var(--code-width);
+  margin-left: calc((var(--content-width) - var(--code-width)) / 2);
+  margin-right: calc((var(--content-width) - var(--code-width)) / 2);
+  padding: 1.5rem;
+  overflow-x: auto;
+  background: var(--gray-900);
+  border-radius: 0.5rem;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* Inline code */
+p code {
+  background: var(--gray-300);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* Navigation */
+nav {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  border-bottom: 1px solid var(--gray-300);
+}
+
+nav a {
+  color: var(--gray-700);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+nav a:hover {
+  color: var(--accent);
+}
+
+nav .logo {
+  font-weight: 800;
+  color: var(--gray-900);
+}
+
+/* Post metadata */
+.meta {
+  color: var(--gray-700);
+  font-size: 0.9rem;
+  margin: 1rem 0 3rem;
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  color: var(--accent-dim);
+}
+
+/* Footer */
+footer {
+  margin-top: 6rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--gray-700);
+  border-top: 1px solid var(--gray-300);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+  
+  pre {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-radius: 0;
+  }
+}

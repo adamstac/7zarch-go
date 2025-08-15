@@ -1,0 +1,43 @@
+<!-- 7EP-0018 Supporting File: Post Template -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ .Title }} - 7zarch Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ .Summary }}">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/syntax.css">
+  <link rel="alternate" type="application/rss+xml" href="/feed.xml">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">7zarch</a>
+      <a href="/blog">blog</a>
+      <a href="https://github.com/adamstac/7zarch-go">github</a>
+    </nav>
+  </header>
+  
+  <main>
+    <article>
+      <header>
+        <h1>{{ .Title }}</h1>
+        <p class="meta">
+          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time> · 
+          <span>{{ .Author }}</span> · 
+          <span>{{ .ReadingTime }} min read</span>
+        </p>
+      </header>
+      
+      <div class="content">
+        {{ .Content }}
+      </div>
+    </article>
+  </main>
+  
+  <footer>
+    <p>7-Zip with a brain.</p>
+  </footer>
+</body>
+</html>
