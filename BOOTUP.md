@@ -72,11 +72,11 @@ cat > docs/logs/session-${DATE_STAMP}.md << EOF
 *Session started by DDD Framework bootup process*
 EOF
 
-# Store session file for shutdown reference
+# Store session file for shutdown reference (local only)
 echo "SESSION_LOG_FILE=docs/logs/session-${DATE_STAMP}.md" > .session-active
 
-# Add initial log to git
-git add docs/logs/session-${DATE_STAMP}.md .session-active
+# Add initial log to git (NOT .session-active - it's local only)
+git add docs/logs/session-${DATE_STAMP}.md
 git commit -m "session: start new session $(date)"
 ```
 
