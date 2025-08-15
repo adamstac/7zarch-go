@@ -95,7 +95,9 @@ blog/
 
 ### Phase 3: Production Features
 - [ ] RSS feed generation
-- [ ] GitHub Pages deployment workflow
+- [ ] Enhanced GitHub Pages deployment workflow with draft/published separation
+- [ ] Command line flags for flexible source/output directories
+- [ ] Safe deployment strategy preventing accidental publication
 - [ ] Optional: ASCII art header support
 - [ ] Optional: Dark mode with CSS only
 - [ ] Optional: Reading time estimates
@@ -104,17 +106,20 @@ blog/
 
 ### Primary: Publishing Blog Posts
 ```bash
-# Write post
-vim blog/posts/003-shipping-with-ai.md
+# Write draft (safe, won't deploy)
+vim blog/drafts/shipping-with-ai.md
+git add blog/drafts/shipping-with-ai.md
+git commit -m "draft: new post about AI development"
+git push  # ← No deployment
 
-# Generate site
-cd blog && go run generator.go
-
-# Preview locally
+# Preview locally with drafts
+cd blog && go run generator.go --source=posts
 python -m http.server 8080 --directory public
 
-# Deploy (automatic via GitHub Actions)
-git push origin main
+# Publish when ready (triggers deployment)
+git mv blog/drafts/shipping-with-ai.md blog/published/003-shipping-with-ai.md
+git commit -m "publish: shipping with AI post"
+git push  # ← Automatic deployment to production
 ```
 
 ### Secondary: Documentation Site
@@ -178,10 +183,16 @@ Could extend to generate docs/ as beautiful HTML, replacing need for external do
 - Technology (Go + HTML + CSS) is proven
 - Can fallback to existing tools if needed
 
+**Deployment Risk - IDENTIFIED**:
+- Current design auto-publishes any `blog/` changes to production
+- No staging environment or content review process
+- Risk of accidental publication of drafts or work-in-progress
+
 **Mitigation**:
 - Start with working prototype in 1 day
 - Iterate on design after core works
 - Keep generator simple enough to rewrite
+- **Enhanced deployment strategy** (see Deployment Strategy section below)
 
 ## Alternative Approaches Considered
 
@@ -204,6 +215,256 @@ Study these sites for their taste level and design decisions, but create our own
 - https://danluu.com - Speed-obsessed, zero-bloat approach
 
 **Goal**: Build a respectable engineering blog that engineers would be proud to read and share. Learn from what makes these sites readable, professional, and fast, then build something uniquely ours. We're not copying - we're understanding why certain design decisions work for technical content and applying those principles in our own way.
+
+## Deployment Strategy
+
+### Current Design Problem
+The initial GitHub Actions workflow (`docs/7eps/7ep-0018-supporting/github-actions.yml`) triggers on **any push to main that touches `blog/`**, meaning:
+- ❌ Draft posts publish immediately 
+- ❌ No content review process
+- ❌ Work-in-progress goes public
+- ❌ No staging environment
+
+### Enhanced Deployment Options
+
+#### Option 1: Draft/Published Directory Structure ⭐ **RECOMMENDED**
+```
+blog/
+├── drafts/          # Safe to edit, never published
+│   ├── wip-post.md
+│   └── ideas.md
+├── published/       # Only these deploy to production
+│   ├── 001-ddd.md
+│   └── 002-agents.md
+└── templates/
+```
+
+**Deployment Trigger**:
+```yaml
+on:
+  push:
+    branches: [main]
+    paths: ['blog/published/**']  # Only published directory
+```
+
+**Publishing Workflow**:
+```bash
+# Write draft
+vim blog/drafts/my-post.md
+
+# Review and approve
+git add blog/drafts/my-post.md
+git commit -m "draft: new post about X"
+
+# Publish when ready
+git mv blog/drafts/my-post.md blog/published/003-my-post.md
+git commit -m "publish: my post about X"
+git push  # Triggers deployment
+```
+
+**Benefits**:
+- ✅ Clear draft vs published separation
+- ✅ Safe to iterate on drafts in main
+- ✅ Intentional publishing via file move
+- ✅ Git history shows publish decisions
+
+#### Option 2: Manual Deployment Trigger
+```yaml
+on:
+  workflow_dispatch:  # Manual trigger only
+    inputs:
+      reason:
+        description: 'Reason for deployment'
+        required: true
+```
+
+**Publishing Workflow**:
+1. Push blog changes to main
+2. Go to Actions tab in GitHub
+3. Click "Deploy Blog" → "Run workflow"
+4. Enter deployment reason → "Run workflow"
+
+**Benefits**:
+- ✅ Complete control over when content goes live
+- ✅ Deployment reason for audit trail
+- ✅ No accidental publications
+- ❌ Extra step required for each publish
+
+#### Option 3: Release-Based Publishing
+```yaml
+on:
+  release:
+    types: [published]
+```
+
+**Publishing Workflow**:
+```bash
+# Tag blog content release
+git tag blog-v1.2.0
+git push origin blog-v1.2.0
+
+# Create release in GitHub UI
+# → Triggers deployment
+```
+
+**Benefits**:
+- ✅ Versioned blog content
+- ✅ Release notes for content updates
+- ✅ Clear publication history
+- ❌ Heavy process for individual posts
+
+#### Option 4: Hybrid Approach
+```yaml
+on:
+  workflow_dispatch:      # Manual trigger always available
+  push:
+    branches: [main]
+    paths: ['blog/published/**']  # Auto-deploy published content
+```
+
+**Benefits**:
+- ✅ Automatic for published content
+- ✅ Manual override available
+- ✅ Best of both approaches
+
+### Implementation Recommendation
+
+**Use Option 1 (Draft/Published Directories)** because:
+- Maintains development velocity (drafts in main)
+- Clear publication intent (file move)
+- Prevents accidental publication
+- Simple mental model
+- Preserves git-based workflow
+
+### Updated GitHub Actions Workflow
+
+Replace existing `docs/7eps/7ep-0018-supporting/github-actions.yml` with:
+
+```yaml
+name: Deploy Blog
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Deployment reason'
+        required: false
+  push:
+    branches: [main]
+    paths: ['blog/published/**', 'blog/templates/**', 'blog/static/**']
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      
+      - name: Build blog
+        run: |
+          cd blog
+          mkdir -p public/static
+          # Only process published posts
+          go run generator.go --source=published --output=public
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./blog/public
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+        
+      - name: Log deployment
+        run: |
+          echo "::notice::Blog deployed successfully"
+          echo "::notice::Trigger: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "::notice::Reason: ${{ github.event.inputs.reason }}"
+          fi
+```
+
+### Content Organization Benefits
+
+**For Writers**:
+```bash
+# Safe experimentation in drafts
+blog/drafts/exploring-idea.md      # Won't go live
+blog/drafts/half-finished.md       # Safe to commit WIP
+
+# Intentional publishing
+git mv blog/drafts/ready.md blog/published/004-ready.md
+```
+
+**For Reviewers**:
+- All drafts visible in main branch
+- Publishing requires explicit file move
+- Clear intent in git history
+- No surprise publications
+
+**For Automation**:
+- Templates/static changes deploy immediately (safe)
+- Only published content triggers production build
+- Manual override always available
+- Deployment logging for audit trail
+
+This strategy balances development flexibility with publication control, ensuring no accidental content releases while maintaining a smooth writing workflow.
+
+### Enhanced Generator Requirements
+
+To support the draft/published directory structure, the `generator.go` needs these enhancements:
+
+**Command Line Flags**:
+```go
+var (
+    sourceDir = flag.String("source", "posts", "Source directory for markdown files") 
+    outputDir = flag.String("output", "public", "Output directory for generated files")
+    watch     = flag.Bool("watch", false, "Watch for file changes and rebuild")
+)
+```
+
+**Updated Main Function**:
+```go
+func main() {
+    flag.Parse()
+    fmt.Printf("Building blog from %s/ to %s/\n", *sourceDir, *outputDir)
+    
+    // Load posts from configurable source directory
+    posts := loadPosts(*sourceDir + "/")
+    
+    // Generate to configurable output directory  
+    generateSite(posts, *outputDir)
+}
+```
+
+**Usage Examples**:
+```bash
+# Development: process all posts (drafts + published)
+go run generator.go --source=posts --output=dev-public
+
+# Production: only published posts  
+go run generator.go --source=published --output=public
+
+# Local development with drafts
+go run generator.go --source=posts --watch
+```
+
+This enhancement maintains backward compatibility (`posts/` default) while enabling the safe deployment strategy.
 
 ## Appendix A: Example Frontmatter
 
