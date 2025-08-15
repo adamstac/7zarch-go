@@ -48,7 +48,7 @@ Establish a systematic Document Driven Development (DDD) framework that separate
    - Establish NEXT.md as primary coordination hub
 
 2. **Boot-up Integration** 
-   - Update existing team startup documents (/CLAUDE.md, etc.)
+   - Update existing team startup documents
    - Add operational document sequence to team onboarding
    - Document operational framework usage patterns
 
@@ -81,7 +81,7 @@ Establish a systematic Document Driven Development (DDD) framework that separate
 
 ### **Primary Boot-up Path Enhancement**
 
-#### **Target Integration Point**: /CLAUDE.md Quick Start Checklist
+#### **Target Integration Point**: docs/development/actions/BOOTUP.md Quick Start Checklist
 **Current Boot-up Sequence (Enhanced)**:
 ```bash
 1. Check git status
@@ -111,7 +111,7 @@ Establish a systematic Document Driven Development (DDD) framework that separate
 ### **Day 1 Team Onboarding Sequence**
 **For New Team Members or Role Transitions**:
 1. **Identity Understanding**
-   - Read `/CLAUDE.md` (role definition and capabilities)
+   - Read `/AGENT.md` (technical capabilities and build commands)
    - Read `/AMP.md` (leadership roles and activation)
    - Understand team member capabilities and authorities
 
@@ -135,7 +135,7 @@ Establish a systematic Document Driven Development (DDD) framework that separate
 
 ## Reference Information (As Needed)
 4. docs/7eps/index.md            # Long-term feature planning
-5. /CLAUDE.md                    # Role definition and context
+5. /AGENT.md                     # Technical patterns and build commands
 6. docs/development/README.md     # Framework usage patterns
 7. docs/development/actions/       # Standardized workflow processes (COMMIT.md, MERGE.md, NEW-FEATURE.md)
 ```
@@ -184,7 +184,7 @@ docs/development/roles/CLAUDE.md:
 #### **Layer 1: Identity & Roles** (Root Level)
 ```
 /AMP.md           # Amp capabilities and activation protocols
-/CLAUDE.md        # CC role definition and context  
+/AGENT.md         # Technical patterns and build commands  
 /AUGMENT.md       # AC role definition and context
 /ADAM.md          # Project owner perspective and priorities
 ```
@@ -247,7 +247,7 @@ docs/7eps/7ep-XXXX.md                 # Active sprint coordination (linked from 
 - **Active 7EPs** - Updated during: implementation phases, architectural changes
 
 #### **Reference Documents** (Updated Infrequently)  
-- **Root identity docs** (/AMP.md, /CLAUDE.md) - Role definitions and capabilities
+- **Root identity docs** (/AGENT.md) - Technical patterns and build commands
 - **Completed 7EPs** - Historical specification reference
 - **Process documentation** - Framework standards and patterns
 
@@ -684,7 +684,7 @@ The DDD framework integrates a systematic approach to AI agent technical compete
 ### **Root File Strategy**
 
 **Pointer Files in Root** (for agent accessibility):
-- `/CLAUDE.md` → References both AGENT.md and docs/development/roles/CLAUDE.md
+- `/AGENT.md` → Technical patterns and build commands for all agents
 - `/AMP.md` → References both AGENT.md and docs/development/roles/AMP.md  
 - `/AUGMENT.md` → References both AGENT.md and docs/development/roles/AUGMENT.md
 

@@ -61,9 +61,27 @@
 - **Foundation leverage** - 7EP-0014 components (migrations, error handling, machine output) accelerate development
 - **User-focused design** - Adam's podcast workflow requirements drive technical decisions
 
+### Recent Technical Decisions
+- Display modes use no-right-border pattern for cleaner alignment
+- Card mode uses "✓ OK" format (icon + text)
+- TUI will wrap existing displays, not rebuild them
+- Charmbracelet tools (Bubble Tea) chosen for TUI
+- **7EP-0007 Complete**: Search engine with exceptional ~60-100µs performance
+- Search architecture: Inverted index + LRU cache + thread-safe design
+- All searchable fields indexed: name, path, profile, metadata
+
+### Implementation Gotchas
+- Show command requires 12-char ULID minimum (not 8!)
+- Display modes must handle narrow terminals (<80 cols)
+- Status must be consistent across all displays
+- Path display may need truncation in cards
+
+## 🎯 CC Identity & Approach
+**Remember**: You're CC (Claude Code). You build things. You ship features. You write clean code without unnecessary comments. You're direct and concise. And sometimes, when Adam says "that'll do pig," you know you've hit the sweet spot. 🐷
+
 ## 🎯 Success Criteria
-- [ ] Batch operations handle 100+ archives with progress tracking
-- [ ] All operations integrate with existing trash management (soft deletes)
-- [ ] Performance meets targets (operations complete in <5s for typical sets)
-- [ ] CLI integration maintains consistency with existing command patterns
-- [ ] Architectural review from Amp confirms design quality and optimization opportunities
+- [ ] Strategic assignment accepted and implementation begun
+- [ ] 7EP-0018 decision resolved (approve/defer/archive)
+- [ ] Framework patterns continue improving team coordination efficiency
+- [ ] All delivered features meet production quality standards
+- [ ] Clear handoffs and documentation for team coordination
