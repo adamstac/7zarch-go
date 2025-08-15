@@ -164,8 +164,19 @@ func (gpv *GitPatternValidator) validateSessionLog(logPath string) SessionLogVal
 }
 
 func (gpv *GitPatternValidator) getRecentCommits(baseDir string, count int) []GitCommit {
+	// Sanitize baseDir to prevent command injection
+	cleanDir := filepath.Clean(baseDir)
+	if strings.Contains(cleanDir, "..") {
+		return []GitCommit{} // Reject potentially malicious paths
+	}
+	
+	// Validate count parameter to prevent abuse
+	if count <= 0 || count > 100 {
+		count = 20 // Safe default
+	}
+	
 	cmd := exec.Command("git", "log", fmt.Sprintf("-%d", count), "--oneline", "--format=%H|%s")
-	cmd.Dir = baseDir
+	cmd.Dir = cleanDir
 	
 	output, err := cmd.Output()
 	if err != nil {
@@ -224,8 +235,18 @@ func (gpv *GitPatternValidator) validateCommitMessage(commit GitCommit) CommitVa
 }
 
 func (gpv *GitPatternValidator) validateCurrentBranch(baseDir string) BranchValidation {
+	// Sanitize baseDir to prevent command injection
+	cleanDir := filepath.Clean(baseDir)
+	if strings.Contains(cleanDir, "..") {
+		return BranchValidation{
+			Current:   "unknown",
+			Compliant: false,
+			Error:     "Invalid base directory path",
+		}
+	}
+	
 	cmd := exec.Command("git", "branch", "--show-current")
-	cmd.Dir = baseDir
+	cmd.Dir = cleanDir
 	
 	output, err := cmd.Output()
 	if err != nil {

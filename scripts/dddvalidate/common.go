@@ -270,6 +270,15 @@ func (fpu *FilePathUtils) SanitizePath(path string) (string, error) {
 		return "", fmt.Errorf("path traversal not allowed: %s", path)
 	}
 	
+	// Ensure path is absolute to prevent relative path attacks
+	if !filepath.IsAbs(cleaned) {
+		abs, err := filepath.Abs(cleaned)
+		if err != nil {
+			return "", fmt.Errorf("cannot resolve absolute path: %w", err)
+		}
+		cleaned = abs
+	}
+	
 	return cleaned, nil
 }
 
