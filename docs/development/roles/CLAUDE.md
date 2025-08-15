@@ -4,6 +4,8 @@
 **Status:** Available  
 **Current Focus:** Ready for strategic assignment
 
+**Team Context**: See [`docs/development/TEAM-CONTEXT.md`](../TEAM-CONTEXT.md) for project structure and team overview
+
 ## 🎯 Current Assignments
 
 ### Active Work (This Week)

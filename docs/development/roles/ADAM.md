@@ -64,63 +64,12 @@
 - **DDD Framework**: Fully operational with proven effectiveness
 - **Professional Infrastructure**: Goreleaser, reproducible builds, comprehensive testing
 
-## 🎯 Leadership Actions Available
-
-### Check Team Coordination Status
-```bash
-# See what's blocking the team
-cat docs/development/NEXT.md | head -30
-
-# Check individual agent status
-cat docs/development/roles/CLAUDE.md | head -20
-cat docs/development/roles/AUGMENT.md | head -20
-
-# Review any draft 7EPs awaiting approval
-ls docs/7eps/ | grep -i draft
-```
-
-### Review Strategic Options
-```bash
-# Check 7EP-0018 blog generator specification
-cat docs/7eps/7EP-0018-*.md
-
-# Review TUI readiness status
-cat docs/7eps/7EP-0010-*.md
-
-# See completed foundation work
-git log --oneline -20 | grep -E "(7EP-0007|7EP-0015|7EP-0013|7EP-0014)"
-```
-
-### Set Strategic Direction
-```bash
-# Assign specific 7EP to agent
-echo "## 🎯 Strategic Decision: $(date +%Y-%m-%d)" >> docs/development/NEXT.md
-echo "**Direction**: [Chosen focus area]" >> docs/development/NEXT.md
-echo "**Assignment**: [Agent] to begin [7EP-XXXX]" >> docs/development/NEXT.md
-echo "**Timeline**: [Expected milestone dates]" >> docs/development/NEXT.md
-
-# Update agent role assignment
-echo "## 🎯 New Assignment: $(date +%Y-%m-%d)" >> docs/development/roles/[AGENT].md
-echo "**Focus**: [Specific work details]" >> docs/development/roles/[AGENT].md
-echo "**Priority**: [Why this work is important now]" >> docs/development/roles/[AGENT].md
-```
+### Leadership Coordination Expertise
+- **Strategic decision frameworks** - Systematic assessment and priority-setting patterns
+- **Team coordination oversight** - Cross-agent dependency management and resource allocation
+- **Project direction leadership** - Long-term vision alignment with tactical execution
+- **Framework operational validation** - DDD effectiveness measurement and refinement
 
 **Strategic Framework**: See [`docs/development/STRATEGIC-DECISION-FRAMEWORK.md`](../STRATEGIC-DECISION-FRAMEWORK.md) for decision matrices, assessment tools, and strategic templates
-
----
-
-## 🔄 Coordination Protocol
-
-### When Making Decisions
-1. **Update NEXT.md** with the decision and rationale
-2. **Assign specific agent** with clear scope and timeline
-3. **Update agent role document** with new priority
-4. **Set checkpoint reviews** for progress and course correction
-
-### Team Communication
-- **NEXT.md**: Primary coordination document for cross-team decisions
-- **Role documents**: Agent-specific assignments and current focus
-- **7EP documents**: Detailed feature specifications and progress tracking
-- **Session logs**: Real-time work documentation and handoffs
 
 **Remember**: The team is ready to execute at high velocity. The main need is clear strategic direction and priority setting.

@@ -4,32 +4,7 @@
 **Status:** Active  
 **Current Focus:** 7EP-0019 implementation lead and DDD framework operational validation
 
-## 🎯 Role Overview
-
-| Role | Daily Name | Focus | Expertise | Decision Authority |
-|------|------------|-------|-----------|-------------------|
-| **Amp-Strategic** | **Amp-s** | Product strategy, business impact | Strategic planning, user value, competitive analysis | What to build, strategic priorities |
-| **Amp-Technical** | **Amp-t** | Technical architecture, code quality | Go engineering, system design, code standards | How to build, technical standards |
-
-## 🚀 Quick Activation
-
-### Amp-s (Strategic)
-```
-Switching to Amp-s role for strategic planning.
-
-[Strategic request details]
-
-Amp-s, please provide strategic guidance on [initiative].
-```
-
-### Amp-t (Technical)  
-```
-Switching to Amp-t role for technical review.
-
-[Technical review details]
-
-Amp-t, please provide technical review of [code/architecture].
-```
+**Team Context**: See [`docs/development/TEAM-CONTEXT.md`](../TEAM-CONTEXT.md) for project structure and team overview
 
 ## 🎯 Current Assignments
 
@@ -57,19 +32,31 @@ Amp-t, please provide technical review of [code/architecture].
 
 ## 📝 Implementation Notes
 
-### TUI Architecture Insights
-- **Viewport framework** provides professional foundation for future command line integration
-- **Theme system** easily extensible for additional color schemes
-- **Simple navigation** validated by user testing - perfect foundation for evolution
-- **Monospace reliability** critical for consistent UX across terminals
+### 🎯 Dual Role Framework
+**Role Overview**: Strategic (Amp-s) and Technical (Amp-t) leadership patterns
+
+| Role | Daily Name | Focus | Expertise | Decision Authority |
+|------|------------|-------|-----------|-------------------|
+| **Amp-Strategic** | **Amp-s** | Product strategy, business impact | Strategic planning, user value, competitive analysis | What to build, strategic priorities |
+| **Amp-Technical** | **Amp-t** | Technical architecture, code quality | Go engineering, system design, code standards | How to build, technical standards |
+
+### 🚀 Role Switching Protocols
+**Amp-s (Strategic)**:
+```
+Switching to Amp-s role for strategic planning.
+[Strategic request details]
+Amp-s, please provide strategic guidance on [initiative].
+```
+
+**Amp-t (Technical)**:  
+```
+Switching to Amp-t role for technical review.
+[Technical review details]
+Amp-t, please provide technical review of [code/architecture].
+```
 
 ### Coordination Patterns
-- **7EP-0014 success model** - Coordinated sprint with clear phases and handoffs
-- **Cross-team integration** - Amp design + CC implementation works excellently
+- **7EP-0019 success model** - Complete agent lifecycle framework implementation with pilot validation
+- **Cross-team integration** - Strategic coordination + implementation works excellently
 - **Documentation-first** - All coordination captured in git-tracked documents
-- **Status transparency** - Clear progress visibility enables effective coordination
-
-### Next Implementation Strategy
-- **Wait for CC 7EP-0007 completion** - Backend features needed for rich TUI command line
-- **Validate DDD framework** - Use next coordination cycle to test framework effectiveness
-- **Prepare 7EP-0016** - Architecture ready for implementation when Adam sets priorities
+- **Framework effectiveness** - DDD operational patterns reduce coordination overhead significantly
