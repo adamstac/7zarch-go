@@ -79,6 +79,103 @@
 ## 🎯 CC Identity & Approach
 **Remember**: You're CC (Claude Code). You build things. You ship features. You write clean code without unnecessary comments. You're direct and concise. And sometimes, when Adam says "that'll do pig," you know you've hit the sweet spot. 🐷
 
+## 🛠️ Common Commands
+
+### Build & Test
+```bash
+# Goreleaser build system (Level 2 reproducible)
+make dev            # Build and install to ~/bin
+make dist           # Build for current platform  
+make validate       # Validate Goreleaser config
+make release        # Create release (CI only)
+
+# Legacy build system (still available)
+make build          # Build binary
+make test           # Run tests
+make lint           # Run linter
+```
+
+### Display Modes Testing
+```bash
+./7zarch-go list --table
+./7zarch-go list --compact
+./7zarch-go list --card
+./7zarch-go list --tree
+./7zarch-go list --dashboard
+```
+
+### Search Engine Testing
+```bash
+# Test search functionality
+./7zarch-go search reindex                        # Rebuild index
+./7zarch-go search query "test"                   # Full-text search
+./7zarch-go search query --field=name "backup"    # Field-specific
+./7zarch-go search query --field=profile "media"  # Profile search
+./7zarch-go search query --regex ".*\\.7z$"      # Regex patterns
+
+# Performance testing
+time ./7zarch-go search query "performance test"  # Should be <1ms
+```
+
+### Git Operations
+```bash
+# Create PR
+gh pr create --title "..." --body "..."
+
+# Merge PR
+gh pr merge [number] --squash --delete-branch
+
+# Check PR status
+gh pr list
+gh pr view [number]
+```
+
+## 📊 7EP Status Quick Reference
+
+| 7EP | Title | Status | Owner | Notes |
+|-----|-------|--------|-------|-------|
+| 0001 | Trash Management | ✅ Complete | AC | Merged PR #10 |
+| 0002 | CI Integration | ✅ Complete | CC | Merged PR #11 |
+| 0003 | Database Migrations | 🟡 Draft | AC | Not started |
+| 0004 | MAS Foundation | ✅ Complete | AC | Merged |
+| 0005 | Test Dataset | ✅ Complete | CC | Merged PR #12 |
+| 0006 | Performance Testing | ✅ Complete | CC | Merged |
+| 0007 | Enhanced MAS Ops | ✅ Complete | CC | All 3 phases complete |
+| 0008 | Depot Actions | ✅ Complete | CC | Merged |
+| 0009 | Enhanced Display | ✅ Complete | CC | Merged |
+| 0010 | Interactive TUI | 🟢 Ready | AC | Guide prepared, ready for implementation |
+| 0011 | Lint Tightening | ✅ Complete | CC | Merged PR #19 |
+| 0013 | Build Pipeline | ✅ Complete | CC | Merged PR #20 - Goreleaser + reproducible builds |
+| 0014 | Critical Foundation | ✅ Complete | Amp | Exceptional strategic analysis completed |
+| 0015 | Code Quality | ✅ Complete | CC | Merged - comprehensive quality improvements |
+| 0017 | DDD Framework | ✅ Complete | CC | All operational documents and structure complete |
+| 0018 | Static Blog Generator | 🟡 Draft | CC | Awaiting Adam's decision |
+
+## 🔄 CC Session Handoff Protocol
+
+### At Session End
+1. Commit any work in progress with descriptive messages
+2. Update this role file with current status
+3. Update `/docs/development/NEXT.md` if coordination changed
+4. Leave clear TODO comments in code if partially complete
+5. Push all changes to appropriate branches
+6. Use `/docs/development/actions/SHUTDOWN.md` for complete shutdown
+
+### At Session Start
+1. Read this role file for current assignments
+2. Check `/docs/development/NEXT.md` for team coordination
+3. Review recent commits and PRs for context
+4. Verify build works: `make dev && ~/bin/7zarch-go list --dashboard`
+5. Use `/docs/development/actions/BOOTUP.md` for complete startup
+
+## 🚨 Emergency Contacts
+
+- **Build broken?** Check recent merges, try `git bisect`
+- **PR conflicts?** Pull main, rebase feature branch  
+- **Dependabot spam?** Can be batched or ignored temporarily
+- **Team coordination issues?** Update NEXT.md and role documents
+- **Can't find commands?** Check `AGENT.md` for technical patterns
+
 ## 🎯 Success Criteria
 - [ ] Strategic assignment accepted and implementation begun
 - [ ] 7EP-0018 decision resolved (approve/defer/archive)
