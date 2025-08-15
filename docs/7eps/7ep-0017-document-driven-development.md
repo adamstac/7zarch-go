@@ -5,7 +5,7 @@
 **Assignment:** Framework Design  
 **Difficulty:** 3 (moderate - process standardization with systematic coordination)  
 **Created:** 2025-08-13  
-**Updated:** 2025-08-13  
+**Updated:** 2025-08-15  
 
 ## Executive Summary
 
@@ -207,10 +207,71 @@ docs/development/roles/CLAUDE.md:
 /docs/development/roles/AUGMENT.md  # AC current assignments and coordination
 /docs/development/roles/ADAM.md     # Project owner current focus and decisions
 /docs/development/NEXT.md     # Shared coordination hub for everyone
+/docs/development/TEAM-CONTEXT.md  # Project-wide information for all agents
 /docs/development/actions/    # Workflow processes (COMMIT.md, MERGE.md, NEW-FEATURE.md)
 ```
 
 **Purpose:** Current task tracking, priority coordination, immediate planning
+
+## Content Organization Principles
+
+**Strategic Learning**: Clear content boundaries prevent duplication and ensure information lives in the correct location for maximum team effectiveness.
+
+### Document Purpose Matrix
+
+| Document Type | Purpose | Content Scope | Update Frequency |
+|---------------|---------|---------------|------------------|
+| **Role Files** (`docs/development/roles/*.md`) | Individual agent coordination | Current assignments, coordination needs, recent work context, role-specific insights | Daily/session-based |
+| **Team Context** (`docs/development/TEAM-CONTEXT.md`) | Project-wide shared information | 7EP status, team structure, troubleshooting, architecture overview | Weekly/milestone-based |
+| **Technical Patterns** (`/AGENT.md`) | Universal technical guidance | Build commands, code style, architecture patterns, testing approaches | Stable/as-needed |
+| **Workflow Actions** (`docs/development/actions/*.md`) | Standardized processes | Step-by-step workflows, decision trees, scenario handling | Stable/process improvement |
+| **Coordination Hub** (`docs/development/NEXT.md`) | Cross-team priorities | Current blockers, strategic decisions, team availability, coordination points | Real-time/daily |
+
+### Content Boundary Rules
+
+**✅ Role Files Should Contain:**
+- Current work assignments and status
+- Coordination needs specific to this role
+- Recent accomplishments with context
+- Implementation insights from recent work
+- Role personality and approach patterns
+
+**❌ Role Files Should NOT Contain:**
+- Technical commands (belongs in `/AGENT.md`)
+- Project-wide status information (belongs in `TEAM-CONTEXT.md`)
+- Universal workflow processes (belongs in `actions/`)
+- Team structure information (belongs in `TEAM-CONTEXT.md`)
+- Historical archives (keep only recent/relevant context)
+
+**✅ TEAM-CONTEXT.md Should Contain:**
+- Project architecture overview
+- Team structure and relationships  
+- 7EP status visibility for all agents
+- Universal troubleshooting patterns
+- Cross-team workflow references
+
+**✅ AGENT.md Should Contain:**
+- Build, test, and deployment commands
+- Code style and architecture patterns
+- Technical troubleshooting approaches
+- Development environment setup
+
+**✅ Actions Directory Should Contain:**
+- Step-by-step workflow processes
+- Decision trees for complex scenarios
+- Standardized response formats
+- Universal session management patterns
+
+### Information Architecture Validation
+
+**Test Questions for Content Placement:**
+1. **"Does this apply to all agents?"** → TEAM-CONTEXT.md or AGENT.md
+2. **"Is this a process or workflow?"** → docs/development/actions/
+3. **"Is this role-specific current work?"** → docs/development/roles/[ROLE].md  
+4. **"Is this technical guidance?"** → AGENT.md
+5. **"Is this coordination or priority info?"** → NEXT.md
+
+**Anti-Pattern Warning**: If the same information appears in multiple role files, it probably belongs in a shared location (TEAM-CONTEXT.md, AGENT.md, or actions/).
 
 ## Documentation Hierarchy Clarification
 
