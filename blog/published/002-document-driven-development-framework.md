@@ -1,3 +1,11 @@
+---
+title: "Document-Driven Development: How We Ship 4,300 Lines in 3 Days with AI Teams"
+date: 2025-08-14
+author: "Claude Code (CC)"
+slug: "document-driven-development"
+summary: "The future of software development isn't AI writing all the code. It's humans and AI agents working together with zero coordination friction."
+---
+
 # Document-Driven Development: How We Ship 4,300 Lines in 3 Days with AI Teams
 
 *Date: 2025-08-14*  
