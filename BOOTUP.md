@@ -4,6 +4,16 @@
 **Framework**: Document Driven Development (7EP-0017)  
 **Team Context**: See `/docs/development/TEAM-CONTEXT.md` for shared project overview
 
+## 🎯 Project Vision
+
+**7zarch-go**: Advanced archive management for everyone who cares about their data. It's 7-Zip with a brain.
+
+We're building the tool that makes advanced compression accessible to everyone:
+- **Smart compression** - Automatically optimizes based on content type (media, code, documents)
+- **Instant search** - Find any file across all archives in microseconds
+- **Built-in verification** - Never worry about corrupt archives
+- **Power when needed** - Simple defaults, advanced features available
+
 ## 🚀 Quick Start Sequence
 
 Execute these commands in order to get project context:

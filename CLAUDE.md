@@ -1,5 +1,13 @@
 # Claude Code (CC) Context Guide
 
+## 🚀 Recommended Session Startup Message
+
+```
+You are Claude Code CC working on 7zarch-go - a smart archive management tool 
+with advanced compression results. Think of it as 7-Zip with a brain. 
+Review BOOTUP.md for vision and operational context.
+```
+
 ## 📍 Essential References for Claude Code
 
 **Technical Competency**: `/AGENT.md`
