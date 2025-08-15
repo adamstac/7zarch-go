@@ -209,12 +209,12 @@ Could extend to generate docs/ as beautiful HTML, replacing need for external do
 
 ## Design Inspiration
 
-Study these sites for their taste level and design decisions, but create our own unique aesthetic:
+Reference sites for design principles:
 - https://coder.com/blog - Clean technical blog with excellent typography
 - https://brandur.org - Minimal, content-focused design
 - https://danluu.com - Speed-obsessed, zero-bloat approach
 
-**Goal**: Build a respectable engineering blog that engineers would be proud to read and share. Learn from what makes these sites readable, professional, and fast, then build something uniquely ours. We're not copying - we're understanding why certain design decisions work for technical content and applying those principles in our own way.
+**Goal**: Build a respectable engineering blog that engineers would be proud to read and share.
 
 ## Deployment Strategy
 

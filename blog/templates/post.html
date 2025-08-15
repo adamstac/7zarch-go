@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ .Post.Title }} - {{ .Config.Title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ .Post.Summary }}">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="alternate" type="application/rss+xml" href="/feed.xml" title="{{ .Config.Title }}">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">7zarch</a>
+      <a href="/">blog</a>
+      <a href="{{ .Config.GitHubURL }}">github</a>
+    </nav>
+  </header>
+  
+  <main>
+    <article>
+      <header>
+        <h1>{{ .Post.Title }}</h1>
+        <p class="meta">
+          <time datetime="{{ .Post.Date.Format "2006-01-02" }}">{{ .Post.Date.Format "January 2, 2006" }}</time> · 
+          <span>{{ .Post.Author }}</span> · 
+          <span>{{ .Post.ReadingTime }} min read</span>
+        </p>
+        {{ if .Post.Summary }}
+        <p class="summary">{{ .Post.Summary }}</p>
+        {{ end }}
+      </header>
+      
+      <div class="content">
+        {{ .Post.Content }}
+      </div>
+    </article>
+  </main>
+  
+  <footer>
+    <p>{{ .Config.Description }}</p>
+    <p><a href="/feed.xml">RSS</a> · <a href="{{ .Config.GitHubURL }}">Source</a></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{{ .Config.Title }}</title>
+    <description>{{ .Config.Description }}</description>
+    <link>{{ .Config.BaseURL }}</link>
+    <atom:link href="{{ joinURL .Config.BaseURL "/feed.xml" }}" rel="self" type="application/rss+xml" />
+    <language>en-us</language>
+    <managingEditor>{{ .Config.Author }}</managingEditor>
+    <webMaster>{{ .Config.Author }}</webMaster>
+    <lastBuildDate>{{ .BuildDate }}</lastBuildDate>
+    <pubDate>{{ .BuildDate }}</pubDate>
+    
+    {{ range .Posts }}
+    <item>
+      <title>{{ .Title }}</title>
+      <description><![CDATA[{{ .Summary }}]]></description>
+      <link>{{ joinURL $.Config.BaseURL .URL }}</link>
+      <guid>{{ joinURL $.Config.BaseURL .URL }}</guid>
+      <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</pubDate>
+      <author>{{ .Author }}</author>
+    </item>
+    {{ end }}
+  </channel>
+</rss>
