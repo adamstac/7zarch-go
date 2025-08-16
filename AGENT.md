@@ -7,6 +7,14 @@
 - **Coverage**: `make test-coverage-html` (generates coverage.html)
 - **Single test**: `go test -run TestFunctionName ./path/to/package/`
 
+## DDD Framework Validation Commands (7EP-0020)
+- **Complete validation**: `make validate-framework` (all validation systems)
+- **Role files only**: `make validate-framework-roles` (role standardization)
+- **Cross-document consistency**: `make validate-framework-consistency` (coordination sync)
+- **Git patterns**: `make validate-framework-git` (session logs, commits, branches)
+- **Integration testing**: `make validate-framework-integration` (end-to-end lifecycle)
+- **Framework health**: `make framework-health` (continuous monitoring dashboard)
+
 ## Architecture
 - **Cobra CLI**: Commands in `cmd/`, main entry in `main.go`, extensive subcommands
 - **Database**: SQLite registry (`~/.7zarch-go/registry.db`) with ULID-based archive tracking

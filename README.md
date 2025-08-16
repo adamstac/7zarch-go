@@ -9,6 +9,7 @@ An intelligent archive management tool that optimizes compression based on conte
 - **Configuration Presets** - Save and reuse common archive settings
 - **Comprehensive Mode** - Create archives with checksums and metadata in one command
 - **Single Go Binary** - Runs anywhere Go runs; requires 7-Zip installed
+- **Framework Validation** - Systematic coordination patterns with automated compliance (`make validate-framework`)
 
 ## Installation
 

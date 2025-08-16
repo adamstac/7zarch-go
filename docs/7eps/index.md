@@ -50,7 +50,10 @@ A 7EP is a design document that provides:
 | [0014](7ep-0014-critical-foundation-gaps.md) | Critical Foundation Gaps | ✅ **Implemented** | Amp | 4 | 2025-08-13 |
 | [0015](7ep-0015-code-quality-foundation.md) | Code Quality Foundation | ✅ **Implemented** | CC | 3 | 2025-08-13 |
 | [0016](7ep-0016-tui-first-interface-evolution.md) | TUI-First Interface Evolution | 🟡 **Draft** | Future | 4 | 2025-08-13 |
-| [0017](7ep-0017-document-driven-development.md) | Document Driven Development Framework | 🟡 **Draft** | Amp | 3 | 2025-08-13 |
+| [0017](7ep-0017-document-driven-development.md) | Document Driven Development Framework | ✅ **Implemented** | Amp | 3 | 2025-08-13 |
+| [0018](7ep-0018-static-blog-generator.md) | Static Blog Generator | ✅ **Implemented** | CC | 2 | 2025-08-15 |
+| [0019](7ep-0019-role-file-standardization.md) | Agent Role Lifecycle & Coordination Standardization | ✅ **Implemented** | Amp-s | 4 | 2025-08-15 |
+| [0020](7ep-0020-ddd-framework-validation.md) | DDD Framework Validation & Compliance Suite | ✅ **Implemented** | Amp-s | 5 | 2025-08-15 |
 
 ## How to Contribute
 
