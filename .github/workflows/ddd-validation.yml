@@ -28,10 +28,8 @@ jobs:
     
     - name: Install validation dependencies
       run: |
-        cd scripts
-        go mod init validate-framework 2>/dev/null || true
-        go get github.com/yuin/goldmark
-        go mod tidy
+        # Dependencies are handled by individual go.mod files in cmd/ subdirectories
+        echo "✅ Using individual module dependencies for validation tools"
     
     - name: Run DDD Framework Validation Suite
       run: |
@@ -58,13 +56,12 @@ jobs:
           echo "$CHANGED_ROLES"
           
           echo "🔍 Validating modified role files..."
-          cd scripts
-          go build validate-framework.go
-          ./validate-framework ..
+          cd scripts/cmd/validate-framework
+          go run main.go ../../..
           
           echo "🔍 Checking cross-document consistency..."
-          go build validate-consistency.go
-          ./validate-consistency ..
+          cd ../validate-consistency
+          go run main.go ../../..
         else
           echo "ℹ️  No role files modified in this PR"
         fi
@@ -132,21 +129,16 @@ jobs:
     
     - name: Install dependencies
       run: |
-        cd scripts
-        go mod init validate-framework 2>/dev/null || true
-        go get github.com/yuin/goldmark
-        go mod tidy
+        # Dependencies handled by individual go.mod files
+        echo "✅ Validation tools use separate module dependencies"
     
     - name: Check for auto-fixable issues
       run: |
         echo "🔧 Checking for auto-fixable framework issues..."
         
-        # Check if any role files have missing headers or sections
-        cd scripts
-        go build validate-framework.go
-        
-        # Run validation and capture output
-        if ! ./validate-framework .. > validation_output.txt 2>&1; then
+        # Run validation using proper module structure
+        cd scripts/cmd/validate-framework
+        if ! go run main.go ../../.. > validation_output.txt 2>&1; then
           echo "⚠️  Framework validation issues detected"
           cat validation_output.txt
           
