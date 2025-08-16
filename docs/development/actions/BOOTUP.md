@@ -38,7 +38,22 @@ cat docs/development/roles/[ROLE].md | head -20
 cat docs/development/NEXT.md | head -30
 
 # Active 7EP coordination context
-grep -l "Status.*ACTIVE\|In Progress" docs/7eps/*.md | xargs ls -la
+grep -l "Status.*ACTIVE\|In Progress" docs/7eps/*.md | xargs --no-run-if-empty ls -la
+```
+
+### 3.5. **ROLE CONTEXT INTEGRATION** (Agent Lifecycle)
+```bash
+# Extract current assignments from role file
+echo "📋 Current Assignments:"
+grep -A 10 "Active Work\|Current Assignments" docs/development/roles/[ROLE].md
+
+# Check coordination dependencies
+echo "🔗 Coordination Status:"
+grep -A 5 "Coordination Needed\|Blocked\|Waiting" docs/development/roles/[ROLE].md
+
+# Validate assignment clarity  
+echo "⚠️ Assignment Validation:"
+grep -B 2 -A 2 "Available.*Assignment\|Awaiting.*decision\|READY" docs/development/roles/[ROLE].md
 ```
 
 ### 4. Test Build
@@ -186,6 +201,18 @@ After boot-up, you should clearly understand:
 3. Who am I coordinating with or waiting on?
 4. What strategic context affects my work?
 5. Are there any immediate blockers?
+
+**REQUIRED BOOTUP OUTPUT**: After completing steps 1-5, you MUST provide this summary:
+```
+📋 Current Assignments (from role file):
+- [List specific active work items with status]
+
+🔗 Coordination Status: 
+- [Any blocking dependencies or waiting states]
+
+⚠️ Assignment Validation:
+- [Confirm assignments are clear or flag issues]
+```
 
 **Report Format**: Update your role document and coordinate via NEXT.md as needed.
 

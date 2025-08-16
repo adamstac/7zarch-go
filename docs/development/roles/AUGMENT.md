@@ -1,36 +1,23 @@
 # Augment Code (AC) Context & Assignments
 
-**Last Updated:** 2025-08-14 16:30  
+**Last Updated:** 2025-08-15 12:20  
 **Status:** Available  
 **Current Focus:** Ready for strategic assignment
 
-## 👥 Team Context
-
-### Human Team
-- **Adam Stacoviak** (@adamstac) - Project owner, makes architectural decisions, prefers simplicity
-  - Likes: Clean design, Charmbracelet tools, thoughtful UX
-  - Style: Direct feedback, big ideas, document driven development
-
-### AI Team
-- **AC (Augment Code)** - You! Primary user-facing development
-  - Responsibilities: User-facing features, refinements, overnight deep work
-  - Strengths: CLI UX, user workflows, feature implementation
-- **CC (Claude Code)** - Infrastructure and backend work
-- **Amp-s/Amp-t** - Strategic and technical leadership (see docs/development/AMP.md)
+**Team Context**: See [`docs/development/TEAM-CONTEXT.md`](../TEAM-CONTEXT.md) for project structure and team overview
 
 ## 🎯 Current Assignments
 
 ### Active Work (This Week)
 - **Available for Strategic Assignment** - READY (foundation work complete, awaiting Adam's priority decision)
 - **DDD Framework Support** - ONGOING (contributing to operational framework validation)
-- **Quality Assurance Ready** - READY (testing and validation of completed features)
 
 ### Next Priorities
 1. **Strategic Assignment** - Begin major work when Adam sets next focus (TUI vs TrueNAS vs optimization)
-2. **TrueNAS Integration** - User-facing remote storage features if backend prioritized
-3. **Advanced TUI Features** - User experience enhancements if frontend prioritized
+2. **TrueNAS Integration UI** - User-facing remote storage management interfaces if backend prioritized
+3. **Advanced TUI Features** - User experience enhancements and command line integration if frontend prioritized
 4. **User Documentation** - Complete guides for query/search/batch features
-5. **Quality Assurance** - Testing and edge case validation
+5. **Quality Assurance** - Feature testing, user acceptance validation, edge case coverage
 
 ## 🔗 Coordination Needed
 - **Strategic Decision from Adam:** Next major focus area (TrueNAS backend vs TUI evolution vs optimization)
@@ -49,27 +36,9 @@
 - **TUI validation** - User-facing interface testing provides valuable feedback for refinement
 - **Backend integration readiness** - Ready to implement user-facing features for TrueNAS when prioritized
 
-### Potential Assignment Areas
-- **TrueNAS Integration UI** - User-facing interfaces for remote storage management
-- **Advanced TUI Features** - Command line integration, remote browsing interface
-- **User Experience** - Workflow optimization, help systems, user documentation
-- **Quality Assurance** - Feature testing, user acceptance validation, edge case coverage
-
-### User-Focused Expertise
+### User Experience Expertise
 - **Workflow optimization** - Understanding user needs and translating to interface design
 - **CLI user experience** - Command interface design and help text optimization
 - **Integration testing** - Real-world usage validation and edge case identification
-- **Documentation** - User-facing guides and troubleshooting content
-
-## 🎯 Availability Status
-- **Immediate availability** - Ready for assignment to high-priority user-facing work
-- **TrueNAS readiness** - Prepared to implement backend integration when Adam sets priority
-- **TUI enhancement** - Available to extend Amp's excellent TUI foundation
-- **Quality focus** - Ready for testing, validation, and user experience work
-
-## 📋 Strategic Options
-Based on Adam's priorities, AC is well-positioned for:
-1. **TrueNAS backend integration** - User-facing remote storage features
-2. **TUI evolution** - Command line integration and advanced interface features  
-3. **User experience optimization** - Workflow refinement and usability improvements
-4. **Documentation and guides** - User-facing documentation for new features
+- **User documentation** - User-facing guides and troubleshooting content
+- **Quality assurance** - Feature testing, user acceptance validation, edge case coverage
