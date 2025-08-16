@@ -96,11 +96,11 @@ test-coverage-html: test-coverage ## Generate HTML coverage report
 validate-framework: ## Run complete DDD framework validation suite
 	@echo "🔍 Running DDD Framework Validation Suite..."
 	@echo "============================================="
-	@cd scripts && go build validate-framework.go && ./validate-framework ..
+	@cd scripts/cmd/validate-framework && go run main.go ../../..
 	@echo ""
-	@cd scripts && go build validate-consistency.go && ./validate-consistency ..
+	@cd scripts/cmd/validate-consistency && go run main.go ../../..
 	@echo ""
-	@cd scripts && go build validate-git-patterns.go && ./validate-git-patterns ..
+	@cd scripts/cmd/validate-git-patterns && go run main.go ../../..
 	@echo ""
 	@echo "📊 DDD Framework validation complete"
 	@echo ""
@@ -109,15 +109,15 @@ validate-framework: ## Run complete DDD framework validation suite
 
 validate-framework-roles: ## Validate role files only
 	@echo "🔍 Validating role files only..."
-	@cd scripts && go build validate-framework.go && ./validate-framework ..
+	@cd scripts/cmd/validate-framework && go run main.go ../../..
 
 validate-framework-consistency: ## Validate cross-document consistency
 	@echo "🔍 Validating cross-document consistency..."
-	@cd scripts && go build validate-consistency.go && ./validate-consistency ..
+	@cd scripts/cmd/validate-consistency && go run main.go ../../..
 
 validate-framework-git: ## Validate git patterns
 	@echo "🔍 Validating git patterns..."
-	@cd scripts && go build validate-git-patterns.go && ./validate-git-patterns ..
+	@cd scripts/cmd/validate-git-patterns && go run main.go ../..
 
 validate-framework-integration: ## Test complete framework integration
 	@echo "🔍 Testing framework integration..."

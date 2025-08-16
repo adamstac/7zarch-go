@@ -190,13 +190,7 @@ jobs:
           git config user.name "DDD Framework Auto-fix"
           git config user.email "noreply@7zarch-go.dev"
           git add docs/development/roles/
-          git commit -m "auto-fix: DDD framework compliance (missing headers)
-
-Added missing role file headers per 7EP-0019 standards
-Automated via DDD validation CI workflow
-Manual review recommended for Current Focus fields
-
-[auto-fix by DDD framework validation]"
+          git commit -m "auto-fix: DDD framework compliance (missing headers) - Added missing role file headers per 7EP-0019 standards, automated via DDD validation CI workflow, manual review recommended for Current Focus fields [auto-fix by DDD framework validation]"
           
           echo "🔧 Auto-fixes committed"
           echo "AUTO_FIXES_APPLIED=true" >> $GITHUB_ENV
